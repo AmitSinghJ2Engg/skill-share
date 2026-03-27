@@ -5,7 +5,7 @@ description: >
 metadata:
   domain: product
   prefix: PS-
-  version: 2.0.0
+  version: 2.1.0
 ---
 
 # Product Screen
@@ -22,7 +22,7 @@ The opportunity map, financial formulas, gate definitions, and data integrity ru
 
 For detailed rules loaded only when needed:
 
-- **Scoring rubric**: See [reference/scoring-rubric-8dim.md](reference/scoring-rubric-8dim.md) — 8-dimension scoring model for SCORE mode
+- **Scoring rubric**: See [reference/scoring-rubric-8dim.md](reference/scoring-rubric-8dim.md) — 8-dimension source-agnostic scoring model for SCORE mode
 - **Risk filters**: See [reference/risk-filter-rules.md](reference/risk-filter-rules.md) — 4 filters for REPORT mode Stage 1
 
 ---
@@ -48,7 +48,7 @@ If user provides raw CrawlBatch: redirect to product-discover BATCH. Never accep
 
 ## MODE: SCORE
 
-**Purpose:** Score each ProductCandidate across 8 dimensions. Returns ScoredCandidate[].
+**Purpose:** Score each ProductCandidate across 8 dimensions using source-agnostic signals. Returns ScoredCandidate[]. Write scores to CRM records.
 
 **When to invoke:** "score these candidates", "rank these products", "score this discovery batch".
 
@@ -56,26 +56,30 @@ Read [reference/scoring-rubric-8dim.md](reference/scoring-rubric-8dim.md) for fu
 
 ### 8-Dimension Overview
 
-All dimensions equally weighted at 12.5 points each, total max 100:
+All dimensions equally weighted at 12.5 points each, total max 100. Each dimension uses the **best available signal** across platforms:
 
-| Dimension | What to measure | 0 points | 12.5 points |
-|---|---|---|---|
-| Demand Signal | BSR rank in category | BSR > 50,000 | BSR < 2,000 |
-| Price Point | Ismokraft target 800–2,000 INR | Outside 500–3,000 | 800–1,200 sweet spot |
-| Competition Gap | Review count of top-3 sellers | All > 500 reviews | At least one < 50 |
-| Trend Strength | Google Trends 90-day score | Score < 20 | Score > 70 |
-| Social Validation | Pinterest saves / social traction | null / low | > 500 saves |
-| Margin Potential | COGS headroom at SP | SP < 2x COGS | SP > 3.5x COGS |
-| Category Fit | Ismokraft domain match | No match | Exact match |
-| Differentiation | Unique angle available | Commodity | Clear gap |
+| Dimension | What to measure | Signal sources (priority order) | 0 points | 12.5 points |
+|---|---|---|---|---|
+| Demand Signal | Purchase intent across marketplaces | Amazon BSR > Etsy sales > Pinterest saves > Google Trends | No signal from any platform | Strong demand on primary marketplace |
+| Price Point | Ismokraft target 800–2,000 INR | Any marketplace price (converted to INR) | Outside 500–3,000 | 800–1,200 sweet spot |
+| Competition Gap | Competitor strength in category | Amazon reviews > Etsy shop count > listing density | Saturated across all platforms | Low competition on primary marketplace |
+| Trend Strength | Growth trajectory | Google Trends (India + US) > Etsy trending > Pinterest rising | Declining on all platforms | Rising/breakout signal |
+| Social Validation | Consumer interest signals | Pinterest saves > Etsy favorites > social traction | No signal from any platform | Strong social proof |
+| Margin Potential | COGS headroom at SP | Any marketplace pricing data | SP < 2x COGS | SP > 3.5x COGS |
+| Category Fit | Ismokraft domain match | Opportunity map zone alignment | No match | Exact match |
+| Differentiation | Unique angle available | Amazon reviews + Etsy reviews + Q&A | Commodity across all platforms | Clear gap identified |
 
 ### Score Bands
 
 Strong: 75–100. Promising: 55–74. Weak: 35–54. Reject: 0–34.
 
+### CRM Update
+
+After scoring, update each candidate's CRM record (created during product-discover BATCH Phase 4) with: Opportunity_Score = total_score, Competition_Level = competition dimension label, Search_Trend = trend dimension label.
+
 ### Output: ScoredCandidate[]
 
-Each candidate gets: candidate_id, title, total_score, score_band, dimension_scores (8 values), score_notes.
+Each candidate gets: candidate_id, title, total_score, score_band, dimension_scores (8 values with source citations), score_notes, marketplaces_scored[].
 
 Batch output includes: scoring_run_id (PS-S-{YYYYMMDD}-{NNN}), scored_count, top_candidates list.
 
@@ -83,7 +87,7 @@ Batch output includes: scoring_run_id (PS-S-{YYYYMMDD}-{NNN}), scored_count, top
 
 ## MODE: REPORT
 
-**Purpose:** Apply risk filters, then produce a top-10 ranked report with differentiation ideas.
+**Purpose:** Apply risk filters, then produce a top-10 ranked report with differentiation ideas. Send summary to Slack.
 
 **When to invoke:** "generate the report", "top 10 products", "which products passed", "filter the candidates".
 
@@ -111,6 +115,11 @@ For the top 10 PASS/CONDITIONAL candidates (ranked by score), produce per candid
 3. Bundle opportunity — what to pair with it
 4. Manufacturing difficulty — Easy / Medium / Hard
 5. Confidence level — High / Medium / Low (based on data completeness)
+6. Marketplace opportunity — which marketplaces show strongest signal
+
+### Stage 3: Slack Summary
+
+Send report summary to #product-discovery via Slack: top 10 product names with scores, filter summary (pass/conditional/fail counts), marketplace coverage.
 
 ### Output: OpportunityReport
 
@@ -120,19 +129,21 @@ Report includes: report_id (PS-R-{YYYYMMDD}-{NNN}), filter_summary (pass/conditi
 
 ## MODE: BRIEF
 
-**Purpose:** Produce a structured launch brief for a single evaluated product. Activates downstream skills.
+**Purpose:** Produce a structured launch brief for a single evaluated product. Activates downstream skills. Update CRM record.
 
 **When to invoke:** "launch brief", "brief for this product", single product ready for sourcing.
 
 ### Output: LaunchBrief
 
-Contains: product_title, target_sp_inr, target_cogs_max_inr, target_margin_pct, bigin_stage, and handoff triggers for:
+Contains: product_title, target_sp_inr, target_cogs_max_inr, target_margin_pct, bigin_stage, marketplace_strategy (which marketplaces to launch on), and handoff triggers for:
 
 - **margin-calculator** — verify margin at target SP and COGS (read-only invocation)
 - **vendor-ops** — DISCOVER mode for manufacturers matching product spec
 - **content-writer** — LISTING mode for Amazon India listing after listing approval
 
 Brief ID format: PS-B-{YYYYMMDD}-{NNN}.
+
+CRM update: Set Launch_Priority field on the product's CRM record.
 
 ---
 
@@ -181,23 +192,25 @@ If blocked: state exact missing input. Do not proceed. Do not invent data.
 
 ## Rules
 
-1. Never invent scores. If a dimension's source data is null, score it 0. Do not estimate.
+1. Never invent scores. If a dimension's source data is null across ALL platforms, score it 0. Do not estimate.
 2. Never accept raw CrawlBatch. Redirect to product-discover BATCH.
 3. Margin Potential dimension is a rough viability signal. Full margin calculation is margin-calculator's job.
-4. All ScoredCandidate outputs must trace to input data. Unscored dimensions are marked N/A.
+4. All ScoredCandidate outputs must trace to input data. Unscored dimensions are marked N/A with reason.
 5. FAIL candidates in REPORT mode are excluded but logged in rejection_log with reason.
+6. All score updates write to CRM `Product_Launches` records. No local file saves.
+7. Report summary goes to Slack #product-discovery.
 
 ---
 
 ## Execution Log
 
 ```
-[EXEC:product_pipeline:PS-{MODE}-{YYYYMMDD}-{NNN}]
-product-screen v2.0.0 | {YYYY-MM-DD} | Mode: {SCORE|REPORT|BRIEF}
+[EXEC:product_screen:PS-{MODE}-{YYYYMMDD}-{NNN}]
+product-screen v2.1.0 | {YYYY-MM-DD} | Mode: {SCORE|REPORT|BRIEF}
 Input: {source_data_id or description}
 Candidates in: {N} | Candidates out: {N}
-{SCORE}: Score range: {min}–{max} | Bands: {N} Strong, {N} Promising, {N} Weak, {N} Reject
-{REPORT}: Filters: {N} pass, {N} conditional, {N} fail | Top-10 generated
-{BRIEF}: Product: {title} | Handoffs: {skill names}
+{SCORE}: Score range: {min}–{max} | Bands: {N} Strong, {N} Promising, {N} Weak, {N} Reject | CRM records updated: {N}
+{REPORT}: Filters: {N} pass, {N} conditional, {N} fail | Top-10 generated | Slack: {sent/skipped}
+{BRIEF}: Product: {title} | Handoffs: {skill names} | CRM updated: {yes/no}
 Errors: {none | description}
 ```

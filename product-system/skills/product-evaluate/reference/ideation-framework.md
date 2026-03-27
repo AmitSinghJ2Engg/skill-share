@@ -32,12 +32,15 @@ Each concept must include:
 - **price_band**: INR range, must be at least 1,000
 - **differentiation_hooks**: List of hooks, each citing a signal
 - **personalization_fit**: HIGH / MEDIUM / LOW + rationale
-- **amazon_fit**: YES / NO / CONDITIONAL — with fee tier note
+- **marketplace_fit**: Per-marketplace assessment:
+  - **amazon_in**: YES / NO / CONDITIONAL — with fee tier note
+  - **amazon_us**: YES / NO / CONDITIONAL — with price point and competition note
+  - **etsy**: YES / NO / CONDITIONAL — with handmade/craft positioning note
 - **manufacturing_difficulty**: LOW / MEDIUM / HIGH + specific wooden product rationale
 - **confidence**: HIGH / MEDIUM / LOW — based on quality of input signals
-- **signal_sources**: List of sources with dates
+- **signal_sources**: List of sources with dates and platforms
 - **gaps_declared**: List of unknowns
-- **next_step**: Most logical immediate action (usually product-intelligence SINGLE)
+- **next_step**: Most logical immediate action (usually product-discover SINGLE)
 
 ## Manufacturing Clusters
 
@@ -55,4 +58,4 @@ When specifying wood_spec, ensure the chosen species and technique are available
 
 Rate each concept: HIGH (strong signals, clear path), MEDIUM (some signals, needs validation), LOW (weak signals, speculative).
 
-Basis: zone trend strength, review gap evidence, price cluster fit, manufacturing complexity.
+Basis: zone trend strength, review gap evidence, price cluster fit, manufacturing complexity, multi-marketplace opportunity (stronger if demand visible across India + US + Etsy).

@@ -5,7 +5,7 @@ description: >
 metadata:
   domain: product
   prefix: PE-
-  version: 2.0.0
+  version: 2.1.0
 ---
 
 # Product Evaluate
@@ -16,8 +16,8 @@ Three modes — invoke independently or chain:
 
 | Mode | Input | Output | Feeds |
 |---|---|---|---|
-| **DEEP-EVAL** | product_name + ResearchRecord | EvalRecord with verdict + evidence | GATE-CHECK |
-| **GATE-CHECK** | product data + gate_number (or "all") | GateResult[] go/no-go per gate | product-screen BRIEF |
+| **DEEP-EVAL** | product_name + ResearchRecord | EvalRecord with verdict + evidence → CRM update | GATE-CHECK |
+| **GATE-CHECK** | product data + gate_number (or "all") | GateResult[] go/no-go per gate → CRM + Slack | product-screen BRIEF |
 | **IDEATE** | zone or product + optional research | ConceptBatch structured concepts | product-discover SINGLE or vendor-ops |
 
 **Capability boundary:** This skill evaluates single products and generates concepts. It does not score batches (product-screen SCORE mode), gather market data (product-discover), calculate margins (margin-calculator), or write listings (content-writer).
@@ -30,7 +30,7 @@ The opportunity map, financial formulas, gate definitions, and data integrity ru
 
 For detailed rules loaded only when needed:
 
-- **Evaluation model**: See [reference/product-eval-model.md](reference/product-eval-model.md) — 16-criteria weighted model for DEEP-EVAL
+- **Evaluation model**: See [reference/product-eval-model.md](reference/product-eval-model.md) — 16-criteria weighted model for DEEP-EVAL (multi-marketplace data sources)
 - **Ideation framework**: See [reference/ideation-framework.md](reference/ideation-framework.md) — concept structure, hard rules, manufacturing clusters for IDEATE
 
 ---
@@ -39,19 +39,19 @@ For detailed rules loaded only when needed:
 
 The 7 data integrity rules are defined in project knowledge under data-integrity-rules.md. In addition, product-evaluate enforces these skill-specific rules:
 
-1. **Every score cites its source field.** "Demand score = 4/5 because BSR = 3,200 (source: amazon.in, 2026-03-14)". No score without a cited reason.
+1. **Every score cites its source field.** "Demand score = 4/5 because BSR = 3,200 (source: amazon.in, 2026-03-14)" or "Demand score = 3/5 because Etsy sales = 450 (source: etsy.com, 2026-03-14)". No score without a cited reason.
 2. **Confidence is mandatory on every output.** HIGH = all inputs present. MEDIUM = some null. LOW = majority null. Never omit or inflate.
 3. **Null inputs produce conservative handling, not zero or estimated.** Exclude from total, document in gaps[].
 4. **Gate verdicts cite the specific criterion that failed.** "Gate 2 FAIL: Net margin = 11.2% — below 15% threshold." No vague failures.
 5. **Ideation hooks cite every differentiation claim.** Every hook references a real signal. Generic claims are not valid.
 6. **Formulas are not invented in this skill.** Gate 2 thresholds use financial formulas from project knowledge. Scoring uses the eval model reference file.
-7. **Opportunity_Score is the authoritative Gate 1 value.** Written to Bigin. niche_score from product-discover is research-phase only — never used as a gate criterion.
+7. **Opportunity_Score is the authoritative Gate 1 value.** Written to CRM `Product_Launches` module (auto-syncs to Bigin). niche_score from product-discover is research-phase only — never used as a gate criterion.
 
 ---
 
 ## MODE: DEEP-EVAL
 
-**Purpose:** Deep 16-criteria weighted evaluation of a single product using structured research data. Returns EvalRecord with Opportunity_Score.
+**Purpose:** Deep 16-criteria weighted evaluation of a single product using structured research data from multiple marketplaces. Returns EvalRecord with Opportunity_Score. Updates CRM record.
 
 **When to invoke:** "evaluate this product", "deep evaluate", "16-criteria score", "product verdict", "should we pursue this".
 
@@ -60,19 +60,21 @@ Read [reference/product-eval-model.md](reference/product-eval-model.md) for full
 ### Steps
 
 1. Confirm inputs: product_name, category, and at least one of: ResearchRecord from product-discover SINGLE, or user-provided research data.
-2. Score each of the 16 criteria (raw 1–5) using the rubric in product-eval-model.md.
-3. For each score, cite the specific data point, its value, and source with date.
+2. Score each of the 16 criteria (raw 1–5) using the rubric in product-eval-model.md. Use best available marketplace data for each criterion.
+3. For each score, cite the specific data point, its value, source platform, and date.
 4. Compute Weighted_Score per criterion = (Raw_Score / 5) x Weight.
 5. Compute Adjusted_Total = raw_total x (100 / max_possible_from_scored_criteria).
 6. Apply verdict thresholds: STRONG (75–100), MODERATE (55–74), WEAK (35–54), REJECT (0–34).
 7. Identify top 3 strengths and top 3 risks — every point must cite source data.
-8. Return EvalRecord.
+8. **CRM update:** Write Opportunity_Score and Gate_1_Decision to the product's CRM `Product_Launches` record. CRM auto-syncs to Bigin, triggering New Request → Validated transition if STRONG or MODERATE.
+9. **Slack notification:** Send gate result to #product-alerts if verdict is STRONG (opportunity found) or REJECT (flagged for review).
+10. Return EvalRecord.
 
 ### 4 Dimensions Overview
 
 | Dimension | Weight | Criteria count |
 |---|---|---|
-| Market Demand | 30% | 4 criteria (Search Volume, BSR, Trend Direction, Category Size) |
+| Market Demand | 30% | 4 criteria (Search Volume, Demand Signal, Trend Direction, Category Size) |
 | Competition Beatability | 25% | 4 criteria (Review Moat, Brand Concentration, New Entrant Success, Listing Quality Gap) |
 | Margin Potential | 25% | 4 criteria (Price Cluster Fit, COGS Headroom, Fee Structure, Risk [negative weight]) |
 | Differentiation Room | 20% | 4 criteria (Unmet Needs, Personalization Fit, Wood Advantage, Legal & Safety [weight 0]) |
@@ -81,13 +83,13 @@ Read [reference/product-eval-model.md](reference/product-eval-model.md) for full
 
 ### Output: EvalRecord
 
-Contains: eval_id (PE-E-{YYYYMMDD}-{NNN}), product_name, Opportunity_Score (0–100), verdict, dimension_scores, criterion_details (16 entries with raw_score, weighted_score, evidence, source), strengths[], risks[], data_gaps[], confidence.
+Contains: eval_id (PE-E-{YYYYMMDD}-{NNN}), product_name, Opportunity_Score (0–100), verdict, dimension_scores, criterion_details (16 entries with raw_score, weighted_score, evidence, source_platform, source_url), strengths[], risks[], data_gaps[], confidence, marketplaces_evaluated[], crm_record_id.
 
 ---
 
 ## MODE: GATE-CHECK
 
-**Purpose:** Evaluate a product against one gate or all 8 gates. Returns structured go/no-go with blockers and fix actions.
+**Purpose:** Evaluate a product against one gate or all 8 gates. Returns structured go/no-go with blockers and fix actions. Updates CRM and notifies Slack.
 
 **When to invoke:** "gate check", "can we launch", "is this ready for [stage]", "what's blocking", gate numbers 1–8.
 
@@ -100,7 +102,9 @@ Gate definitions are available in project knowledge under gate-definitions.md.
 3. Assign verdict: PASS / MARGINAL / FAIL / INCOMPLETE.
 4. If FAIL: state the specific criterion, actual value, threshold, and minimum fix required.
 5. If INCOMPLETE: state exactly what data is missing.
-6. Return GateResult[].
+6. **CRM update:** Write gate decision and notes to CRM `Product_Launches` record (Gate_1_Decision, Gate_1_Notes, etc.). CRM auto-syncs to Bigin, triggering the appropriate stage transition.
+7. **Slack notification:** Send gate result to #product-alerts — PASS (celebrate), FAIL (with fix actions), INCOMPLETE (with data needed).
+8. Return GateResult[].
 
 ### Fix Action Format
 
@@ -115,22 +119,24 @@ Fix required: Raise SP from 1,080 to 1,300 INR (adds 3.8% margin)
 Formula reference: financial-formulas.md, Core Chain
 ```
 
-### Gate Map — Bigin Pipeline Alignment
+### Gate Map — CRM + Bigin Pipeline Alignment
 
-| Gate | Name | Bigin Transition | Field on PASS |
+All gate writes go to CRM `Product_Launches` module first. CRM auto-syncs to Bigin, triggering the stage transition.
+
+| Gate | Name | CRM Fields Written | Bigin Transition (auto-sync) |
 |---|---|---|---|
-| 1 | Product Attractiveness | New Request → Validated | Opportunity_Score |
-| 2 | Financial Viability | Validated → Research & Profitability | Financial_Viability |
-| 3 | Sourcing Feasibility | Research & Profitability → Test Sourcing | (stage advance) |
-| 4 | Vendor Quality | Test Sourcing → Test Listing | Vendor_Score, Vendor_Grade |
-| 5 | Listing Readiness | Test Listing → Paid Testing | (stage advance) |
-| 6 | Test Campaign Results | Paid Testing → Scale Decision Data | Scale_Verdict |
-| 7 | Scale Decision | Scale Decision Data → Sourcing Model Selection | Sourcing_Model_Selected |
-| 8 | Final Launch Readiness | Sourcing Model Selection → Final Listing | (stage advance) |
+| 1 | Product Attractiveness | Opportunity_Score, Gate_1_Decision, Gate_1_Notes | New Request → Validated |
+| 2 | Financial Viability | Financial_Viability, Gate_2_Notes | Validated → Research & Profitability |
+| 3 | Sourcing Feasibility | Gate_3_Approval, Gate_3_Notes | Research & Profitability → Test Sourcing |
+| 4 | Vendor Quality | Vendor_Score, Vendor_Grade | Test Sourcing → Test Listing |
+| 5 | Listing Readiness | Gate_5_Notes | Test Listing → Paid Testing |
+| 6 | Test Campaign Results | Scale_Verdict | Paid Testing → Scale Decision Data |
+| 7 | Scale Decision | Sourcing_Model_Selected | Scale Decision Data → Sourcing Model Selection |
+| 8 | Final Launch Readiness | Gate_8_Notes | Sourcing Model Selection → Final Listing |
 
 ### Output: GateResult[]
 
-Per gate: gate_number, gate_name, bigin_stage_transition, verdict, hard_reqs[] (pass/fail each), scored_sum, threshold, blockers[], fix_actions[], incomplete_fields[].
+Per gate: gate_number, gate_name, verdict, hard_reqs[] (pass/fail each), scored_sum, threshold, blockers[], fix_actions[], incomplete_fields[], crm_fields_written[], bigin_transition.
 
 ---
 
@@ -155,7 +161,7 @@ Price floor: at least 1,000 INR. Weight ceiling: at most 2.0 kg. Wood dominance:
 
 ### Output: ConceptBatch
 
-Contains: run_id (PE-I-{YYYYMMDD}-{NNN}), zone, concept_count, concepts[] (each with concept_id, working_title, core_form, wood_spec, price_band, differentiation_hooks, personalization_fit, amazon_fit, manufacturing_difficulty, confidence, signal_sources, gaps_declared, next_step), zone_signal_summary, recommended_concept_id.
+Contains: run_id (PE-I-{YYYYMMDD}-{NNN}), zone, concept_count, concepts[] (each with concept_id, working_title, core_form, wood_spec, price_band, differentiation_hooks, personalization_fit, marketplace_fit, manufacturing_difficulty, confidence, signal_sources, gaps_declared, next_step), zone_signal_summary, recommended_concept_id.
 
 ---
 
@@ -169,7 +175,7 @@ Batch scoring of ProductCandidate[] is owned by product-screen SCORE mode. Route
 
 | Task | Required inputs | Block if missing |
 |---|---|---|
-| DEEP-EVAL | product_name + ResearchRecord (at minimum BSR, price, review count) | Block — cannot score without market data |
+| DEEP-EVAL | product_name + ResearchRecord (at minimum demand signal, price, competition data from at least one marketplace) | Block — cannot score without market data |
 | GATE-CHECK | product data + gate_number (1–8 or "all") | Block — gate number required |
 | IDEATE | zone or product category | Warn if no research available — note LOW confidence |
 
@@ -208,6 +214,8 @@ If blocked: state exact missing input. Do not proceed. Do not substitute with as
 4. Gate FAIL verdicts include specific threshold, actual value, and actionable fix direction.
 5. Ideation concepts satisfy all 7 hard rules or are discarded.
 6. Financial thresholds come from project knowledge (financial-formulas.md). Never hardcoded.
+7. All writes go to CRM `Product_Launches` module. CRM auto-syncs to Bigin. No direct Bigin writes.
+8. Gate pass/fail notifications go to Slack #product-alerts. No auto-memory storage.
 
 ---
 
@@ -215,9 +223,9 @@ If blocked: state exact missing input. Do not proceed. Do not substitute with as
 
 ```
 [EXEC:product_evaluate:PE-{MODE}-{YYYYMMDD}-{NNN}]
-product-evaluate v2.0.0 | {YYYY-MM-DD} | Mode: {DEEP-EVAL|GATE-CHECK|IDEATE}
-{DEEP-EVAL}: {product} | Score: {N}/100 | Verdict: {verdict} | Confidence: {level}
-{GATE-CHECK}: Gate {N} | Verdict: {PASS|FAIL|MARGINAL|INCOMPLETE} | Blockers: {N}
+product-evaluate v2.1.0 | {YYYY-MM-DD} | Mode: {DEEP-EVAL|GATE-CHECK|IDEATE}
+{DEEP-EVAL}: {product} | Score: {N}/100 | Verdict: {verdict} | Confidence: {level} | Marketplaces: {list} | CRM: {record_id}
+{GATE-CHECK}: Gate {N} | Verdict: {PASS|FAIL|MARGINAL|INCOMPLETE} | Blockers: {N} | CRM: {fields_written} | Slack: {sent/skipped}
 {IDEATE}: Zone: {zone} | Concepts: {N} | Recommended: {concept_id}
 Data sources: {list}
 ```

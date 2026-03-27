@@ -5,7 +5,7 @@ description: >
 metadata:
   domain: product
   prefix: PM-
-  version: 2.0.0
+  version: 2.1.0
 ---
 
 # Product Monitor
@@ -16,9 +16,9 @@ Three modes — run in sequence (MONITOR → CLASSIFY → FEEDBACK) or independe
 
 | Mode | Input | Output | Feeds |
 |---|---|---|---|
-| **MONITOR** | launched_products[] | PerformanceRecord[] + anomalies | CLASSIFY |
-| **CLASSIFY** | performance_records + original_eval_records | OutcomeClassification[] | FEEDBACK |
-| **FEEDBACK** | classifications | Learning signals + alerts | Auto-memory, upstream skills |
+| **MONITOR** | launched_products[] | PerformanceRecord[] + anomalies → CRM notes | CLASSIFY |
+| **CLASSIFY** | performance_records + original_eval_records | OutcomeClassification[] → CRM update | FEEDBACK |
+| **FEEDBACK** | classifications | Learning signals → CRM notes + Slack | Upstream skills calibration |
 
 **Capability boundary:** This skill monitors and classifies launched products only. It does not discover products (product-discover), score batches (product-screen), evaluate opportunity or gates (product-evaluate), or make launch/kill decisions (Gate 7 is product-evaluate GATE-CHECK).
 
@@ -42,9 +42,9 @@ For detailed rules loaded only when needed:
 
 The 7 data integrity rules are defined in project knowledge. In addition, product-monitor enforces:
 
-1. **Every metric cites source and date.** "BSR = 4,200 (source: amazon.in, pulled 2026-03-26)". No metric without provenance.
+1. **Every metric cites source, platform, and date.** "BSR = 4,200 (source: amazon.in, pulled 2026-03-26)" or "Revenue = $342 (source: amazon.com Seller Central, 2026-03-26)". No metric without provenance.
 2. **Missing metrics are null, not zero.** If a metric cannot be pulled, set to null and reduce data_completeness_pct. Never substitute zero.
-3. **Classification requires minimum data.** At least 30 days since launch AND at least BSR or revenue data. Otherwise classify as "pending".
+3. **Classification requires minimum data.** At least 30 days since launch AND at least BSR or revenue data from at least one marketplace. Otherwise classify as "pending".
 4. **Prediction accuracy requires original scores.** If original eval_score unavailable, set prediction_accuracy = "unknown". Never guess.
 5. **Failure patterns must be categorised.** Every failure uses the failure category enum from anomaly-thresholds.md. If ambiguous, use "other" with explanation.
 
@@ -52,7 +52,7 @@ The 7 data integrity rules are defined in project knowledge. In addition, produc
 
 ## MODE: MONITOR
 
-**Purpose:** Collect current performance metrics for launched products. Pure data collection — no decisions.
+**Purpose:** Collect current performance metrics for launched products across all active marketplaces. Pure data collection — no decisions.
 
 **When to invoke:** "how is this product doing", "performance check", "BSR tracking", weekly monitoring run.
 
@@ -60,27 +60,41 @@ Read [reference/anomaly-thresholds.md](reference/anomaly-thresholds.md) for thre
 
 ### Required Inputs
 
-launched_products[] with: product_id, product_name, launch_date, launch_channel (amazon_india / shopify_india / both). Optional: asin, lookback_days (default 30).
+launched_products[] with: product_id, product_name, launch_date, launch_channels[] (amazon_india / amazon_us / amazon_europe / amazon_au / shopify_india / multi_channel). Optional: asin_india, asin_us, lookback_days (default 30).
 
 ### Metrics Collected
 
-| Metric | Source | Anomaly trigger |
+| Metric | Source(s) | Anomaly trigger |
 |---|---|---|
-| BSR (current + trend) | Amazon India product page | Drop more than 50% from previous check |
-| Review count + velocity | Amazon India product page | Below category median |
-| Average rating | Amazon India product page | Below 3.5 |
-| Return rate % | Seller Central / Zoho | Above 10% |
-| Revenue INR | Zoho Books / Seller Central | Decline more than 30% week-over-week |
-| Units sold | Zoho Inventory / Seller Central | (tracked, no anomaly trigger) |
-| Ad metrics (ACoS, ROAS, spend) | Amazon Ads / ads-ops output | ACoS above target |
+| BSR (current + trend) | Amazon India and/or US product page | Drop more than 50% from previous check |
+| Review count + velocity | Amazon India and/or US product page | Below category median |
+| Average rating | Amazon India and/or US product page | Below 3.5 |
+| Return rate % | Seller Central (India/US) / Zoho | Above 10% |
+| Revenue INR (aggregated) | Zoho Books / Seller Central (all channels) | Decline more than 30% week-over-week |
+| Revenue USD (if US channel) | Amazon US Seller Central | (tracked separately, converted to INR for aggregation) |
+| Units sold | Zoho Inventory / Seller Central (all channels) | (tracked, no anomaly trigger) |
+| Ad metrics (ACoS, ROAS, spend) | Amazon Ads (India/US) / ads-ops output | ACoS above target |
+| Etsy metrics (if listed) | Etsy shop dashboard / Etsy API | Views declining, favorites dropping |
+
+### Multi-Marketplace Aggregation
+
+For products listed on multiple marketplaces:
+- Revenue: aggregate across all channels in INR
+- BSR: track per marketplace (not aggregated — BSR is marketplace-specific)
+- Reviews: track per marketplace
+- Return rate: track per marketplace and blended
 
 ### Anomaly Detection
 
-Anomalies are flagged with severity (CRITICAL / WARNING) but NOT acted on. Operator or task layer decides response.
+Anomalies are flagged with severity (CRITICAL / WARNING) and marketplace context, but NOT acted on. Operator or task layer decides response.
+
+### CRM Output
+
+Add monitoring results as a note on the product's CRM `Product_Launches` record via `ZohoCRM_createNotesModule`. Include: monitoring date, all metrics with sources, anomalies flagged. Update Post_Launch_Status field if applicable.
 
 ### Output: PerformanceRecord[]
 
-Per product: product_id, product_name, metrics (all collected values with source and date), anomalies[] (type, severity, details), data_completeness_pct.
+Per product: product_id, product_name, launch_channels[], metrics (all collected values with source, platform, and date), anomalies[] (type, severity, marketplace, details), data_completeness_pct.
 
 Run ID: PM-M-{YYYYMMDD}-{NNN}.
 
@@ -88,7 +102,7 @@ Run ID: PM-M-{YYYYMMDD}-{NNN}.
 
 ## MODE: CLASSIFY
 
-**Purpose:** Compare actual performance against original evaluation predictions. Classify each product's outcome.
+**Purpose:** Compare actual performance against original evaluation predictions. Classify each product's outcome. Update CRM.
 
 **When to invoke:** "is this a winner", "product outcome", "classify performance", after MONITOR produces records.
 
@@ -100,19 +114,25 @@ performance_records[] from MONITOR mode. original_eval_records[] with: product_i
 
 See [reference/anomaly-thresholds.md](reference/anomaly-thresholds.md) for full criteria. Summary:
 
-winner → top performer across BSR, revenue, returns, rating.
+winner → top performer across BSR (on listed Amazon marketplaces), revenue, returns, rating.
 steady → stable positive metrics.
 underperformer → one or more metrics declining.
 failure → significant miss on key metrics.
 pending → under 30 days or insufficient data.
 
+For multi-marketplace products: classify based on aggregated revenue + per-marketplace BSR performance. A product can be a "winner" on one marketplace and "underperformer" on another — note per-marketplace classification alongside overall.
+
 ### Prediction Accuracy
 
 For each classified product: compare outcome against original verdict. Flag which scoring dimension was most accurate and which was most misleading.
 
+### CRM Output
+
+Update CRM `Product_Launches` record: Post_Launch_Status field with classification, add note with classification reasoning.
+
 ### Output: OutcomeClassification[]
 
-Per product: product_id, outcome, outcome_reasoning, prediction_accuracy, most_accurate_dimension, most_misleading_dimension, days_since_launch.
+Per product: product_id, outcome (overall), outcome_per_marketplace{}, outcome_reasoning, prediction_accuracy, most_accurate_dimension, most_misleading_dimension, days_since_launch.
 
 Run ID: PM-C-{YYYYMMDD}-{NNN}.
 
@@ -126,7 +146,7 @@ Run ID: PM-C-{YYYYMMDD}-{NNN}.
 
 ### What It Generates
 
-**Product outcome signals:** Per product — outcome, metrics, prediction accuracy. Stored via auto-memory for cross-session reference.
+**Product outcome signals:** Per product — outcome, metrics, prediction accuracy. Stored as CRM notes on the product record for cross-session reference.
 
 **Zone performance signals:** Aggregate wins/failures per zone. Identifies which zones produce winners and which underperform. Feeds back into opportunity map zone prioritisation.
 
@@ -134,20 +154,28 @@ Run ID: PM-C-{YYYYMMDD}-{NNN}.
 
 **Failure pattern signals:** Per failure — categorised reason, was_predictable flag, corrective action suggestion. Identifies if 3+ products failed at the same gate for the same reason (pattern alert).
 
+### Output Destinations
+
+1. **CRM notes:** Per-product learning signals added as notes on CRM `Product_Launches` records.
+2. **Slack #product-alerts:** Pattern alerts (3+ products same failure), dimension unreliability warnings, zone underperformance.
+3. **Slack canvas (if available):** Aggregated learning summary for the portfolio — updated monthly.
+
+No auto-memory storage. All learning signals persist in CRM and Slack.
+
 ### Alert Generation
 
-Alerts are generated in output but NOT sent. Operator or task layer handles dispatch.
+Alerts are generated and sent to Slack #product-alerts:
 
-| Alert | Trigger | Severity |
-|---|---|---|
-| pattern_detected | 3+ products failed at same gate for same reason | CRITICAL |
-| dimension_unreliable | Scoring dimension below 50% accuracy over 20+ products | WARNING |
-| zone_underperforming | Zone with 0 strong candidates in last 5 runs | WARNING |
-| anomaly_critical | Any CRITICAL anomaly from MONITOR | CRITICAL |
+| Alert | Trigger | Severity | Slack |
+|---|---|---|---|
+| pattern_detected | 3+ products failed at same gate for same reason | CRITICAL | Yes |
+| dimension_unreliable | Scoring dimension below 50% accuracy over 20+ products | WARNING | Yes |
+| zone_underperforming | Zone with 0 strong candidates in last 5 runs | WARNING | Yes |
+| anomaly_critical | Any CRITICAL anomaly from MONITOR | CRITICAL | Yes |
 
 ### Output: FeedbackSignals
 
-Contains: learning_signals[] (per product), zone_performance_summary, scoring_accuracy_summary, failure_patterns[], alerts[].
+Contains: learning_signals[] (per product), zone_performance_summary, scoring_accuracy_summary, failure_patterns[], alerts[], crm_notes_created[], slack_messages_sent[].
 
 Run ID: PM-F-{YYYYMMDD}-{NNN}.
 
@@ -157,7 +185,7 @@ Run ID: PM-F-{YYYYMMDD}-{NNN}.
 
 | Task | Required inputs | Block if missing |
 |---|---|---|
-| MONITOR | launched_products[] with product_id + launch_date | Block — nothing to monitor |
+| MONITOR | launched_products[] with product_id + launch_date + launch_channels[] | Block — nothing to monitor |
 | CLASSIFY | performance_records[] + original_eval_records[] | Block — cannot classify without both |
 | FEEDBACK | OutcomeClassification[] from CLASSIFY | Block — nothing to learn from |
 
@@ -189,12 +217,13 @@ If blocked: state exact missing input. Do not proceed. Do not invent data.
 
 ## Rules
 
-1. Every metric cites source and date. No metric without provenance.
+1. Every metric cites source, platform, and date. No metric without provenance.
 2. Missing data is null, not zero. Never substitute.
 3. Products under 30 days cannot be classified. Always "pending".
 4. Without original scores, prediction accuracy is "unknown".
 5. Failure categories must use the defined enum. No free-text categories.
-6. Alerts are generated but never sent directly. Output only.
+6. All monitoring data and learning signals persist as CRM notes. No local file saves. No auto-memory.
+7. Pattern alerts and critical anomalies go to Slack #product-alerts.
 
 ---
 
@@ -202,10 +231,10 @@ If blocked: state exact missing input. Do not proceed. Do not invent data.
 
 ```
 [EXEC:product_monitor:PM-{MODE}-{YYYYMMDD}-{NNN}]
-product-monitor v2.0.0 | {YYYY-MM-DD} | Mode: {MONITOR|CLASSIFY|FEEDBACK}
-Products: {N}
-{MONITOR}: Metrics collected: {N} | Anomalies: {N} CRITICAL, {N} WARNING
-{CLASSIFY}: Winners: {N} | Steady: {N} | Underperformers: {N} | Failures: {N} | Pending: {N}
-{FEEDBACK}: Signals: {N} | Alerts: {N} | Patterns detected: {N}
+product-monitor v2.1.0 | {YYYY-MM-DD} | Mode: {MONITOR|CLASSIFY|FEEDBACK}
+Products: {N} | Marketplaces monitored: {list}
+{MONITOR}: Metrics collected: {N} | Anomalies: {N} CRITICAL, {N} WARNING | CRM notes: {N}
+{CLASSIFY}: Winners: {N} | Steady: {N} | Underperformers: {N} | Failures: {N} | Pending: {N} | CRM updated: {N}
+{FEEDBACK}: Signals: {N} | Alerts: {N} | Patterns detected: {N} | Slack sent: {N} | CRM notes: {N}
 Data sources: {list}
 ```

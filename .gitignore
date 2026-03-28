@@ -1,6 +1,9 @@
 # IDE
 /.idea
 
+# Claude Code internal (memory, session state)
+/.claude
+
 # Working files — not for commit (use docs/ for committed versions of design docs)
 /extra files no commit
 

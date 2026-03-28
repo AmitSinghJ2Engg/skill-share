@@ -724,7 +724,7 @@ Project A uses 4 plugins (1a, 1b, 2a, 2b). Project B uses 2 plugins (3, 4). Maxi
 - `compliance-ops` (CO) → ~5 KB — all modes in SKILL.md; FEASIBILITY mode active via project context
 
 ### Plugin 2a: "product-sourcing" (Domain 2) — ~18 KB
-- `product-spec` (PC) → ~4 KB
+- `product-spec` (SP) → ~4 KB
 - `supplier-intelligence` (SI) → ~5 KB
 - `vendor-ops` (VO) → ~4 KB
 - `margin-calculator` (MC) → ~5 KB — same SKILL.md as 1b; ACTUAL + COMPARISON modes active
@@ -765,7 +765,7 @@ Project A uses 4 plugins (1a, 1b, 2a, 2b). Project B uses 2 plugins (3, 4). Maxi
 | 2a | Create CLAUDE.md for Project A and Project B | Required per project per 03 §4 — defines context, pipeline stages, integrations, artifact registry |
 | 3 | Build Plugin 1a "product-discovery" (KI, PD, PS, MI — 4 skills) | Enable daily discovery pipeline |
 | 3a | Build Plugin 1b "product-evaluation" (PE, MC, CO — 3 skills) | Enable evaluation, pre-test economics, compliance feasibility |
-| 4 | Build Plugin 2a "product-sourcing" (PC, SI, VO, MC — 4 skills) | Enable vendor sourcing and actual unit economics |
+| 4 | Build Plugin 2a "product-sourcing" (SP, SI, VO, MC — 4 skills) | Enable vendor sourcing and actual unit economics |
 | 4a | Build Plugin 2b "product-testing" (AO, MO, FO, CO — 4 skills) | Enable paid testing, FBA dispatch, compliance initiation |
 | 5 | Set up 4 Cowork scheduled tasks (discovery, stage-2, stage-3, learning) | Automate daily pipeline and learning loop |
 | 6 | Build Discovery Dashboard artifact | Discovery + Gate 1 |

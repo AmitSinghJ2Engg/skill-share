@@ -64,7 +64,7 @@ Every skill has a 2-letter prefix code. This prefix appears at the start of the 
 | PE | product-evaluate | D1 + D1.5 |
 | MC | margin-calculator | D1, D2, D2.5 |
 | CO | compliance-ops | D1, D2, D3 |
-| PC | product-spec | D2 |
+| SP | product-spec | D2 |
 | SI | supplier-intelligence | D2 |
 | VO | vendor-ops | D2 |
 | FO | fulfillment-ops | D2.5, D3 |

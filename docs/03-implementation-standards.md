@@ -1,0 +1,477 @@
+# Implementation Standards
+
+**Version:** 1.0
+**Date:** 2026-03-27
+**Purpose:** Defines how every component (skill, plugin, artifact, project, task) is built, structured, named, and maintained. Follow these standards exactly.
+
+---
+
+## 1. Skill Writing Standards
+
+### SKILL.md Structure
+
+```markdown
+---
+name: skill-name
+description: One-line description under 160 characters. Start with a verb.
+---
+
+# {Skill Name}
+
+## Purpose
+2-3 sentences. What this skill does and when to use it.
+
+## Modes
+List each mode with: name, what it takes as input, what it produces as output.
+
+## Input Contract
+What data this skill expects. Be explicit about required vs optional fields.
+
+## Output Contract
+What data this skill produces. Include the JSON shape or field list.
+
+## Execution Steps
+Numbered steps the skill follows. Keep to 5-10 steps per mode.
+
+## Trigger Phrases
+Comma-separated list of phrases that should activate this skill.
+```
+
+### Rules
+- SKILL.md body: **under 5 KB** (under 3 KB preferred).
+- No business thresholds, no formulas, no CRM field names, no picklists in SKILL.md.
+- Those values come from project context files at runtime.
+- The skill says "read gate criteria from project context" — it does not say "CBFA ≥ ₹150".
+- No code blocks in SKILL.md unless they define input/output JSON shapes.
+- Trigger description in frontmatter: include the skill's prefix code (e.g., "PD-", "PE-").
+
+### Naming Convention
+`{domain}-{verb}` or `{domain}-{noun}` in kebab-case.
+Examples: product-discover, product-evaluate, vendor-ops, margin-calculator.
+
+### Skill Prefix Registry
+
+Every skill has a 2-letter prefix code. This prefix appears at the start of the SKILL.md frontmatter `description` field (e.g., `"PD- Crawls Amazon marketplace..."`). Used in ISM Execution Logs, trigger tracing, and session audit trails.
+
+**Product Pipeline (17 skills):**
+
+| Prefix | Skill | Domain |
+|---|---|---|
+| KI | ikraft-keyword-intelligence | D1 |
+| PD | product-discover | D1 |
+| PS | product-screen | D1 |
+| MI | product-market-intelligence | D1 |
+| PE | product-evaluate | D1 + D1.5 |
+| MC | margin-calculator | D1, D2, D2.5 |
+| CO | compliance-ops | D1, D2, D3 |
+| PC | product-spec | D2 |
+| SI | supplier-intelligence | D2 |
+| VO | vendor-ops | D2 |
+| FO | fulfillment-ops | D2.5, D3 |
+| AO | ads-ops | D2.5, D4 |
+| MO | product-monitor | D2.5, D4 |
+| CW | content-writer | D3 |
+| CP | capital-planner | D3 |
+| RO | revenue-ops | D4 |
+| LE | ism-learning-engine | D4 |
+
+**Zoho Platform (3):** ZA zoho-solutions-architect, ZD zoho-developer, AD automation-designer
+
+**Governance & System (7):** EO ecosystem-ops, SF ism-skill-factory, SG ikraft-skill-governance, AU ism-gap-auditor, SC skill-commander, SB ism-sop-builder, OG okr-kpi-governance
+
+**Founder & Ops (3):** IF ism-founder, SM ism-scrum-master, BA ism-business-authority
+
+**Content (1):** DC doc-coauthoring
+
+**Artifact Builders (2):** AB artifacts-builder-v2, WB web-artifacts-builder
+
+**File Format (4):** DX docx, XL xlsx, PT pptx, PF pdf
+
+**Utility (5):** MB mcp-builder, MG mcp-guide, IC internal-comms, GC slack-gif-creator, WT webapp-testing
+
+---
+
+## 2. Plugin Building Standards
+
+### Manifest (plugin.json)
+
+```json
+{
+  "name": "plugin-name",
+  "description": "What this plugin provides. Under 160 characters.",
+  "version": "1.0.0"
+}
+```
+
+### Directory Layout
+
+```
+.claude-plugin/
+  plugin.json
+skills/
+  skill-a/
+    SKILL.md
+  skill-b/
+    SKILL.md
+```
+
+### Rules
+- Total uncompressed content: **under 70 KB**.
+- **No reference files inside the plugin.** Mode-specific configuration, field mappings, and thresholds belong in project context files — not in reference files bundled into the plugin.
+- **Maximum 5 skills per plugin (hard limit).** If a domain needs more than 5 skills, split into sibling plugins (e.g., `product-discovery` and `product-evaluation`).
+- The **same SKILL.md may appear in multiple plugins** where a skill serves multiple domains (e.g., `margin-calculator` appears in Plugin 1b and Plugin 2a). Each SKILL.md covers all modes; the project context supplies the mode-specific data for the active domain.
+- Plugin is independently useful — no dependency on another plugin being installed.
+- Plugin name: kebab-case, descriptive of the domain it covers.
+- Version: semver (MAJOR.MINOR.PATCH). MAJOR = breaking change, MINOR = new skill added, PATCH = skill content fix.
+
+### Build Process
+1. Create plugin directory with `.claude-plugin/plugin.json` and `skills/*/SKILL.md`.
+2. Verify each SKILL.md has valid YAML frontmatter with `name` and `description`.
+3. Check total size: `du -sb` on the directory. Must be under 70,000 bytes.
+4. Package: `cd /plugin-dir && zip -r /output/name.plugin . -x "*.DS_Store"`
+5. Validate: `claude plugin validate .claude-plugin/plugin.json` (if available).
+6. Test: Install in Claude Desktop, verify all skills appear and trigger correctly.
+
+### Generic Build Script
+The build script (`build-plugin.py`) is a **generic tool** that works with any plugin, not hardcoded to Ismokraft. It takes a source directory and output path as arguments.
+
+---
+
+## 3. Artifact Standards
+
+### File Format
+- Single `.jsx` file.
+- React 18 functional components with hooks.
+- Tailwind CSS core utilities for styling.
+- No TypeScript. No external imports beyond: recharts, lucide-react, shadcn/ui, d3, lodash, papaparse, sheetjs. Artifacts using real-time AI analysis (Positioning Workbench and Test Lab B only) may additionally import the Anthropic API client.
+
+### Structure Template
+
+```jsx
+// {Artifact Name} v{MAJOR}.{MINOR}
+// Ismokraft — {Domain}
+// Last updated: {date}
+
+import { useState, useEffect, useCallback } from "react"
+
+// ── Constants ────────────────────────────────────
+// Only UI constants (colors, labels). No business thresholds.
+
+// ── Storage Helpers ──────────────────────────────
+// Standard storageLoad/storageSave/storageDelete pattern.
+
+// ── Main App ─────────────────────────────────────
+export default function App() {
+  // State, effects, handlers
+  // Render
+}
+```
+
+### Rules
+- Under 2,000 lines per artifact.
+- No business thresholds hardcoded. Pull from storage (seeded by project context or user input).
+- Clipboard bridge: every artifact that produces data must have an "Export JSON" button. Every artifact that consumes data must have an "Import JSON" button. These are **required fallback mechanisms** for when CRM is unavailable. The **primary data exchange mechanism is CRM-first via MCP** — artifact approval buttons generate a structured payload that Claude reads and uses to call MCP automatically. Clipboard is the resilience layer, not the default.
+- ISM Execution Logs: every CRM write triggered by an artifact must produce a corresponding entry in the ISM Execution Logs custom module via MCP. Entry must include: field changed, old value, new value, who triggered, ISO timestamp, domain and stage context. This is non-negotiable.
+- Version in filename: `{name}-v{MAJOR}.{MINOR}.jsx` (ISM-P009).
+- Version also in the file's top comment line.
+- Toast notifications for user feedback on actions (save, export, import, errors).
+- Copy-to-clipboard with sandbox fallback (ISM-F003).
+- No `URL.createObjectURL` + `a.click()` for downloads.
+- No localStorage or sessionStorage. Use `window.storage` only.
+- Key namespace: `ism:` prefix.
+
+### Naming
+`{domain}-{function}` in kebab-case.
+Examples: discovery-dashboard, sourcing-workbench, launch-control, ops-dashboard.
+
+---
+
+## 4. Project Setup Standards
+
+### CLAUDE.md (Project Instructions)
+
+Each Claude.ai project gets a CLAUDE.md that tells every new session what the project is and how to behave. Structure:
+
+```markdown
+# {Project Name} — Project Instruction
+
+## What This Project Is
+2-3 sentences. Business context, what domain it covers.
+
+## Architecture
+Pipeline flow diagram. Which skills and plugins are active.
+Pipeline stages this project covers. Gates and their criteria.
+
+## Skills in This System
+List each skill with its prefix code and modes.
+
+## Data Integrity Rules
+The 7 rules (always include — non-negotiable).
+
+## Key Constants
+Financial thresholds, brand rules, etc. — values that skills reference.
+
+## CRM Configuration
+Module names, pipeline ID, field mappings relevant to this project.
+
+## Slack Channels
+Which channels this project posts to.
+
+## Git Repository
+Location and relevant module directories.
+
+## Integrations Active
+Confluence space key, Jira project key, Canva workspace ID, Zoho Analytics workspace IDs. List which integrations are active for this project and which are future/placeholder.
+
+## Artifact Registry
+List of artifacts in this project: name, current version (vMAJOR.MINOR), and which domain they serve.
+```
+
+### Context Files (Project Knowledge)
+
+Each project has a set of reference files loaded into every conversation:
+
+**Required for every project:**
+- CRM field mappings relevant to that project's domain
+- Financial constants
+- Gate criteria
+
+**Optional:**
+- Automation registry (if project triggers Zoho Flows)
+- Artifact registry (if project manages multiple artifacts)
+
+**File formats:** Structured data (thresholds, field mappings, IDs) in `.json`. Narrative content (brand rules, customer profiles) in `.md`. JSON is preferred for exact-value lookups by skills and artifacts.
+
+**Size rule:** Total text content in project knowledge should be under 50 KB. Do not add large files (xlsx, jsx artifacts) unless they are actively referenced in every conversation.
+
+---
+
+## 5. Scheduled Task Standards
+
+### Task Instruction Format
+
+```markdown
+# Task: {Name}
+
+## Schedule
+{cron expression or description}
+
+## What This Task Does
+{2-3 sentences}
+
+## Steps
+1. {Step 1 — be explicit about which MCP tools to call}
+2. {Step 2}
+3. {Step 3}
+
+## Inputs
+{What data the task needs — CRM records, project context, etc.}
+
+## Outputs
+{What the task produces — CRM updates, Slack messages, files}
+
+## Error Handling
+{What to do if a step fails}
+```
+
+### Rules
+- Task instructions are self-contained. No dependency on conversation history.
+- Task references project context by file path, not by "the context we discussed."
+- Each task produces an observable output (Slack message, CRM update, file) so Amit can verify it ran.
+- Tasks do not chain to other tasks. If Task A needs Task B's output, design Task A to read from CRM where Task B writes.
+- Tasks skip CRM records tagged `Parked: true` unless the task is explicitly designed to process parked records. State this explicitly in the task's "What This Task Does" section.
+- Tasks do not auto-commit to Git. Tasks that generate context file content write output to `skill-share/context/pending-updates/[task-name]-[YYYY-MM-DD].md` for human review and manual commit. Reference this path in the task's Outputs section.
+
+---
+
+## 6. Git Workflow Standards
+
+### Commit Convention
+- Message format: `{domain}: {what changed}` (e.g., `product-system: trim product-discover SKILL.md to 4KB`)
+- One commit per logical change. Don't batch unrelated changes.
+
+### Directory Structure
+```
+skill-share/
+  product-system/
+    product-discover/
+      SKILL.md
+      references/         (human reading + full-detail context — NOT included in plugin)
+    product-screen/
+    product-evaluate/
+    ...
+  vendor-sourcing/
+    supplier-intelligence/
+    vendor-ops/
+    ...
+  dist/
+    product-discovery.plugin      (Plugin 1a)
+    product-evaluation.plugin     (Plugin 1b)
+    product-sourcing.plugin       (Plugin 2a)
+    product-testing.plugin        (Plugin 2b)
+    product-launch.plugin         (Plugin 3)
+    product-ops.plugin            (Plugin 4)
+  context/
+    product-pipeline/
+      crm-field-mappings.json
+      financial-constants.json
+      gate-criteria.json
+      zone-rotation.json
+      brand-rules.md
+      testing-config.json
+      pipeline-config.json
+    launch-ops/
+      listing-standards.json
+      compliance-requirements.json
+      launch-benchmarks.json
+      analytics-config.json
+    pending-updates/              (staged learning synthesis — human reviews before committing)
+  artifacts/
+    discovery-dashboard-v1.0.jsx
+    positioning-workbench-v1.0.jsx
+    sourcing-workbench-v1.0.jsx
+    test-lab-a-v1.0.jsx
+    test-lab-b-v1.0.jsx
+    launch-control-v1.0.jsx
+    ops-dashboard-v1.0.jsx
+    seller-central-ops-v1.0.jsx
+  tools/
+    build-plugin.py               (generic)
+    build-skill.py                (generic)
+  docs/
+    01-system-constraints.md
+    02-business-domain-map.md
+    03-implementation-standards.md
+    04-data-schemas.md            (to be created — full JSON schemas for all data types)
+```
+
+### Rules
+- Skills in repo may have `references/` folders with detailed context. These references are for human reading and for Claude sessions that read the repo directly. They are NOT included in the plugin.
+- The plugin contains only the trimmed SKILL.md per skill.
+- The repo is the source of truth for skill source code. Plugins are built artifacts.
+- Build scripts are generic tools at `tools/`. They are not hardcoded to any specific business.
+
+---
+
+## 7. Naming Conventions Summary
+
+| Component | Convention | Example |
+|---|---|---|
+| Skill | `{domain}-{verb/noun}` kebab-case | product-discover |
+| Plugin | `{domain}-{scope}` kebab-case | product-discovery |
+| Artifact | `{domain}-{function}` kebab-case | discovery-dashboard |
+| Project | Title case, descriptive | "Product Pipeline" |
+| CRM module | PascalCase with underscores (Zoho convention) | Product_Launches |
+| Storage key | `ism:{entity}:{id}:{sub}` | ism:p:p123:out:scout |
+| Slack channel | `#ism-{purpose}` | #ism-launch-alerts |
+| Git branch | `{domain}/{change}` | product-system/trim-skills |
+| Scheduled task | `{frequency}-{action}` | daily-product-discovery |
+
+---
+
+## 8. Skill Trimming Guide
+
+When trimming a skill from its current size (15-58 KB) to plugin-ready size (~3-5 KB):
+
+### What to Keep
+- Purpose statement (2-3 sentences)
+- Mode definitions (name, input, output — one line each)
+- Input/output JSON shapes (compact)
+- Execution steps (5-10 numbered steps per mode)
+- Trigger phrases
+
+### What to Remove
+- Embedded business thresholds and formulas → move to project context
+- CRM field name lists → move to project context
+- Detailed rubrics and scoring matrices → move to project context or repo references/
+- Code snippets and implementation examples → move to repo references/
+- Long explanatory text about "why" the skill works this way → move to repo docs/
+
+### What to Move Where
+
+| Content Type | From Skill | To Where |
+|---|---|---|
+| Gate criteria (CBFA ≥ ₹150) | SKILL.md | Project context file |
+| CRM field mappings | SKILL.md | Project context file (`crm-field-mappings.json`) |
+| Scoring weights | SKILL.md | Project context file |
+| Evaluation rubric details | SKILL.md | Git repo references/ folder |
+| Code examples | SKILL.md | Git repo references/ folder |
+| Zone rotation schedule | SKILL.md | Project context file |
+| Marketplace URLs and patterns | SKILL.md | Project context file |
+
+---
+
+## 9. Cross-Domain Data Handoff Protocol
+
+When a product moves from one domain to another:
+
+1. **Source domain** writes all relevant data to CRM (Product_Launches record).
+2. **Source domain** posts a Slack notification to `#ism-launch-alerts`: "{Product Name} passed Gate {N}. Ready for {next domain}."
+3. **Destination domain** reads from CRM. It does NOT import data from the source domain's artifact.
+4. If the CRM record is incomplete, the destination domain flags missing fields and halts. It does not guess.
+
+This ensures:
+- CRM remains the single source of truth.
+- No artifact-to-artifact data dependency (sandbox isolation respected).
+- Any team member can pick up a product at any stage by reading its CRM record.
+
+---
+
+## 10. Change Management
+
+When updating a skill, plugin, artifact, or project context file:
+
+1. **Document the change** in a changelog entry (what changed, why, date).
+2. **Bump the version** (MAJOR for breaking changes, MINOR for additions, PATCH for fixes).
+3. **Test locally** before committing to git or uploading to Claude project.
+4. **Update CLAUDE.md** if the change affects project instructions.
+5. **Rebuild the plugin** if a skill was modified.
+6. **Notify via Slack** if the change affects team members' workflows.
+
+---
+
+## 11. Confluence & Jira Integration Standards
+
+### Confluence
+
+**Purpose:** Stores large documents that are too big for CRM fields (ResearchRecord, PositioningBrief, TestResults, listing copy, supplier briefs). Every Confluence page is linked from its corresponding CRM record.
+
+**Page creation rules:**
+- Claude creates Confluence pages via Confluence MCP — never manually unless overriding
+- Naming convention: `[ProductName]-[DataType]-[YYYY-MM-DD]`
+- If a page already exists for that product + data type, Claude **updates** the existing page (do not create duplicates)
+- If a page has been manually edited by a human (`human_edited: true` in CRM record field), Claude does not overwrite — flag for human review instead
+
+**Folder structure:** All pages go into the ISM Confluence space under the following path (create folders if they don't exist):
+- Research Records: `ISM/Product Launch Factory/Research Records/`
+- Positioning Briefs: `ISM/Product Launch Factory/Positioning Briefs/`
+- Test Results: `ISM/Product Launch Factory/Test Results/`
+- Supplier Research: `ISM/Vendor Intelligence/Supplier Research/`
+- Compliance Tracking: `ISM/Compliance & Regulatory/Certification Tracking/`
+- SOP Documents: `ISM/SOP Documents/`
+- Learning Archive: `ISM/Product Launch Factory/Learning Archive/`
+
+**CRM linkage:** After creating a Confluence page, Claude writes the page URL to the corresponding CRM record field (`[data_type]_confluence_url`). This is how skills and artifacts find the page in future sessions.
+
+### Jira
+
+**Purpose:** Tracks compliance certification work as actionable tickets — one ticket per certification, with assignee, due date, and status.
+
+**Ticket creation flow:** Artifacts never create Jira tickets directly. The flow is:
+`Artifact approval button → CRM update (ComplianceRecord with cert details) → Bigin stage trigger → Bigin-Jira integration creates Jira ticket`
+
+**Ticket fields:** Project key (from `pipeline-config.json`), summary: `[ProductName] — [CertType] certification`, due date from `ComplianceRecord.expectedCompletionDate`, assignee from `ComplianceRecord.owner_name`.
+
+**Status sync:** When a Jira ticket is closed (cert obtained), the corresponding CRM ComplianceRecord field is updated and Gate 3 compliance checklist advances. This sync must be confirmed during Jira integration build.
+
+---
+
+## 12. What NOT To Do
+
+- Do not hardcode business values in skills, plugins, or artifacts. They change.
+- Do not create skills with overlapping functions. One function, one skill.
+- Do not assume data exists. Check and flag gaps.
+- Do not create a skill for something CRM already does natively.
+- Do not add files to project knowledge "just in case." Every file costs context.
+- Do not build domains that aren't active yet. Design for extensibility, build for today.
+- Do not use automated git commits from Claude sessions. Amit reviews and commits manually.

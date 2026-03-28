@@ -1,1 +1,20 @@
+# IDE
 /.idea
+
+# Working files — not for commit (use docs/ for committed versions of design docs)
+/extra files no commit
+
+# Root-level build scripts (canonical versions live in tools/)
+/build-plugin.py
+/build-skill.py
+
+# Text notes and scratch files
+*.txt
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store

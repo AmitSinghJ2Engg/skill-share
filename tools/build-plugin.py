@@ -313,20 +313,23 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
         print(f"  Review the build directory above, then re-run with --confirm to package.")
         return True
 
-    # Package as .plugin zip
-    output_file = os.path.join(output_dir, f"{plugin_name}.plugin")
+    # Package as .zip (Claude Desktop upload requires .zip, not .plugin)
+    # Wrap contents inside a top-level folder matching plugin name
+    output_file = os.path.join(output_dir, f"{plugin_name}.zip")
     with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
         for dirpath, dirnames, filenames in os.walk(build_dir):
             for filename in filenames:
                 file_path = os.path.join(dirpath, filename)
-                arcname = os.path.relpath(file_path, build_dir).replace("\\", "/")
+                rel_path = os.path.relpath(file_path, build_dir).replace("\\", "/")
+                arcname = f"{plugin_name}/{rel_path}"
                 zf.write(file_path, arcname)
 
     zip_size = os.path.getsize(output_file)
-    print(f"  Plugin built: {output_file} ({zip_size/1024:.1f} KB compressed)")
+    print(f"  Plugin packaged: {output_file} ({zip_size/1024:.1f} KB compressed)")
 
-    # Clean up intermediate
-    shutil.rmtree(build_dir)
+    # Keep intermediate build directory for marketplace consumption
+    # Claude Desktop can install from this directory via marketplace.json
+    print(f"  Marketplace dir: {build_dir} (for /plugin install via marketplace)")
 
     return True
 

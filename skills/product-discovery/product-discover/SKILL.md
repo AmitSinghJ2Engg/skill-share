@@ -22,6 +22,9 @@ Discovers and researches product opportunities across Amazon India, Amazon US, E
 
 **Boundary:** This skill discovers and researches. It does not score (product-screen), evaluate gates (product-evaluate), or calculate margins (margin-calculator).
 
+// TODO: reference/ paths below violate 03-implementation-standards.md §1.
+// Move source-protocols + scoring-bands content to project context (Phase 1).
+
 ## MODE: BATCH
 
 1. Load keywords — from `ikraft-keyword-intelligence` output (preferred) or seed expansion from zone defaults in project context (`zone-rotation.json`).

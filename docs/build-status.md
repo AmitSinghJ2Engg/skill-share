@@ -31,8 +31,8 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 ## Phase 2: Plugins
 
 - [x] **3:** Trim product-discover SKILL.md as reference example (target: under 5 KB)
-- [ ] **3a:** Write missing SKILL.md files: ikraft-keyword-intelligence, product-market-intelligence
-- [ ] **3b:** Trim existing SKILL.md files: product-screen, product-evaluate, product-spec, product-monitor, vendor-ops, content-writer
+- [x] **3a:** Write missing SKILL.md files: ikraft-keyword-intelligence, product-market-intelligence
+- [ ] **3b:** Trim existing SKILL.md files: product-screen (done), product-evaluate, product-spec, product-monitor, vendor-ops, content-writer
 - [ ] **3c:** Write SKILL.md for margin-calculator
 - [ ] **3d:** Build Plugin 1a "product-discovery" (KI, PD, PS, MI)
 - [ ] **3e:** Build Plugin 1b "product-evaluation" (PE, MC, CO)

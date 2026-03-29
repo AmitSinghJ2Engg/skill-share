@@ -5,7 +5,7 @@ description: >
   3-layer keyword model into KeywordSet[]. SCAN: search velocity and emerging
   category signals into TrendSignal[].
 version: "2.0.0"
-lifecycle: active
+lifecycle: prototype
 ---
 
 # Keyword Intelligence

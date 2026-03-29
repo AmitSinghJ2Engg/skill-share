@@ -108,6 +108,13 @@ Examples: margin-calculator (financial formulas), compliance-ops (checklist PDF 
 
 SKILL.md provides the orchestration instructions; scripts/ provides the executable logic. The skill's `allowed-tools` frontmatter should include `Bash(python *)` or similar to permit script execution.
 
+### Interactive context gathering
+
+Skills can gather context by asking clarifying questions before executing. This mimics Anthropic's marketplace plugins (e.g., Finance plugin asks for account details before generating journal entries). Design skills to:
+- Use `description` frontmatter to tell Claude when to auto-invoke
+- Include structured prompts in SKILL.md for gathering missing inputs (e.g., "If zone_id not provided, ask user which zone to target")
+- For complex multi-step input, consider a SETUP.md skill that guides initial configuration
+
 ### Naming Convention
 `{domain}-{verb}` or `{domain}-{noun}` in kebab-case.
 Examples: product-discover, product-evaluate, vendor-ops, margin-calculator.
@@ -529,8 +536,6 @@ The following skills are defined in the architecture (`02-business-domain-map.md
 
 | Skill | Package / Directory | Priority | Needed For |
 |-------|-------------------|----------|------------|
-| `ikraft-keyword-intelligence` | `skills/product-discovery/` | High | Plugin 1a, daily discovery task |
-| `product-market-intelligence` | `skills/product-discovery/` | High | Plugin 1a, Stage 2 intelligence task |
 | `compliance-ops` | `skills/product-evaluation/` | High | Plugins 1b, 2b, 3 |
 | `fulfillment-ops` | `skills/product-testing/` | High | Plugins 2b, 3 |
 | `supplier-intelligence` | `skills/product-sourcing/` | Medium | Plugin 2a |

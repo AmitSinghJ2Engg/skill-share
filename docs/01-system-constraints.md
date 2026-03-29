@@ -251,7 +251,7 @@ These are the authoritative Bigin API stage names. Other documents describe acti
 
 These items exist as placeholders. Do not assume values for them.
 
-- Zoho Flow IDs for all 6 registered flows (automation-registry.md has ⚠ FILL markers)
+- Zoho Flow IDs for all 6 registered flows (to be populated in pipeline-config.json)
 - Slack channel IDs for #ism-launch-alerts, #ism-launch-reports
 - Jira project key for Flow 14 (Activity-to-Jira bridge)
 - Bigin custom field API names (need `GET /bigin/v1/settings/fields?module=Deals` to confirm)

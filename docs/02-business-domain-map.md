@@ -1,7 +1,7 @@
 # Business Domain Map — Ismokraft
 
-**Version:** 1.5
-**Date:** 2026-03-28
+**Version:** 1.6
+**Date:** 2026-03-30
 **Purpose:** Defines all business domains, their boundaries, data handoffs, build priority, CRM architecture, artifact standards, scheduled tasks, and integration specs. This is the reference for Claude Cowork to build the operational system without drifting. Lives in Git — not a project knowledge file.
 
 **Companion documents:**

@@ -11,12 +11,55 @@
       "name": "product-discovery",
       "description": "Domain 1 discovery - keyword intelligence, product discovery, screening, market intelligence.",
       "version": "1.0.0",
-      "author": {
-        "name": "Ismokraft"
-      },
+      "author": {"name": "Ismokraft"},
       "source": "./dist/build/product-discovery",
       "category": "productivity",
       "keywords": ["product-research", "amazon", "ecommerce", "keyword-intelligence", "competitive-analysis"]
+    },
+    {
+      "name": "product-evaluation",
+      "description": "Domains 1 + 1.5 - deep evaluation, pre-test economics, compliance feasibility.",
+      "version": "0.0.0",
+      "author": {"name": "Ismokraft"},
+      "source": "./dist/build/product-evaluation",
+      "category": "productivity",
+      "keywords": ["product-evaluation", "margin-calculator", "compliance"]
+    },
+    {
+      "name": "product-sourcing",
+      "description": "Domain 2 - product spec, supplier discovery, vendor evaluation, unit economics.",
+      "version": "0.0.0",
+      "author": {"name": "Ismokraft"},
+      "source": "./dist/build/product-sourcing",
+      "category": "productivity",
+      "keywords": ["sourcing", "vendor-management", "supplier-intelligence"]
+    },
+    {
+      "name": "product-testing",
+      "description": "Domain 2.5 - test campaigns, monitoring, FBA dispatch, compliance initiation.",
+      "version": "0.0.0",
+      "author": {"name": "Ismokraft"},
+      "source": "./dist/build/product-testing",
+      "category": "productivity",
+      "keywords": ["testing", "ads-ops", "fulfillment", "monitoring"]
+    },
+    {
+      "name": "product-launch",
+      "description": "Domain 3 - listing copy, capital planning, compliance completion, bulk fulfillment.",
+      "version": "0.0.0",
+      "author": {"name": "Ismokraft"},
+      "source": "./dist/build/product-launch",
+      "category": "productivity",
+      "keywords": ["product-launch", "content-writing", "capital-planning"]
+    },
+    {
+      "name": "product-ops",
+      "description": "Domain 4 - live monitoring, ad management, revenue ops, learning engine.",
+      "version": "0.0.0",
+      "author": {"name": "Ismokraft"},
+      "source": "./dist/build/product-ops",
+      "category": "productivity",
+      "keywords": ["operations", "monitoring", "revenue", "learning-engine"]
     }
   ]
 }

@@ -5,7 +5,7 @@ description: >
   PROFILE: competitor scan into CompetitorProfile[]. GAPS: review mining for
   differentiation. TRENDS: BSR movement and price tier mapping.
 version: "1.0.0"
-lifecycle: active
+lifecycle: prototype
 ---
 
 # Product Market Intelligence

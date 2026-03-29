@@ -28,6 +28,23 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 ---
 
+## Claude Desktop Setup
+
+Tracks readiness of project instructions, task instructions, and plugin deployment for Claude Desktop / Cowork.
+
+- [ ] CLAUDE-product-pipeline.md project instructions written (also Phase 1 item 2a)
+- [ ] CLAUDE-launch-ops.md project instructions written (also Phase 1 item 2b)
+- [ ] ism-daily-discovery task instructions written
+- [ ] ism-stage2-intelligence task instructions written
+- [ ] ism-stage3-vendor-search task instructions written
+- [ ] ism-daily-learning task instructions written
+- [ ] Task-to-skill mapping documented
+- [x] Marketplace.json created (AmitSinghJ2Engg/skill-share)
+- [x] Plugin 1a uploaded to Claude Desktop (.zip format)
+- [x] Plugin 1a installable via marketplace
+
+---
+
 ## Phase 2: Plugins
 
 - [x] **3:** Trim product-discover SKILL.md as reference example (target: under 5 KB)

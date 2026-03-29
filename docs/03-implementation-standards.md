@@ -15,6 +15,7 @@
 name: skill-name
 description: One-line description under 160 characters. Start with a verb.
 version: "1.0.0"
+lifecycle: prototype
 ---
 
 # {Skill Name}
@@ -46,6 +47,7 @@ Comma-separated list of phrases that should activate this skill.
 - No code blocks in SKILL.md unless they define input/output JSON shapes.
 - Trigger description in frontmatter: include the skill's prefix code (e.g., "PD-", "PE-").
 - Frontmatter `version` follows semver: MAJOR.MINOR.PATCH. Bump PATCH for content fixes, MINOR for new modes, MAJOR for breaking I/O contract changes. Version is quoted as a string (e.g., `"1.0.0"`).
+- Frontmatter `lifecycle` tracks skill maturity: `prototype` (newly written, not validated), `active` (validated and in use), `stable` (proven across multiple products). New skills start as `prototype`. Promote after successful execution and human review.
 
 ### Three-Layer Information Architecture
 

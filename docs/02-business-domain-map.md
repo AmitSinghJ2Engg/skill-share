@@ -240,7 +240,9 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 
 **What it does:** Initiates bulk order. Creates Amazon India and Shopify listings (starting from TestListingDraft). Manages compliance to completion. Defines review strategy. Prepares platform setup. Source to Pay pipeline runs in parallel.
 
-**Pipeline stages covered (Bigin):** Stage 7 (Bulk Order Initiation — spawns Source to Pay pipeline, main pipeline continues independently) → Stage 8 (Final Listing — Amazon + Shopify) → Stage 9 (Compliance) → Gate 3 → Stage 10 (Platform Setup) → Stage 11 (Product Live)
+**Pipeline stages covered (Bigin):** Stage 7 (Sourcing Model Selection — activity: bulk order initiation, spawns Source to Pay pipeline, main pipeline continues independently) → Stage 8 (Final Listing — Amazon + Shopify) → Stage 9 (Compliance) → Gate 3 → Stage 10 (Platform Setup) → Stage 11 (Product Live)
+
+> **Note:** Stage name "Sourcing Model Selection" is the canonical Bigin API name per `01-system-constraints.md` §8. Bulk order initiation is the primary activity within this stage.
 
 **Shopify parallel track:** Domain 3 produces two listings for the same product. Fulfillment via Amazon MCF (FBA stock) for now. Multi-warehouse flexibility is a future concern.
 
@@ -271,7 +273,7 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 - CRM (Product_Launches record)
 
 **Stage exit checklists (enforced by Launch Control — disable advance until met):**
-- Stage 7 (Bulk Order): Source to Pay pipeline record created. PO raised in Zoho Books.
+- Stage 7 (Sourcing Model Selection): Source to Pay pipeline record created. PO raised in Zoho Books.
 - Stage 8 (Final Listing): Final listing live and indexed. Both Amazon and Shopify listings approved.
 - Stage 10 (Platform Setup): Seller Central configured (shipping templates, tax settings, return policy, Brand Registry). Inventory received at FBA warehouse. Launch PPC campaign configured.
 

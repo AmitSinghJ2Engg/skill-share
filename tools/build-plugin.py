@@ -1,27 +1,30 @@
 #!/usr/bin/env python3
 """
-build-plugin.py — Build an ismokraft-product-ops.plugin file from the git repo.
+.build-plugin.py — Build .plugin files from the skill-share git repo.
+
+Supports the 6-plugin architecture. Reads plugin definitions from
+tools/plugin-registry.json. Reports shared skill dependencies from
+tools/plugin-skill-map.json.
 
 Usage:
-    python build-plugin.py [--repo <repo-root>] [--output <output-dir>] [--version <version>]
+    python build-plugin.py --plugin <name>           # build one plugin
+    python build-plugin.py --all                      # build all plugins
+    python build-plugin.py --list name1,name2         # build specific plugins
+    python build-plugin.py --check <name>             # validate without building
+    python build-plugin.py --list-plugins             # show available plugins
 
-Example:
-    python build-plugin.py --repo ./skill-share --output ./packages
-    python build-plugin.py  # uses defaults
+Options:
+    --repo <path>       Path to skill-share repo root (default: parent of tools/)
+    --output <path>     Output directory for .plugin files (default: dist/)
+    --confirm           Skip intermediate review, zip directly
 
 Cross-platform: runs on Mac, Linux, and Windows.
-Uses Python zipfile (not PowerShell Compress-Archive — backslash path issue).
-
-The script:
-1. Reads skill folders from the repo modules
-2. Validates each SKILL.md frontmatter
-3. Builds a plugin.json manifest
-4. Packages everything into a .plugin zip with correct structure
 """
 
 import argparse
 import json
 import os
+import shutil
 import sys
 import zipfile
 
@@ -31,206 +34,343 @@ except ImportError:
     print("ERROR: pyyaml is required. Install with: pip install pyyaml")
     sys.exit(1)
 
-# Skill locations in the repo (module → skill folders)
-SKILL_MAP = {
-    "product-system": [
-        "product-discover",
-        "product-screen",
-        "product-evaluate",
-        "product-monitor",
-        "product-spec",
-        "product-ops-config",
-        "ikraft-keyword-intelligence",
-    ],
-    "vendor-sourcing": [
-        "vendor-ops",
-        "supplier-intelligence",
-    ],
-    "revenue-finance": [
-        "margin-calculator",
-        "capital-planner",
-        "revenue-ops",
-    ],
-    "marketing-content": [
-        "content-writer",
-        "ads-ops",
-    ],
-}
+MAX_PLUGIN_SIZE = 70000  # 70 KB uncompressed limit
+MAX_SKILL_SIZE = 5120    # 5 KB target per SKILL.md
 
-PLUGIN_META = {
-    "name": "ismokraft-product-ops",
-    "description": (
-        "End-to-end product launch operations for Ismokraft — discovery, evaluation, "
-        "specification, sourcing, listing, launch, and post-launch monitoring. "
-        "Integrates with Zoho CRM, Bigin, Slack, and marketplace channels."
-    ),
-    "author": {"name": "Ismokraft"},
-    "keywords": [
-        "ecommerce",
-        "product-launch",
-        "amazon-india",
-        "shopify",
-        "zoho",
-        "d2c",
-        "wooden-products",
-    ],
-}
+
+def load_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_registry(repo_root):
+    path = os.path.join(repo_root, "tools", "plugin-registry.json")
+    if not os.path.isfile(path):
+        print(f"ERROR: Plugin registry not found: {path}")
+        sys.exit(1)
+    return load_json(path)
+
+
+def load_skill_map(repo_root):
+    path = os.path.join(repo_root, "tools", "plugin-skill-map.json")
+    if not os.path.isfile(path):
+        return {"shared_skills": {}}
+    return load_json(path)
 
 
 def validate_frontmatter(skill_md_path):
-    """Parse and validate SKILL.md frontmatter. Returns meta dict or None."""
+    """Parse and validate SKILL.md frontmatter. Returns (meta, warnings) or (None, errors)."""
     with open(skill_md_path, "r", encoding="utf-8") as f:
         content = f.read()
 
+    warnings = []
+
     if not content.startswith("---"):
-        return None
+        return None, ["No YAML frontmatter found (file must start with ---)"]
 
     parts = content.split("---", 2)
     if len(parts) < 3:
-        return None
+        return None, ["Invalid frontmatter structure (missing closing ---)"]
 
     try:
         meta = yaml.safe_load(parts[1])
-    except yaml.YAMLError:
-        return None
+    except yaml.YAMLError as e:
+        return None, [f"YAML parse error: {e}"]
 
-    if not meta or not meta.get("name") or not meta.get("description"):
-        return None
+    if not meta:
+        return None, ["Empty frontmatter"]
 
-    return meta
+    errors = []
+    if not meta.get("name"):
+        errors.append("Missing required field: name")
+    if not meta.get("description"):
+        errors.append("Missing required field: description")
+    if not meta.get("version"):
+        warnings.append("Missing recommended field: version")
+
+    if errors:
+        return None, errors
+
+    # Check file size
+    size = len(content.encode("utf-8"))
+    if size > MAX_SKILL_SIZE:
+        warnings.append(f"SKILL.md is {size:,} bytes ({size/1024:.1f} KB) — target is under {MAX_SKILL_SIZE/1024:.0f} KB")
+
+    return meta, warnings
 
 
-def find_skill_dir(repo_root, module, skill_name):
-    """Find the skill directory in the repo."""
-    path = os.path.join(repo_root, module, "skills", skill_name)
-    if os.path.isdir(path) and os.path.isfile(os.path.join(path, "SKILL.md")):
+def find_skill_path(repo_root, module, skill_name):
+    """Find the SKILL.md path for a skill in its module."""
+    path = os.path.join(repo_root, module, "skills", skill_name, "SKILL.md")
+    if os.path.isfile(path):
         return path
     return None
 
 
-def build_plugin(repo_root, output_dir, version):
-    """Build the plugin zip file."""
-    repo_root = os.path.abspath(repo_root)
-    if not os.path.isdir(repo_root):
-        print(f"ERROR: Repo root not found: {repo_root}")
-        return False
+def check_plugin(repo_root, plugin_name, plugin_def, skill_map):
+    """Validate a plugin without building. Returns (is_valid, report)."""
+    report = {
+        "plugin": plugin_name,
+        "description": plugin_def["description"],
+        "version": plugin_def.get("version", "1.0.0"),
+        "skills_found": [],
+        "skills_missing": [],
+        "validation_errors": [],
+        "warnings": [],
+        "total_size": 0,
+    }
 
-    os.makedirs(output_dir, exist_ok=True)
+    for skill_entry in plugin_def["skills"]:
+        skill_name = skill_entry["name"]
+        module = skill_entry["module"]
 
-    plugin_name = PLUGIN_META["name"]
-    output_file = os.path.join(output_dir, f"{plugin_name}.plugin")
+        skill_path = find_skill_path(repo_root, module, skill_name)
+        if skill_path is None:
+            report["skills_missing"].append(f"{module}/skills/{skill_name}/SKILL.md")
+            continue
 
-    # Collect all skill directories
-    skills_found = []
-    skills_missing = []
-    validation_errors = []
+        meta, issues = validate_frontmatter(skill_path)
+        if meta is None:
+            report["validation_errors"].append(f"{skill_name}: {'; '.join(issues)}")
+            continue
 
-    for module, skill_names in SKILL_MAP.items():
-        for skill_name in skill_names:
-            skill_dir = find_skill_dir(repo_root, module, skill_name)
-            if skill_dir is None:
-                skills_missing.append(f"{module}/skills/{skill_name}")
-                continue
+        # Check name matches directory
+        if meta["name"] != skill_name:
+            report["validation_errors"].append(
+                f"{skill_name}: frontmatter name '{meta['name']}' != directory '{skill_name}'"
+            )
+            continue
 
-            meta = validate_frontmatter(os.path.join(skill_dir, "SKILL.md"))
-            if meta is None:
-                validation_errors.append(f"{module}/skills/{skill_name}/SKILL.md — invalid frontmatter")
-                continue
+        size = os.path.getsize(skill_path)
+        report["total_size"] += size
+        report["skills_found"].append({
+            "name": skill_name,
+            "module": module,
+            "version": meta.get("version", "unknown"),
+            "size": size,
+        })
+        report["warnings"].extend([f"{skill_name}: {w}" for w in issues])
 
-            if meta["name"] != skill_name:
-                validation_errors.append(
-                    f"{module}/skills/{skill_name}/SKILL.md — name '{meta['name']}' != directory '{skill_name}'"
+    # Check shared skill impact
+    shared = skill_map.get("shared_skills", {})
+    for skill_entry in plugin_def["skills"]:
+        skill_name = skill_entry["name"]
+        if skill_name in shared:
+            other_plugins = [p for p in shared[skill_name]["plugins"] if p != plugin_name]
+            if other_plugins:
+                report["warnings"].append(
+                    f"{skill_name} is shared — also in: {', '.join(other_plugins)}"
                 )
-                continue
 
-            skills_found.append({
-                "name": skill_name,
-                "module": module,
-                "dir": skill_dir,
-                "meta": meta,
-            })
+    # Size check (estimate with plugin.json overhead)
+    estimated_total = report["total_size"] + 200  # plugin.json ~200 bytes
+    if estimated_total > MAX_PLUGIN_SIZE:
+        report["validation_errors"].append(
+            f"Estimated size {estimated_total:,} bytes exceeds {MAX_PLUGIN_SIZE:,} byte limit"
+        )
 
-    # Report
-    print(f"Skills found: {len(skills_found)}")
-    if skills_missing:
-        print(f"Skills missing ({len(skills_missing)}):")
-        for s in skills_missing:
-            print(f"  MISSING: {s}")
-    if validation_errors:
-        print(f"Validation errors ({len(validation_errors)}):")
-        for e in validation_errors:
-            print(f"  ERROR: {e}")
+    is_valid = len(report["validation_errors"]) == 0 and len(report["skills_missing"]) == 0
+    return is_valid, report
 
-    if not skills_found:
-        print("ERROR: No valid skills found. Cannot build plugin.")
+
+def print_report(report, verbose=True):
+    """Print a validation/build report."""
+    plugin = report["plugin"]
+    print(f"\n{'='*60}")
+    print(f"Plugin: {plugin} v{report['version']}")
+    print(f"  {report['description']}")
+    print(f"{'='*60}")
+
+    if report["skills_found"]:
+        print(f"\n  Skills found ({len(report['skills_found'])}):")
+        for s in report["skills_found"]:
+            size_kb = s["size"] / 1024
+            flag = " [OVER 5KB]" if s["size"] > MAX_SKILL_SIZE else ""
+            print(f"    {s['name']} v{s['version']} ({size_kb:.1f} KB){flag}")
+
+    if report["skills_missing"]:
+        print(f"\n  MISSING ({len(report['skills_missing'])}):")
+        for s in report["skills_missing"]:
+            print(f"    {s}")
+
+    if report["validation_errors"]:
+        print(f"\n  ERRORS ({len(report['validation_errors'])}):")
+        for e in report["validation_errors"]:
+            print(f"    {e}")
+
+    if report["warnings"] and verbose:
+        print(f"\n  Warnings ({len(report['warnings'])}):")
+        for w in report["warnings"]:
+            print(f"    {w}")
+
+    total_kb = report["total_size"] / 1024
+    print(f"\n  Total skill content: {total_kb:.1f} KB / {MAX_PLUGIN_SIZE/1024:.0f} KB limit")
+
+    is_valid = len(report["validation_errors"]) == 0 and len(report["skills_missing"]) == 0
+    status = "READY" if is_valid else "NOT READY"
+    print(f"  Status: {status}")
+    return is_valid
+
+
+def build_plugin(repo_root, plugin_name, plugin_def, output_dir, confirm=False):
+    """Build a single plugin. Returns True on success."""
+    skill_map = load_skill_map(repo_root)
+    is_valid, report = check_plugin(repo_root, plugin_name, plugin_def, skill_map)
+    print_report(report)
+
+    if not is_valid:
+        print(f"\n  Cannot build {plugin_name} — fix errors above first.")
         return False
 
-    # Build plugin.json
-    plugin_json = {**PLUGIN_META, "version": version}
+    # Build intermediate directory
+    build_dir = os.path.join(output_dir, "build", plugin_name)
+    if os.path.exists(build_dir):
+        shutil.rmtree(build_dir)
+    os.makedirs(build_dir, exist_ok=True)
 
-    # Build zip
-    file_count = 0
+    # Write plugin.json
+    plugin_json = {
+        "name": plugin_name,
+        "description": plugin_def["description"],
+        "version": plugin_def.get("version", "1.0.0"),
+    }
+    plugin_dir = os.path.join(build_dir, ".claude-plugin")
+    os.makedirs(plugin_dir, exist_ok=True)
+    with open(os.path.join(plugin_dir, "plugin.json"), "w", encoding="utf-8") as f:
+        json.dump(plugin_json, f, indent=2, ensure_ascii=False)
+
+    # Copy SKILL.md files (only SKILL.md, not reference files)
+    for skill_info in report["skills_found"]:
+        skill_name = skill_info["name"]
+        module = next(s["module"] for s in plugin_def["skills"] if s["name"] == skill_name)
+        src_path = find_skill_path(repo_root, module, skill_name)
+
+        dest_dir = os.path.join(build_dir, "skills", skill_name)
+        os.makedirs(dest_dir, exist_ok=True)
+        shutil.copy2(src_path, os.path.join(dest_dir, "SKILL.md"))
+
+    # Calculate uncompressed size
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(build_dir):
+        for f in filenames:
+            total_size += os.path.getsize(os.path.join(dirpath, f))
+
+    if total_size > MAX_PLUGIN_SIZE:
+        print(f"\n  ERROR: Uncompressed size {total_size:,} bytes exceeds {MAX_PLUGIN_SIZE:,} limit.")
+        print(f"  Intermediate build at: {build_dir}")
+        return False
+
+    print(f"\n  Intermediate build: {build_dir} ({total_size:,} bytes)")
+
+    if not confirm:
+        print(f"  Review the build directory above, then re-run with --confirm to package.")
+        return True
+
+    # Package as .plugin zip
+    output_file = os.path.join(output_dir, f"{plugin_name}.plugin")
     with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
-        # Write plugin.json at .claude-plugin/plugin.json
-        plugin_json_str = json.dumps(plugin_json, indent=2, ensure_ascii=False)
-        zf.writestr(".claude-plugin/plugin.json", plugin_json_str)
-        file_count += 1
+        for dirpath, dirnames, filenames in os.walk(build_dir):
+            for filename in filenames:
+                file_path = os.path.join(dirpath, filename)
+                arcname = os.path.relpath(file_path, build_dir).replace("\\", "/")
+                zf.write(file_path, arcname)
 
-        # Write README.md at root
-        readme_path = os.path.join(repo_root, "product-system", "packages", "ismokraft-product-ops-README.md")
-        if os.path.isfile(readme_path):
-            zf.write(readme_path, "README.md")
-            file_count += 1
+    zip_size = os.path.getsize(output_file)
+    print(f"  Plugin built: {output_file} ({zip_size/1024:.1f} KB compressed)")
 
-        # Write each skill
-        for skill in skills_found:
-            skill_dir = skill["dir"]
-            skill_name = skill["name"]
-
-            for root, dirs, files in os.walk(skill_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(file_path, skill_dir)
-                    # Plugin structure: skills/<skill-name>/<file>
-                    arcname = f"skills/{skill_name}/{rel_path}"
-                    arcname = arcname.replace("\\", "/")
-                    zf.write(file_path, arcname)
-                    file_count += 1
-
-    size_kb = os.path.getsize(output_file) / 1024
-    print(f"\nPlugin built: {output_file}")
-    print(f"  Version: {version}")
-    print(f"  Skills: {len(skills_found)}")
-    print(f"  Files: {file_count}")
-    print(f"  Size: {size_kb:.0f}KB")
-
-    if skills_missing or validation_errors:
-        print(f"\nWARNING: {len(skills_missing)} missing, {len(validation_errors)} errors — plugin is partial")
+    # Clean up intermediate
+    shutil.rmtree(build_dir)
 
     return True
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Build ismokraft-product-ops.plugin from git repo")
-    parser.add_argument(
-        "--repo", "-r",
-        default=".",
-        help="Path to skill-share git repo root (default: current dir)"
-    )
-    parser.add_argument(
-        "--output", "-o",
-        default=".",
-        help="Output directory for .plugin file (default: current dir)"
-    )
-    parser.add_argument(
-        "--version", "-v",
-        default="1.0.0",
-        help="Plugin version (default: 1.0.0)"
-    )
+    parser = argparse.ArgumentParser(description="Build .plugin files from skill-share repo")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--plugin", "-p", help="Build a single plugin by name")
+    group.add_argument("--all", "-a", action="store_true", help="Build all plugins")
+    group.add_argument("--list", "-l", help="Build specific plugins (comma-separated)")
+    group.add_argument("--check", "-c", help="Validate a plugin without building")
+    group.add_argument("--list-plugins", action="store_true", help="List available plugins")
+
+    parser.add_argument("--repo", "-r", default=None, help="Path to skill-share repo root")
+    parser.add_argument("--output", "-o", default=None, help="Output directory (default: dist/)")
+    parser.add_argument("--confirm", action="store_true", help="Skip intermediate review, package directly")
+
     args = parser.parse_args()
 
-    success = build_plugin(args.repo, args.output, args.version)
-    sys.exit(0 if success else 1)
+    # Resolve repo root
+    if args.repo:
+        repo_root = os.path.abspath(args.repo)
+    else:
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    if not os.path.isdir(repo_root):
+        print(f"ERROR: Repo root not found: {repo_root}")
+        sys.exit(1)
+
+    # Resolve output directory
+    output_dir = args.output or os.path.join(repo_root, "dist")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Load registry
+    registry = load_registry(repo_root)
+    plugins = registry.get("plugins", {})
+    skill_map = load_skill_map(repo_root)
+
+    if args.list_plugins:
+        print("Available plugins:\n")
+        for name, defn in plugins.items():
+            skill_names = [s["name"] for s in defn["skills"]]
+            print(f"  {name} ({defn.get('version', '?')})")
+            print(f"    {defn['description']}")
+            print(f"    Skills: {', '.join(skill_names)}")
+            print()
+        sys.exit(0)
+
+    if args.check:
+        if args.check not in plugins:
+            print(f"ERROR: Unknown plugin '{args.check}'. Use --list-plugins to see available.")
+            sys.exit(1)
+        is_valid, report = check_plugin(repo_root, args.check, plugins[args.check], skill_map)
+        print_report(report)
+        sys.exit(0 if is_valid else 1)
+
+    # Determine which plugins to build
+    if args.plugin:
+        target_plugins = [args.plugin]
+    elif args.all:
+        target_plugins = list(plugins.keys())
+    else:
+        target_plugins = [p.strip() for p in args.list.split(",")]
+
+    # Validate plugin names
+    for name in target_plugins:
+        if name not in plugins:
+            print(f"ERROR: Unknown plugin '{name}'. Use --list-plugins to see available.")
+            sys.exit(1)
+
+    # Build
+    results = {}
+    for name in target_plugins:
+        success = build_plugin(repo_root, name, plugins[name], output_dir, confirm=args.confirm)
+        results[name] = success
+
+    # Summary
+    print(f"\n{'='*60}")
+    print("BUILD SUMMARY")
+    print(f"{'='*60}")
+    for name, success in results.items():
+        status = "OK" if success else "FAILED"
+        print(f"  {name}: {status}")
+
+    failed = sum(1 for s in results.values() if not s)
+    if failed:
+        print(f"\n{failed} plugin(s) failed. Fix errors and retry.")
+        sys.exit(1)
+    else:
+        print(f"\n{len(results)} plugin(s) processed successfully.")
+        sys.exit(0)
 
 
 if __name__ == "__main__":

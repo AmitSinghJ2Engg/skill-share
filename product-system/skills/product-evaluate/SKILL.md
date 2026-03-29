@@ -93,7 +93,7 @@ Contains: eval_id (PE-E-{YYYYMMDD}-{NNN}), product_name, Opportunity_Score (0–
 
 **When to invoke:** "gate check", "can we launch", "is this ready for [stage]", "what's blocking", gate numbers 1–8.
 
-Gate definitions are available in project knowledge under gate-definitions.md.
+Gate definitions: read formal gate criteria from project context (`gate-criteria.json`). Stage exit checklists are defined in `02-business-domain-map.md` domain sections.
 
 ### Steps
 

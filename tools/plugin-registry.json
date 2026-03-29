@@ -1,0 +1,70 @@
+{
+  "_comment": "Plugin registry — maps each plugin to its skills, module paths, and metadata. Source of truth for build-plugin.py.",
+  "plugins": {
+    "product-discovery": {
+      "description": "Domain 1 discovery stages — keyword intelligence, product discovery, screening, market intelligence.",
+      "version": "1.0.0",
+      "project": "Product Pipeline",
+      "skills": [
+        {"name": "ikraft-keyword-intelligence", "module": "product-system", "prefix": "KI"},
+        {"name": "product-discover", "module": "product-system", "prefix": "PD"},
+        {"name": "product-screen", "module": "product-system", "prefix": "PS"},
+        {"name": "product-market-intelligence", "module": "product-system", "prefix": "MI"}
+      ]
+    },
+    "product-evaluation": {
+      "description": "Domains 1 + 1.5 — deep evaluation, pre-test economics, compliance feasibility.",
+      "version": "1.0.0",
+      "project": "Product Pipeline",
+      "skills": [
+        {"name": "product-evaluate", "module": "product-system", "prefix": "PE"},
+        {"name": "margin-calculator", "module": "revenue-finance", "prefix": "MC"},
+        {"name": "compliance-ops", "module": "product-system", "prefix": "CO"}
+      ]
+    },
+    "product-sourcing": {
+      "description": "Domain 2 — product spec, supplier discovery, vendor evaluation, actual unit economics.",
+      "version": "1.0.0",
+      "project": "Product Pipeline",
+      "skills": [
+        {"name": "product-spec", "module": "product-system", "prefix": "SP"},
+        {"name": "supplier-intelligence", "module": "vendor-sourcing", "prefix": "SI"},
+        {"name": "vendor-ops", "module": "vendor-sourcing", "prefix": "VO"},
+        {"name": "margin-calculator", "module": "revenue-finance", "prefix": "MC"}
+      ]
+    },
+    "product-testing": {
+      "description": "Domain 2.5 — test campaigns, monitoring, FBA dispatch, compliance initiation.",
+      "version": "1.0.0",
+      "project": "Product Pipeline",
+      "skills": [
+        {"name": "ads-ops", "module": "marketing-content", "prefix": "AO"},
+        {"name": "product-monitor", "module": "product-system", "prefix": "MO"},
+        {"name": "fulfillment-ops", "module": "vendor-sourcing", "prefix": "FO"},
+        {"name": "compliance-ops", "module": "product-system", "prefix": "CO"}
+      ]
+    },
+    "product-launch": {
+      "description": "Domain 3 — listing copy, capital planning, compliance completion, bulk fulfillment.",
+      "version": "1.0.0",
+      "project": "Launch & Ops",
+      "skills": [
+        {"name": "content-writer", "module": "marketing-content", "prefix": "CW"},
+        {"name": "capital-planner", "module": "revenue-finance", "prefix": "CP"},
+        {"name": "compliance-ops", "module": "product-system", "prefix": "CO"},
+        {"name": "fulfillment-ops", "module": "vendor-sourcing", "prefix": "FO"}
+      ]
+    },
+    "product-ops": {
+      "description": "Domain 4 — live monitoring, ad management, revenue ops, learning engine.",
+      "version": "1.0.0",
+      "project": "Launch & Ops",
+      "skills": [
+        {"name": "product-monitor", "module": "product-system", "prefix": "MO"},
+        {"name": "ads-ops", "module": "marketing-content", "prefix": "AO"},
+        {"name": "revenue-ops", "module": "revenue-finance", "prefix": "RO"},
+        {"name": "ism-learning-engine", "module": "governance", "prefix": "LE"}
+      ]
+    }
+  }
+}

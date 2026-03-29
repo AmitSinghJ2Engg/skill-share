@@ -84,3 +84,33 @@ Records architectural decisions and their rationale. Each entry captures the con
 - Empty module directories (`packages/`, `project-knowledge/`) deleted
 - Plugin registry simplified: `module` field removed from skill entries
 - Build script simplified: `find_skill_path()` now checks `skills/{name}/SKILL.md` directly
+
+**Update (same session):** Further organized into packages — see DL-004.
+
+---
+
+## DL-004: Skills Organized by Package (Package = Plugin)
+
+**Date:** 2026-03-29
+**Status:** Accepted
+**Context:** With 32 skills in a flat `skills/` directory, navigation becomes difficult as the list grows. No visual connection between a skill and its plugin.
+
+**Decision:** Organize skills into packages within `skills/`. Each package aligns with a plugin for pipeline skills. Non-pipeline skills grouped by function.
+
+**Structure:**
+```
+skills/{package}/{skill-name}/SKILL.md
+```
+
+Pipeline packages: `product-discovery`, `product-evaluation`, `product-sourcing`, `product-testing`, `product-launch`, `product-ops`
+Non-pipeline packages: `governance`, `platform`, `operations`, `founder`, `research`
+
+**Shared skills** have one primary package. The `plugin-registry.json` records which package a skill lives in via the `package` field. The build script resolves `skills/{package}/{skill}/SKILL.md` for any plugin.
+
+**Rationale:**
+- Opening a package directory shows exactly what goes into that plugin
+- Build script resolves paths via registry `package` field
+- Scalable: new domains add new packages
+- Shared skills have single source of truth in their primary package
+
+**Also in this change:** Deleted `product-ops-config` skill (deprecated — content moved to context files).

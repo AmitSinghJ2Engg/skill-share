@@ -127,7 +127,7 @@
 `C:\Users\amits\ClaudeMain\Claude-Cowork\Git-Skill-Share\skill-share`
 
 ### Structure
-- `skills/` — all skill source files, one directory per skill (`skills/{name}/SKILL.md` + optional `reference/`)
+- `skills/` — all skill source files, organized by package (`skills/{package}/{name}/SKILL.md` + optional `reference/`). Each package aligns with a plugin.
 - `context/` — runtime config files deployed to Claude.ai project knowledge
 - `dist/` — built `.plugin` files (compiled artifacts)
 - `docs/` — architecture docs, standards, decisions

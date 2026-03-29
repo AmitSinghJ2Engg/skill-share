@@ -1,15 +1,15 @@
 {
-  "_comment": "Plugin registry — maps each plugin to its skills and metadata. All skills live in skills/{name}/SKILL.md. Source of truth for build-plugin.py.",
+  "_comment": "Plugin registry. All skills at skills/{package}/{skill}/SKILL.md. Source of truth for build-plugin.py.",
   "plugins": {
     "product-discovery": {
       "description": "Domain 1 discovery stages — keyword intelligence, product discovery, screening, market intelligence.",
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
-        {"name": "ikraft-keyword-intelligence", "prefix": "KI"},
-        {"name": "product-discover", "prefix": "PD"},
-        {"name": "product-screen", "prefix": "PS"},
-        {"name": "product-market-intelligence", "prefix": "MI"}
+        {"name": "ikraft-keyword-intelligence", "package": "product-discovery", "prefix": "KI"},
+        {"name": "product-discover", "package": "product-discovery", "prefix": "PD"},
+        {"name": "product-screen", "package": "product-discovery", "prefix": "PS"},
+        {"name": "product-market-intelligence", "package": "product-discovery", "prefix": "MI"}
       ]
     },
     "product-evaluation": {
@@ -17,9 +17,9 @@
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
-        {"name": "product-evaluate", "prefix": "PE"},
-        {"name": "margin-calculator", "prefix": "MC"},
-        {"name": "compliance-ops", "prefix": "CO"}
+        {"name": "product-evaluate", "package": "product-evaluation", "prefix": "PE"},
+        {"name": "margin-calculator", "package": "product-evaluation", "prefix": "MC"},
+        {"name": "compliance-ops", "package": "product-evaluation", "prefix": "CO"}
       ]
     },
     "product-sourcing": {
@@ -27,10 +27,10 @@
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
-        {"name": "product-spec", "prefix": "SP"},
-        {"name": "supplier-intelligence", "prefix": "SI"},
-        {"name": "vendor-ops", "prefix": "VO"},
-        {"name": "margin-calculator", "prefix": "MC"}
+        {"name": "product-spec", "package": "product-sourcing", "prefix": "SP"},
+        {"name": "supplier-intelligence", "package": "product-sourcing", "prefix": "SI"},
+        {"name": "vendor-ops", "package": "product-sourcing", "prefix": "VO"},
+        {"name": "margin-calculator", "package": "product-evaluation", "prefix": "MC"}
       ]
     },
     "product-testing": {
@@ -38,10 +38,10 @@
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
-        {"name": "ads-ops", "prefix": "AO"},
-        {"name": "product-monitor", "prefix": "MO"},
-        {"name": "fulfillment-ops", "prefix": "FO"},
-        {"name": "compliance-ops", "prefix": "CO"}
+        {"name": "ads-ops", "package": "product-testing", "prefix": "AO"},
+        {"name": "product-monitor", "package": "product-testing", "prefix": "MO"},
+        {"name": "fulfillment-ops", "package": "product-testing", "prefix": "FO"},
+        {"name": "compliance-ops", "package": "product-evaluation", "prefix": "CO"}
       ]
     },
     "product-launch": {
@@ -49,10 +49,10 @@
       "version": "1.0.0",
       "project": "Launch & Ops",
       "skills": [
-        {"name": "content-writer", "prefix": "CW"},
-        {"name": "capital-planner", "prefix": "CP"},
-        {"name": "compliance-ops", "prefix": "CO"},
-        {"name": "fulfillment-ops", "prefix": "FO"}
+        {"name": "content-writer", "package": "product-launch", "prefix": "CW"},
+        {"name": "capital-planner", "package": "product-launch", "prefix": "CP"},
+        {"name": "compliance-ops", "package": "product-evaluation", "prefix": "CO"},
+        {"name": "fulfillment-ops", "package": "product-testing", "prefix": "FO"}
       ]
     },
     "product-ops": {
@@ -60,10 +60,10 @@
       "version": "1.0.0",
       "project": "Launch & Ops",
       "skills": [
-        {"name": "product-monitor", "prefix": "MO"},
-        {"name": "ads-ops", "prefix": "AO"},
-        {"name": "revenue-ops", "prefix": "RO"},
-        {"name": "ism-learning-engine", "prefix": "LE"}
+        {"name": "product-monitor", "package": "product-testing", "prefix": "MO"},
+        {"name": "ads-ops", "package": "product-testing", "prefix": "AO"},
+        {"name": "revenue-ops", "package": "product-ops", "prefix": "RO"},
+        {"name": "ism-learning-engine", "package": "product-ops", "prefix": "LE"}
       ]
     }
   }

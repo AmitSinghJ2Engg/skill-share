@@ -55,9 +55,9 @@ Skills, project knowledge, and reference material serve different audiences at d
 
 | Layer | What | Where | Who Consumes | In Plugin? |
 |-------|------|-------|-------------|------------|
-| **SKILL.md** | Instructions: purpose, modes, I/O contracts, execution steps | `skills/{skill}/SKILL.md` | Everyone (plugin users, Cowork) | Yes |
+| **SKILL.md** | Instructions: purpose, modes, I/O contracts, execution steps | `skills/{package}/{skill}/SKILL.md` | Everyone (plugin users, Cowork) | Yes |
 | **Project Knowledge** | Runtime values: thresholds, CRM fields, gate criteria, brand rules | `context/{project}/` -> deployed to Claude.ai | Everyone running the system | No (deployed separately) |
-| **Reference Material** | Deep domain knowledge: financial models, scoring rubrics, evaluation frameworks | `skills/{skill}/reference/` | Builders only (maintaining skills/context) | No |
+| **Reference Material** | Deep domain knowledge: financial models, scoring rubrics, evaluation frameworks | `skills/{package}/{skill}/reference/` | Builders only (maintaining skills/context) | No |
 
 - SKILL.md never contains file paths to reference files. It says "read from project context."
 - Reference files are a BUILD-TIME dependency. They inform how skills and context files are written/maintained.
@@ -330,15 +330,36 @@ Each project has a set of reference files loaded into every conversation:
 ```
 skill-share/
   skills/                         (all skill source files — like src/ in a coding project)
-    product-discover/
-      SKILL.md
-      reference/                  (builder knowledge — NOT included in plugin)
-    product-screen/
-    product-evaluate/
-    margin-calculator/
-    vendor-ops/
-    content-writer/
-    ...                           (one directory per skill, flat structure)
+    product-discovery/            (package = Plugin 1a, Domain 1 early)
+      product-discover/
+        SKILL.md
+        reference/                (builder knowledge — NOT included in plugin)
+      product-screen/
+      ikraft-keyword-intelligence/
+      product-market-intelligence/
+    product-evaluation/           (package = Plugin 1b, Domains 1+1.5)
+      product-evaluate/
+      margin-calculator/          (primary home — shared with product-sourcing)
+      compliance-ops/             (primary home — shared with product-testing, product-launch)
+    product-sourcing/             (package = Plugin 2a, Domain 2)
+      product-spec/
+      supplier-intelligence/
+      vendor-ops/
+    product-testing/              (package = Plugin 2b, Domain 2.5)
+      ads-ops/                    (primary home — shared with product-ops)
+      product-monitor/            (primary home — shared with product-ops)
+      fulfillment-ops/            (primary home — shared with product-launch)
+    product-launch/               (package = Plugin 3, Domain 3)
+      content-writer/
+      capital-planner/
+    product-ops/                  (package = Plugin 4, Domain 4)
+      revenue-ops/
+      ism-learning-engine/
+    governance/                   (future plugins)
+    platform/                     (future plugins)
+    operations/                   (future plugins)
+    founder/                      (future)
+    research/                     (future)
   context/                        (runtime config — deployed to Claude.ai project knowledge)
     product-pipeline/
       crm-field-mappings.json
@@ -390,7 +411,7 @@ skill-share/
 ```
 
 ### Rules
-- All skills live in `skills/{name}/` at the repo root. Each skill has a `SKILL.md` and an optional `reference/` folder.
+- All skills live in `skills/{package}/{name}/` at the repo root. Each package maps to a plugin. Each skill has a `SKILL.md` and an optional `reference/` folder. Shared skills have one primary package; other plugins reference them via the `package` field in `plugin-registry.json`.
 - `reference/` folders contain detailed context for human reading and Claude build sessions. They are NOT included in the plugin.
 - The plugin contains only the trimmed SKILL.md per skill.
 - The repo is the source of truth for skill source code. Plugins are built artifacts.
@@ -418,24 +439,24 @@ skill-share/
 
 The following skills are defined in the architecture (`02-business-domain-map.md`) but do not yet have a SKILL.md file. They must be written during Cowork build sessions following the standards in §1. Each skill's SKILL.md goes in its module directory under `skills/{skill-name}/SKILL.md`.
 
-| Skill | Directory | Priority | Needed For |
-|-------|-----------|----------|------------|
-| `ikraft-keyword-intelligence` | `skills/ikraft-keyword-intelligence/` | High | Plugin 1a, daily discovery task |
-| `product-market-intelligence` | `skills/product-market-intelligence/` | High | Plugin 1a, Stage 2 intelligence task |
-| `compliance-ops` | `skills/compliance-ops/` | High | Plugins 1b, 2b, 3 |
-| `fulfillment-ops` | `skills/fulfillment-ops/` | High | Plugins 2b, 3 |
-| `supplier-intelligence` | `skills/supplier-intelligence/` | Medium | Plugin 2a |
-| `ads-ops` | `skills/ads-ops/` | Medium | Plugins 2b, 4 |
-| `capital-planner` | `skills/capital-planner/` | Medium | Plugin 3 |
-| `revenue-ops` | `skills/revenue-ops/` | Low | Plugin 4 |
-| `ism-learning-engine` | `skills/ism-learning-engine/` | Low | Plugin 4 |
+| Skill | Package / Directory | Priority | Needed For |
+|-------|-------------------|----------|------------|
+| `ikraft-keyword-intelligence` | `skills/product-discovery/` | High | Plugin 1a, daily discovery task |
+| `product-market-intelligence` | `skills/product-discovery/` | High | Plugin 1a, Stage 2 intelligence task |
+| `compliance-ops` | `skills/product-evaluation/` | High | Plugins 1b, 2b, 3 |
+| `fulfillment-ops` | `skills/product-testing/` | High | Plugins 2b, 3 |
+| `supplier-intelligence` | `skills/product-sourcing/` | Medium | Plugin 2a |
+| `ads-ops` | `skills/product-testing/` | Medium | Plugins 2b, 4 |
+| `capital-planner` | `skills/product-launch/` | Medium | Plugin 3 |
+| `revenue-ops` | `skills/product-ops/` | Low | Plugin 4 |
+| `ism-learning-engine` | `skills/product-ops/` | Low | Plugin 4 |
 
 **Build session instructions:** When writing a new SKILL.md:
 1. Read `02-business-domain-map.md` for the skill's domain, modes, data produced/consumed.
-2. Read existing reference files in `skills/{name}/reference/` (if any) for domain knowledge.
+2. Read existing reference files in `skills/{package}/{name}/reference/` (if any) for domain knowledge.
 3. Follow §1 structure exactly: frontmatter, purpose, modes, input/output contracts, execution steps, trigger phrases.
 4. Ensure the file stays under 5 KB. Move detailed rubrics/thresholds to reference files or project context.
-5. Write the completed SKILL.md to `skills/{name}/SKILL.md`.
+5. Write the completed SKILL.md to `skills/{package}/{name}/SKILL.md`.
 
 ---
 

@@ -40,25 +40,24 @@ Records architectural decisions and their rationale. Each entry captures the con
 **Status:** Accepted
 **Context:** Confusion about where reference material (financial models, scoring rubrics, evaluation frameworks) should live relative to skills, plugins, and project knowledge.
 
-**Decision:** Three-layer information architecture:
+**Decision:** Three-layer information architecture (revised by DL-005):
 
-| Layer | Purpose | Location | Consumed By | Included in Plugin? |
-|-------|---------|----------|-------------|---------------------|
-| SKILL.md | Instructions (purpose, modes, I/O contracts, execution steps) | `{module}/skills/{skill}/SKILL.md` | Plugin users, Cowork sessions | Yes |
-| Project Knowledge | Runtime values (thresholds, CRM fields, gate criteria, brand rules) | `context/{project}/` -> deployed to Claude.ai project knowledge | Everyone running the system | No (deployed separately) |
-| Reference Material | Deep domain knowledge (full financial models, scoring rubrics) | `{module}/skills/{skill}/reference/` or `{module}/project-knowledge/` | Builders only (humans/Claude maintaining skills and context files) | No |
+| Layer | Purpose | Location | In Plugin? |
+|-------|---------|----------|-----------|
+| SKILL.md | Instructions + navigation to supporting files | `skills/{pkg}/{skill}/SKILL.md` | Yes |
+| Supporting files | Detailed methodology, rubrics, scripts, templates | `skills/{pkg}/{skill}/reference/`, `scripts/` | Yes (counts toward 70 KB) |
+| Project Knowledge | Runtime values (thresholds, CRM fields, gate criteria) | `context/{project}/` | No (deployed separately) |
 
 **Rationale:**
-- Reference files are a BUILD-TIME dependency, not a RUNTIME dependency. Like design docs next to source code.
-- Plugin users (team members who install .plugin + project knowledge) have everything needed to RUN the system without reference files.
-- Builders (who write/maintain skills in Cowork) set workspace to the repo and can read reference files.
-- SKILL.md never contains file paths to reference files — it says "read from project context." This ensures portability.
-- If someone forks the repo, internal relative structure is identical.
+- Claude's official skill spec (code.claude.com/docs/en/skills) supports multi-file skill directories with reference files loaded on demand at runtime.
+- SKILL.md references supporting files inline when execution steps need detailed methodology.
+- Business values that change independently (thresholds, CRM fields) stay in project context.
 
 **Consequences:**
-- Reference files stay in repo, never bundled in plugins.
-- Context files are the sole runtime configuration mechanism.
-- `03-implementation-standards.md` updated to document this architecture explicitly.
+- Supporting files packaged into plugins alongside SKILL.md.
+- Build script packages entire skill directory (minus .gitkeep).
+- `03-implementation-standards.md` updated to document this architecture.
+- **Revised by DL-005** (2026-03-30): aligned with Claude's official plugin/skill specification.
 
 ---
 
@@ -113,4 +112,39 @@ Non-pipeline packages: `governance`, `platform`, `operations`, `founder`, `resea
 - Scalable: new domains add new packages
 - Shared skills have single source of truth in their primary package
 
-**Also in this change:** Deleted `product-ops-config` skill (deprecated — content moved to context files).
+**Also in this change:** Deleted `product-ops-config` skill (deprecated -- content moved to context files).
+
+---
+
+## DL-005: Foundation Aligned with Claude Official Plugin/Skill Spec
+
+**Date:** 2026-03-30
+**Status:** Accepted
+**Context:** Plugin 1a upload to Claude Cowork failed. Investigation of Claude's official plugin documentation (code.claude.com/docs/en/plugins, /skills) revealed misalignments in our foundation:
+
+1. Our rule "SKILL.md never contains file paths to reference files" contradicts Claude's official guidance: "Skills can include multiple files in their directory... Reference these files from SKILL.md."
+2. Our DL-002 classified reference files as "build-time only, not in plugin" -- but Claude's spec says supporting files are part of the skill and loaded on demand at runtime.
+3. Our build script only packaged SKILL.md, missing supporting files.
+4. Our SKILL.md frontmatter used non-standard fields (version, lifecycle) and missed standard ones (disable-model-invocation, allowed-tools, context, etc.).
+5. No marketplace distribution mechanism existed.
+
+**Decision:** Align all foundation documents with Claude's official spec:
+- Supporting files (reference/, scripts/, templates/) ARE part of the plugin
+- SKILL.md SHOULD reference supporting files for detailed methodology
+- Build script packages entire skill directory
+- Add marketplace.json for GitHub distribution
+- Document official SKILL.md frontmatter fields
+
+**Revises:** DL-002 (three-layer architecture table updated)
+
+**Consequences:**
+- `03-implementation-standards.md` rewritten for skill directory structure, plugin rules
+- `01-system-constraints.md` updated with frontmatter spec and marketplace section
+- `build-plugin.py` updated to package supporting files
+- TODOs in PD/PS about reference paths removed (those paths are correct per official spec)
+- Plugin 1a rebuilt with supporting files included
+
+**Sources:**
+- https://code.claude.com/docs/en/plugins
+- https://code.claude.com/docs/en/skills
+- https://github.com/anthropics/claude-plugins-official

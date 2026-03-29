@@ -16,21 +16,48 @@
 - Verified: 3 real skills at 69 KB = PASS. 4 real skills at 76 KB = FAIL.
 
 ### Skill Size Target
-- Each SKILL.md body: **under 5 KB** (aim for 3 KB). <<including reference files within skill>>
-- Business logic, thresholds, formulas, picklists, <<variables, environment dependent config>> — these do NOT belong in SKILL.md. They go in project context files. <<enable portability>>
-- SKILL.md contains: purpose, modes, input/output contracts, trigger phrases. Nothing else.
+- Each SKILL.md body: **under 5 KB** (aim for 3 KB).
+- Each skill directory (SKILL.md + supporting files): keep total reasonable against 70 KB plugin limit.
+- Business logic, thresholds, formulas, picklists, environment-dependent config go in project context files, not SKILL.md.
+- SKILL.md contains: purpose, modes, I/O contracts, execution steps, trigger phrases. Detailed methodology goes in supporting files (reference/).
+
+### SKILL.md Frontmatter (Claude official spec)
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | No | Display name. If omitted, uses directory name. Lowercase + hyphens, max 64 chars. |
+| `description` | Recommended | What the skill does and when to use it. Claude uses this to decide when to invoke. Max 250 chars shown. |
+| `disable-model-invocation` | No | `true` = user-only trigger (manual /skill-name). Default: false. |
+| `user-invocable` | No | `false` = model-only, hidden from / menu. Default: true. |
+| `allowed-tools` | No | Tools Claude can use without permission when skill is active. |
+| `model` | No | Model override for this skill. |
+| `effort` | No | Effort level override (low/medium/high/max). |
+| `context` | No | `fork` = run in isolated subagent context. |
+| `agent` | No | Subagent type when context: fork (Explore, Plan, general-purpose, or custom). |
+| `paths` | No | Glob patterns limiting when skill activates automatically. |
+
+Our custom fields (`version`, `lifecycle`) are ignored by Claude but kept for internal tracking.
+
+String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]`, `$N`, `${CLAUDE_SESSION_ID}`, `${CLAUDE_SKILL_DIR}`.
 
 ### Plugin Structure
-- `.claude-plugin/plugin.json` manifest with `name` (kebab-case), `description`, `version`.
-- `skills/{skill-name}/SKILL.md` with YAML frontmatter (`name`, `description` required).
-- Reference files inside the plugin count toward the 70 KB limit. Use sparingly or not at all.
-- Package as zip renamed to `.plugin`.
+- `.claude-plugin/plugin.json` manifest with `name`, `description`, `version`, optional `author`.
+- `skills/{skill-name}/SKILL.md` with YAML frontmatter.
+- `skills/{skill-name}/reference/`, `scripts/`, etc. -- supporting files packaged into plugin.
+- All content counts toward 70 KB limit.
+- Package as zip renamed to `.plugin` for Cowork upload.
+- Test locally with `claude --plugin-dir ./plugin-directory`.
+
+### Marketplace Distribution
+- GitHub repo can serve as a plugin marketplace via `.claude-plugin/marketplace.json`.
+- Users install with `/plugin install plugin-name@owner/repo`.
+- Repo: `AmitSinghJ2Engg/skill-share`.
 
 ### Splitting Strategy
 - A domain with more than 4-5 skills needs multiple plugins.
-- Split by business phase/<<workflows>>, not by skill type. <<Aligning with cowork task orchestration.>>
-- Each plugin should be independently useful — no cross-plugin dependencies.
-- <<Each plugin should be portable — things that change stays in project context. making sure project files are easy to modify or evolve. If it suits as Json, create jsons or both formats. Should be Context indexing friendly >>
+- Split by business phase/workflow, not by skill type. Aligns with Cowork task orchestration.
+- Each plugin should be independently useful -- no cross-plugin dependencies.
+- Portable: things that change stay in project context. JSON format for structured data, MD for narrative.
 
 ---
 

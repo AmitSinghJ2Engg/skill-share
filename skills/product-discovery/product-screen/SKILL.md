@@ -1,216 +1,83 @@
 ---
 name: product-screen
 description: >
-  Transforms discovery data into filtered, scored, ranked product reports. Three active modes: SCORE (8-dimension scoring → ScoredCandidate[]), REPORT (risk-filtered top-10 with differentiation ideas), BRIEF (launch handoff doc). NORMALIZE removed — product-discover BATCH handles normalisation. ALWAYS trigger for: "score these candidates", "score this discovery batch", "rank these products", "filter the candidates", "generate the report", "top 10 products", "product opportunity report", "which products passed", "shortlist report", "final report", "trademark check", "launch brief", "brief for this product", "PS-". Run modes in sequence: SCORE → REPORT → BRIEF. If the task involves processing, scoring, or reporting on a batch of products — trigger. If unsure — trigger.
-metadata:
-  domain: product
-  prefix: PS-
-  version: 2.1.0
+  PS- Scores, filters, and reports on product candidates. SCORE: 8-dimension
+  scoring. REPORT: risk-filtered top-10. BRIEF: launch handoff doc.
+version: "2.2.0"
+lifecycle: active
 ---
 
 # Product Screen
 
-Transforms discovery data into actionable product opportunity outputs. Three modes run in sequence: score candidates, filter and report, brief for launch handoff.
+Transforms discovery data into scored, filtered, reported product opportunities.
 
-**Capability boundary:** This skill transforms and reports. It does not evaluate products against launch gates (product-evaluate), research products from scratch (product-discover), or compute margins (margin-calculator, invoked read-only in BRIEF mode).
+**Boundary:** Transforms and reports only. Does not evaluate gates (product-evaluate), discover (product-discover), or compute margins (margin-calculator).
 
-## Shared Knowledge (always in context)
+## Modes
 
-The opportunity map, financial formulas, gate definitions, and data integrity rules are available in project knowledge. Do not read separate files for these — they are already in context.
-
-## Skill-Specific Reference Files
-
-For detailed rules loaded only when needed:
-
-- **Scoring rubric**: See [reference/scoring-rubric-8dim.md](reference/scoring-rubric-8dim.md) — 8-dimension source-agnostic scoring model for SCORE mode
-- **Risk filters**: See [reference/risk-filter-rules.md](reference/risk-filter-rules.md) — 4 filters for REPORT mode Stage 1
-
----
-
-## DATA INTEGRITY CONTRACT
-
-The 7 data integrity rules (NEVER INVENT DATA, NULL IS CORRECT, SOURCE AND CONFIDENCE, etc.) are defined in project knowledge under data-integrity-rules.md. They apply to every mode, every candidate, every run. Non-negotiable.
-
----
-
-## Mode Selection
-
-| User has... | Needs... | Run mode |
-|---|---|---|
-| Raw CrawlBatch | ProductCandidate[] | Run product-discover BATCH first (NORMALIZE removed) |
-| ProductCandidate[] | Ranked scored list | SCORE |
-| ScoredCandidate[] | Risk-filtered top-10 report | REPORT |
-| Single evaluated product | Launch handoff doc | BRIEF |
+| Mode | Input | Output | Downstream |
+|---|---|---|---|
+| **SCORE** | `ProductCandidate[]` | `ScoredCandidate[]` → CRM | REPORT |
+| **REPORT** | `ScoredCandidate[]` | `OpportunityReport` → Slack | product-evaluate |
+| **BRIEF** | Single evaluated product | `LaunchBrief` → CRM | vendor-ops, content-writer |
 
 If user provides raw CrawlBatch: redirect to product-discover BATCH. Never accept raw crawl data directly.
 
----
-
 ## MODE: SCORE
 
-**Purpose:** Score each ProductCandidate across 8 dimensions using source-agnostic signals. Returns ScoredCandidate[]. Write scores to CRM records.
+Score each ProductCandidate across 8 dimensions. Returns `ScoredCandidate[]`. Write scores to CRM.
 
-**When to invoke:** "score these candidates", "rank these products", "score this discovery batch".
+Read `reference/scoring-rubric-8dim.md` for dimension tables, signal priorities, and scoring tiers. 8 dimensions at 12.5 points each, max 100. Bands: Strong 75-100, Promising 55-74, Weak 35-54, Reject 0-34.
 
-Read [reference/scoring-rubric-8dim.md](reference/scoring-rubric-8dim.md) for full dimension tables and scoring tiers.
+CRM update per candidate: `Opportunity_Score`, `Competition_Level`, `Search_Trend`.
 
-### 8-Dimension Overview
-
-All dimensions equally weighted at 12.5 points each, total max 100. Each dimension uses the **best available signal** across platforms:
-
-| Dimension | What to measure | Signal sources (priority order) | 0 points | 12.5 points |
-|---|---|---|---|---|
-| Demand Signal | Purchase intent across marketplaces | Amazon BSR > Etsy sales > Pinterest saves > Google Trends | No signal from any platform | Strong demand on primary marketplace |
-| Price Point | Ismokraft target 800–2,000 INR | Any marketplace price (converted to INR) | Outside 500–3,000 | 800–1,200 sweet spot |
-| Competition Gap | Competitor strength in category | Amazon reviews > Etsy shop count > listing density | Saturated across all platforms | Low competition on primary marketplace |
-| Trend Strength | Growth trajectory | Google Trends (India + US) > Etsy trending > Pinterest rising | Declining on all platforms | Rising/breakout signal |
-| Social Validation | Consumer interest signals | Pinterest saves > Etsy favorites > social traction | No signal from any platform | Strong social proof |
-| Margin Potential | COGS headroom at SP | Any marketplace pricing data | SP < 2x COGS | SP > 3.5x COGS |
-| Category Fit | Ismokraft domain match | Opportunity map zone alignment | No match | Exact match |
-| Differentiation | Unique angle available | Amazon reviews + Etsy reviews + Q&A | Commodity across all platforms | Clear gap identified |
-
-### Score Bands
-
-Strong: 75–100. Promising: 55–74. Weak: 35–54. Reject: 0–34.
-
-### CRM Update
-
-After scoring, update each candidate's CRM record (created during product-discover BATCH Phase 4) with: Opportunity_Score = total_score, Competition_Level = competition dimension label, Search_Trend = trend dimension label.
-
-### Output: ScoredCandidate[]
-
-Each candidate gets: candidate_id, title, total_score, score_band, dimension_scores (8 values with source citations), score_notes, marketplaces_scored[].
-
-Batch output includes: scoring_run_id (PS-S-{YYYYMMDD}-{NNN}), scored_count, top_candidates list.
-
----
+**Output:** candidate_id, title, total_score, score_band, dimension_scores (8 values + sources), marketplaces_scored[]. Batch: scoring_run_id (`PS-S-{YYYYMMDD}-{NNN}`), scored_count, top_candidates.
 
 ## MODE: REPORT
 
-**Purpose:** Apply risk filters, then produce a top-10 ranked report with differentiation ideas. Send summary to Slack.
+Apply risk filters, produce top-10 report with differentiation ideas, post to Slack.
 
-**When to invoke:** "generate the report", "top 10 products", "which products passed", "filter the candidates".
+**Stage 1 -- Risk Filter:** Read `reference/risk-filter-rules.md`. 4 filters (Trademark, Seasonality, Certification, Fragility). Verdict = worst result. PASS / CONDITIONAL (flagged) / FAIL (excluded).
 
-Read [reference/risk-filter-rules.md](reference/risk-filter-rules.md) for filter criteria and verdict logic.
+**Stage 2 -- Top-10:** For top 10 PASS/CONDITIONAL (by score), per candidate: differentiation idea, wood spec, bundle opportunity, manufacturing difficulty, confidence level, marketplace opportunity.
 
-### Stage 1: Risk Filter
+**Stage 3 -- Slack:** Post to `#product-discovery`: top 10 with scores, filter counts, marketplace coverage.
 
-4 filters per candidate. Final verdict = worst individual result.
-
-| Filter | Criteria | Fail condition |
-|---|---|---|
-| Trademark | Branded terms in product name | Branded name, no generic alternative |
-| Seasonality | Demand concentration | > 70% sales in one quarter |
-| Certification | Mandatory certifications needed | Electrical, food-contact, medical |
-| Fragility | Breakage risk in FBA shipping | Glass, thin ceramic, unsupported overhangs |
-
-Verdicts: PASS (include), CONDITIONAL (include + flag), FAIL (exclude from report).
-
-### Stage 2: Top-10 Report
-
-For the top 10 PASS/CONDITIONAL candidates (ranked by score), produce per candidate:
-
-1. Differentiation idea — what variation would win (1–2 sentences)
-2. Wood specification recommendation — species, finish, treatment
-3. Bundle opportunity — what to pair with it
-4. Manufacturing difficulty — Easy / Medium / Hard
-5. Confidence level — High / Medium / Low (based on data completeness)
-6. Marketplace opportunity — which marketplaces show strongest signal
-
-### Stage 3: Slack Summary
-
-Send report summary to #product-discovery via Slack: top 10 product names with scores, filter summary (pass/conditional/fail counts), marketplace coverage.
-
-### Output: OpportunityReport
-
-Report includes: report_id (PS-R-{YYYYMMDD}-{NNN}), filter_summary (pass/conditional/fail counts), top_10 array, and a Markdown summary table.
-
----
+**Output:** report_id (`PS-R-{YYYYMMDD}-{NNN}`), filter_summary, top_10 array, Markdown summary.
 
 ## MODE: BRIEF
 
-**Purpose:** Produce a structured launch brief for a single evaluated product. Activates downstream skills. Update CRM record.
+Produce a launch brief for a single evaluated product. Update CRM.
 
-**When to invoke:** "launch brief", "brief for this product", single product ready for sourcing.
+**Output:** product_title, target_sp_inr, target_cogs_max_inr, target_margin_pct, bigin_stage, marketplace_strategy. Handoffs: margin-calculator (verify margin), vendor-ops (DISCOVER), content-writer (LISTING).
 
-### Output: LaunchBrief
+Brief ID: `PS-B-{YYYYMMDD}-{NNN}`. CRM: set `Launch_Priority`.
 
-Contains: product_title, target_sp_inr, target_cogs_max_inr, target_margin_pct, bigin_stage, marketplace_strategy (which marketplaces to launch on), and handoff triggers for:
+## Input Validation
 
-- **margin-calculator** — verify margin at target SP and COGS (read-only invocation)
-- **vendor-ops** — DISCOVER mode for manufacturers matching product spec
-- **content-writer** — LISTING mode for Amazon India listing after listing approval
-
-Brief ID format: PS-B-{YYYYMMDD}-{NNN}.
-
-CRM update: Set Launch_Priority field on the product's CRM record.
-
----
-
-## NORMALIZE Mode — Removed
-
-NORMALIZE mode has been removed. product-discover BATCH already runs crawl, extract + normalise, and enrich — producing clean ProductCandidate[] ready for scoring.
-
-Correct flow: product-discover BATCH → ProductCandidate[] → product-screen SCORE.
-
----
-
-## Pre-Execution Validation
-
-| Task | Required inputs | Block if missing |
+| Mode | Required | Block if missing |
 |---|---|---|
-| SCORE | ProductCandidate[] with at minimum title + platform + one scored field | Block — redirect to product-discover BATCH |
-| SCORE (raw CrawlBatch given) | — | Block — redirect to product-discover BATCH first |
-| REPORT | ScoredCandidate[] from SCORE | Block — cannot filter/rank without scores |
-| BRIEF | product_title, target_sp_inr, target_cogs_max_inr | Block — LaunchBrief incomplete without financials |
-
-If blocked: state exact missing input. Do not proceed. Do not invent data.
+| SCORE | ProductCandidate[] with title + platform + one scored field | Redirect to product-discover BATCH |
+| REPORT | ScoredCandidate[] from SCORE | Cannot filter/rank without scores |
+| BRIEF | product_title, target_sp_inr, target_cogs_max_inr | LaunchBrief incomplete without financials |
 
 ## Halt Conditions
 
-| Condition | Mode | Action |
-|---|---|---|
-| < 5 candidates after dedup | SCORE | Flag, suggest broader keywords via product-discover |
-| > 50% candidates FAIL risk filter | REPORT | Investigate dominant fail reason before proceeding |
-| All top-10 score < 55 | REPORT | Report result, recommend different seed keywords |
-| Legacy prefix used (PDC-, POS-, PDR-, POR-) | Any | Acknowledge maps to PS-, proceed normally |
-
----
-
-## Related Skills
-
-| Skill | Relationship |
-|---|---|
-| product-discover | Upstream — provides ProductCandidate[] from BATCH mode |
-| ikraft-keyword-intelligence | Indirect upstream — provides keywords to product-discover |
-| product-evaluate | Downstream — receives ScoredCandidate[] for DEEP-EVAL and GATE-CHECK |
-| margin-calculator | Invoked in BRIEF mode for unit economics (read-only) |
-| vendor-ops | Downstream — LaunchBrief triggers DISCOVER mode |
-| content-writer | Downstream — LaunchBrief triggers LISTING mode |
-
----
+- SCORE: < 5 candidates after dedup -> flag, suggest broader keywords via product-discover
+- REPORT: > 50% candidates FAIL risk filter -> investigate dominant fail reason first
+- REPORT: all top-10 score < 55 -> report result, recommend different seed keywords
 
 ## Rules
 
-1. Never invent scores. If a dimension's source data is null across ALL platforms, score it 0. Do not estimate.
+1. Never invent scores. Null source data across ALL platforms = score 0.
 2. Never accept raw CrawlBatch. Redirect to product-discover BATCH.
-3. Margin Potential dimension is a rough viability signal. Full margin calculation is margin-calculator's job.
-4. All ScoredCandidate outputs must trace to input data. Unscored dimensions are marked N/A with reason.
-5. FAIL candidates in REPORT mode are excluded but logged in rejection_log with reason.
+3. Margin Potential dimension is rough viability only. Full margin = margin-calculator.
+4. All ScoredCandidate outputs must trace to input data. Unscored dimensions marked N/A with reason.
+5. FAIL candidates in REPORT excluded but logged in rejection_log with reason.
 6. All score updates write to CRM `Product_Launches` records. No local file saves.
-7. Report summary goes to Slack #product-discovery.
+7. Report summary goes to Slack `#product-discovery`.
+8. Data integrity rules from project context apply to all modes.
 
----
+## Trigger Phrases
 
-## Execution Log
-
-```
-[EXEC:product_screen:PS-{MODE}-{YYYYMMDD}-{NNN}]
-product-screen v2.1.0 | {YYYY-MM-DD} | Mode: {SCORE|REPORT|BRIEF}
-Input: {source_data_id or description}
-Candidates in: {N} | Candidates out: {N}
-{SCORE}: Score range: {min}–{max} | Bands: {N} Strong, {N} Promising, {N} Weak, {N} Reject | CRM records updated: {N}
-{REPORT}: Filters: {N} pass, {N} conditional, {N} fail | Top-10 generated | Slack: {sent/skipped}
-{BRIEF}: Product: {title} | Handoffs: {skill names} | CRM updated: {yes/no}
-Errors: {none | description}
-```
+PS-, score these candidates, rank these products, filter the candidates, generate the report, top 10 products, product opportunity report, which products passed, shortlist report, final report, launch brief, brief for this product.

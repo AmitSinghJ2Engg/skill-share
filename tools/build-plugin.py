@@ -112,6 +112,20 @@ def find_skill_path(repo_root, skill_name, package):
     return None
 
 
+def get_skill_dir_size(repo_root, skill_name, package):
+    """Get total size of skill directory (SKILL.md + supporting files), excluding .gitkeep."""
+    skill_dir = os.path.join(repo_root, "skills", package, skill_name)
+    total = 0
+    file_count = 0
+    for dirpath, dirnames, filenames in os.walk(skill_dir):
+        for f in filenames:
+            if f == ".gitkeep":
+                continue
+            total += os.path.getsize(os.path.join(dirpath, f))
+            file_count += 1
+    return total, file_count
+
+
 def check_plugin(repo_root, plugin_name, plugin_def, shared_skills):
     """Validate a plugin without building. Returns (is_valid, report)."""
     report = {
@@ -146,13 +160,18 @@ def check_plugin(repo_root, plugin_name, plugin_def, shared_skills):
             )
             continue
 
-        size = os.path.getsize(skill_path)
-        report["total_size"] += size
+        skill_md_size = os.path.getsize(skill_path)
+        dir_size, file_count = get_skill_dir_size(repo_root, skill_name, package)
+        support_size = dir_size - skill_md_size
+        report["total_size"] += dir_size
         report["skills_found"].append({
             "name": skill_name,
             "package": package,
             "version": meta.get("version", "unknown"),
-            "size": size,
+            "size": skill_md_size,
+            "support_size": support_size,
+            "total_size": dir_size,
+            "file_count": file_count,
         })
         report["warnings"].extend([f"{skill_name}: {w}" for w in issues])
 
@@ -172,6 +191,10 @@ def check_plugin(repo_root, plugin_name, plugin_def, shared_skills):
         report["validation_errors"].append(
             f"Estimated size {estimated_total:,} bytes exceeds {MAX_PLUGIN_SIZE:,} byte limit"
         )
+    elif estimated_total > 60000:
+        report["warnings"].append(
+            f"Approaching size limit: {estimated_total:,} bytes (limit: {MAX_PLUGIN_SIZE:,})"
+        )
 
     is_valid = len(report["validation_errors"]) == 0 and len(report["skills_missing"]) == 0
     return is_valid, report
@@ -188,9 +211,12 @@ def print_report(report, verbose=True):
     if report["skills_found"]:
         print(f"\n  Skills found ({len(report['skills_found'])}):")
         for s in report["skills_found"]:
-            size_kb = s["size"] / 1024
+            skill_kb = s["size"] / 1024
+            total_kb = s["total_size"] / 1024
             flag = " [OVER 5KB]" if s["size"] > MAX_SKILL_SIZE else ""
-            print(f"    {s['name']} v{s['version']} ({size_kb:.1f} KB){flag}")
+            support = f" + {s['support_size']/1024:.1f} KB support" if s["support_size"] > 0 else ""
+            files = f" ({s['file_count']} files)" if s["file_count"] > 1 else ""
+            print(f"    {s['name']} v{s['version']} ({skill_kb:.1f} KB{support} = {total_kb:.1f} KB total){files}{flag}")
 
     if report["skills_missing"]:
         print(f"\n  MISSING ({len(report['skills_missing'])}):")
@@ -236,6 +262,7 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
         "name": plugin_name,
         "description": plugin_def["description"],
         "version": plugin_def.get("version", "1.0.0"),
+        "author": plugin_def.get("author", {"name": "Ismokraft"}),
     }
     plugin_dir = os.path.join(build_dir, ".claude-plugin")
     os.makedirs(plugin_dir, exist_ok=True)
@@ -243,19 +270,31 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
         json.dump(plugin_json, f, indent=2, ensure_ascii=True)
         f.write("\n")
 
-    # Copy SKILL.md files (only SKILL.md, not reference files)
+    # Copy entire skill directories (SKILL.md + supporting files)
     # Normalize line endings to LF for cross-platform compatibility
     for skill_info in report["skills_found"]:
         skill_name = skill_info["name"]
         package = skill_info["package"]
-        src_path = find_skill_path(repo_root, skill_name, package)
-
+        src_dir = os.path.join(repo_root, "skills", package, skill_name)
         dest_dir = os.path.join(build_dir, "skills", skill_name)
         os.makedirs(dest_dir, exist_ok=True)
-        with open(src_path, "r", encoding="utf-8") as sf:
-            content = sf.read()
-        with open(os.path.join(dest_dir, "SKILL.md"), "w", encoding="utf-8", newline="\n") as df:
-            df.write(content)
+
+        for dirpath, dirnames, filenames in os.walk(src_dir):
+            for f in filenames:
+                if f == ".gitkeep":
+                    continue
+                src_file = os.path.join(dirpath, f)
+                rel_path = os.path.relpath(src_file, src_dir)
+                dest_file = os.path.join(dest_dir, rel_path)
+                os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+                # Normalize text files to LF
+                if f.endswith((".md", ".json", ".yaml", ".yml", ".txt", ".py", ".sh")):
+                    with open(src_file, "r", encoding="utf-8") as sf:
+                        content = sf.read()
+                    with open(dest_file, "w", encoding="utf-8", newline="\n") as df:
+                        df.write(content)
+                else:
+                    shutil.copy2(src_file, dest_file)
 
     # Calculate uncompressed size
     total_size = 0

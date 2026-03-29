@@ -462,33 +462,47 @@ The following skills are defined in the architecture (`02-business-domain-map.md
 
 ## 9. Skill Trimming Guide
 
-When trimming a skill from its current size (15-58 KB) to plugin-ready size (~3-5 KB):
+When trimming a skill from its current size (15-58 KB) to plugin-ready size (~3-5 KB), apply the following checklist. Validated against the product-discover trim (13.6 KB → 4.7 KB).
 
-### What to Keep
+### Step 1 — Keep
+
+These elements stay in the trimmed SKILL.md:
+- Frontmatter (name, description, version, lifecycle)
 - Purpose statement (2-3 sentences)
-- Mode definitions (name, input, output — one line each)
-- Input/output JSON shapes (compact)
+- Mode table (mode, input, output, downstream — one row each)
 - Execution steps (5-10 numbered steps per mode)
+- Input validation table
+- Halt conditions
+- Rules (data integrity, boundary statements)
 - Trigger phrases
 
-### What to Remove
-- Embedded business thresholds and formulas → move to project context
-- CRM field name lists → move to project context
-- Detailed rubrics and scoring matrices → move to project context or repo references/
-- Code snippets and implementation examples → move to repo references/
-- Long explanatory text about "why" the skill works this way → move to repo docs/
+### Step 2 — Move to Project Context
 
-### What to Move Where
+Any business value that could change independently of the skill logic. Move to a JSON file in `context/{project}/` and reference the filename in the execution step.
 
-| Content Type | From Skill | To Where |
-|---|---|---|
-| Gate criteria (CBFA ≥ ₹150) | SKILL.md | Project context file |
-| CRM field mappings | SKILL.md | Project context file (`crm-field-mappings.json`) |
-| Scoring weights | SKILL.md | Project context file |
-| Evaluation rubric details | SKILL.md | Git repo references/ folder |
-| Code examples | SKILL.md | Git repo references/ folder |
-| Zone rotation schedule | SKILL.md | Project context file |
-| Marketplace URLs and patterns | SKILL.md | Project context file |
+Examples: thresholds, CRM field mappings, picklist values, rotation schedules, zone configs, gate criteria, scoring weights, marketplace URL patterns.
+
+The skill says `"per rotation formula in project context (pipeline-config.json)"` — it does not embed the formula.
+
+### Step 3 — Move to Reference
+
+Detailed methodology, scoring rubrics, protocol details, related-skill maps. Move to `skills/{package}/{skill}/reference/` and reference inline when the execution step needs it.
+
+Examples: source crawling protocols, scoring band definitions, evaluation frameworks, financial model detail.
+
+The skill says `"per scoring model in reference/scoring-bands.md"` — it does not embed the rubric.
+
+### Step 4 — Remove
+
+- Redundant pointers to project knowledge (one reference per context file is enough)
+- Verbose phase descriptions that can be compressed into a numbered step
+- Execution log templates (owned by the logging system, not the skill)
+- Metadata already captured in frontmatter
+- "Why" explanations (move to docs/ or reference/ if valuable, otherwise delete)
+
+### Step 5 — Test
+
+Read only the trimmed SKILL.md plus the context file specs. Can you execute every mode? If any step is too vague to act on, add **specificity** (not detail). A step is specific enough when it names the action, the data source, and the output shape.
 
 ---
 

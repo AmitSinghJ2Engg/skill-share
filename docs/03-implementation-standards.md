@@ -59,20 +59,54 @@ When trimming an existing SKILL.md to meet the 5 KB target:
 4. **Remove:** Redundant pointers to project knowledge, verbose phase descriptions that can be compressed, execution log templates, metadata already in frontmatter.
 5. **Test:** Read only the trimmed SKILL.md + context file specs. Can you execute every mode? If any step is too vague, add specificity (not detail — specificity).
 
+### Skill Directory Structure
+
+Each skill is a directory containing SKILL.md plus optional supporting files. Claude loads supporting files on demand when SKILL.md references them. This follows the [Agent Skills](https://agentskills.io) open standard.
+
+```
+my-skill/
+  SKILL.md              # Main instructions (required)
+  reference/            # Detailed methodology, rubrics, protocols
+    scoring-rubric.md
+    source-protocols.md
+  scripts/              # Executable logic (Python, shell)
+    calculate.py
+  templates/            # Templates for Claude to fill in
+    report-template.md
+  examples/             # Example outputs showing expected format
+    sample-output.md
+```
+
+Reference supporting files from SKILL.md so Claude knows what they contain and when to load them:
+```markdown
+For full scoring tiers, see [reference/scoring-rubric.md](reference/scoring-rubric.md).
+```
+
+Use `${CLAUDE_SKILL_DIR}` in bash commands to reference bundled scripts regardless of working directory.
+
 ### Three-Layer Information Architecture
 
-Skills, project knowledge, and reference material serve different audiences at different times. See `docs/decision-log.md` DL-002.
+Skills, project knowledge, and supporting files serve different purposes. See `docs/decision-log.md` DL-002 (revised DL-005).
 
-| Layer | What | Where | Who Consumes | In Plugin? |
-|-------|------|-------|-------------|------------|
-| **SKILL.md** | Instructions: purpose, modes, I/O contracts, execution steps | `skills/{package}/{skill}/SKILL.md` | Everyone (plugin users, Cowork) | Yes |
-| **Project Knowledge** | Runtime values: thresholds, CRM fields, gate criteria, brand rules | `context/{project}/` -> deployed to Claude.ai | Everyone running the system | No (deployed separately) |
-| **Reference Material** | Deep domain knowledge: financial models, scoring rubrics, evaluation frameworks | `skills/{package}/{skill}/reference/` | Builders only (maintaining skills/context) | No |
+| Layer | What | Where | In Plugin? |
+|-------|------|-------|-----------|
+| **SKILL.md** | Instructions + navigation to supporting files | `skills/{package}/{skill}/SKILL.md` | Yes |
+| **Supporting files** | Methodology, rubrics, scripts, templates | `skills/{package}/{skill}/reference/`, `scripts/`, etc. | Yes (counts toward 70 KB) |
+| **Project Knowledge** | Runtime values: thresholds, CRM fields, gate criteria | `context/{project}/` -> deployed to Claude.ai | No (deployed separately) |
 
-- SKILL.md never contains file paths to reference files. It says "read from project context."
-- Reference files are a BUILD-TIME dependency. They inform how skills and context files are written/maintained.
-- Plugin users (team members who install .plugin + project knowledge) have everything needed to RUN the system without reference files.
-- Builders working in Cowork set workspace to the repo and can read reference files during development.
+- SKILL.md references supporting files inline when the execution step needs detailed methodology.
+- Supporting files are packaged into the plugin and loaded on demand at runtime.
+- Project context supplies business values that change independently (thresholds, CRM fields, rotation schedules).
+- Keep SKILL.md under 500 lines. Move detailed reference material to supporting files.
+- Total skill directory (SKILL.md + supporting files) counts toward the 70 KB plugin limit.
+
+### When to use scripts/
+
+Use `scripts/` when a skill needs deterministic computation, file generation, or external tool orchestration that is better expressed as executable code than as Claude instructions.
+
+Examples: margin-calculator (financial formulas), compliance-ops (checklist PDF generation), ads-ops (bid calculation), codebase visualization.
+
+SKILL.md provides the orchestration instructions; scripts/ provides the executable logic. The skill's `allowed-tools` frontmatter should include `Bash(python *)` or similar to permit script execution.
 
 ### Naming Convention
 `{domain}-{verb}` or `{domain}-{noun}` in kebab-case.
@@ -128,9 +162,14 @@ Every skill has a 2-letter prefix code. This prefix appears at the start of the 
 {
   "name": "plugin-name",
   "description": "What this plugin provides. Under 160 characters.",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "author": {
+    "name": "Ismokraft"
+  }
 }
 ```
+
+Optional fields: `homepage`, `repository`, `keywords`, `category`, `license`.
 
 ### Directory Layout
 
@@ -140,27 +179,39 @@ Every skill has a 2-letter prefix code. This prefix appears at the start of the 
 skills/
   skill-a/
     SKILL.md
+    reference/          # Supporting files -- packaged into plugin
+      methodology.md
+    scripts/            # Executable scripts -- packaged into plugin
+      compute.py
   skill-b/
     SKILL.md
 ```
 
+Supporting files (reference/, scripts/, templates/, examples/) are packaged into the plugin alongside SKILL.md. They count toward the 70 KB limit.
+
+### Plugin-to-Task Relationship
+
+One plugin serves multiple business tasks. Example: product-discovery plugin contains 4 skills (KI, PD, PS, MI) that are used by daily discovery tasks, single research tasks, trend scanning, screening, and competitive profiling. The plugin provides capabilities; tasks orchestrate when and how those capabilities run.
+
 ### Rules
-- Total uncompressed content: **under 70 KB**.
-- **No reference files inside the plugin.** Mode-specific configuration, field mappings, and thresholds belong in project context files — not in reference files bundled into the plugin.
-- **Maximum 5 skills per plugin (hard limit).** If a domain needs more than 5 skills, split into sibling plugins (e.g., `product-discovery` and `product-evaluation`).
-- The **same SKILL.md may appear in multiple plugins** where a skill serves multiple domains (e.g., `margin-calculator` appears in Plugin 1b and Plugin 2a). Each SKILL.md covers all modes; the project context supplies the mode-specific data for the active domain.
-- Plugin is independently useful — no dependency on another plugin being installed.
+- Total uncompressed content (SKILL.md + supporting files + plugin.json): **under 70 KB**.
+- Supporting files (reference/, scripts/) ARE included in the plugin. They provide detailed methodology and executable logic that skills need at runtime.
+- Business values (thresholds, CRM fields, rotation schedules) belong in project context -- NOT in the plugin.
+- **Maximum 5 skills per plugin.** If a domain needs more, split into sibling plugins.
+- The **same skill directory may appear in multiple plugins** where a skill serves multiple domains. Each SKILL.md covers all modes; project context supplies mode-specific data.
+- Plugin is independently useful -- no dependency on another plugin being installed.
 - Plugin name: kebab-case, descriptive of the domain it covers.
-- Version: semver (MAJOR.MINOR.PATCH). MAJOR = breaking change, MINOR = new skill added, PATCH = skill content fix.
+- Version: semver. MAJOR = breaking change, MINOR = new skill added, PATCH = skill content fix.
 
 ### Build Process
-1. Create plugin directory with `.claude-plugin/plugin.json` and `skills/*/SKILL.md`.
-2. Verify each SKILL.md has valid YAML frontmatter with `name`, `description`, and `version`.
-3. Check total size: `du -sb` on the directory. Must be under 70,000 bytes.
-4. **Intermediate review step:** Assemble the plugin directory at `dist/build/{plugin-name}/` before zipping. This allows inspection of what goes into the plugin. Only zip after review.
-5. Package: `cd /dist/build/{plugin-name} && zip -r /dist/{plugin-name}.plugin . -x "*.DS_Store"`
-6. Validate: `claude plugin validate .claude-plugin/plugin.json` (if available).
-7. Test: Install in Claude Desktop, verify all skills appear and trigger correctly.
+1. Create plugin directory with `.claude-plugin/plugin.json` and `skills/{name}/` directories.
+2. Each skill directory contains SKILL.md + optional supporting files (reference/, scripts/).
+3. Verify each SKILL.md has valid YAML frontmatter with at least `name` and `description`.
+4. Check total size: must be under 70,000 bytes uncompressed.
+5. **Intermediate review:** Assemble at `dist/build/{plugin-name}/` before zipping.
+6. Package: zip the plugin directory to `dist/{plugin-name}.plugin`.
+7. Test locally: `claude --plugin-dir dist/build/{plugin-name}` to verify skills load.
+8. Test upload: install in Claude Desktop Cowork.
 
 ### Skill-to-Plugin Dependency Map
 
@@ -343,7 +394,7 @@ skill-share/
     product-discovery/            (package = Plugin 1a, Domain 1 early)
       product-discover/
         SKILL.md
-        reference/                (builder knowledge — NOT included in plugin)
+        reference/                (supporting files -- included in plugin)
       product-screen/
       ikraft-keyword-intelligence/
       product-market-intelligence/
@@ -421,9 +472,9 @@ skill-share/
 ```
 
 ### Rules
-- All skills live in `skills/{package}/{name}/` at the repo root. Each package maps to a plugin. Each skill has a `SKILL.md` and an optional `reference/` folder. Shared skills have one primary package; other plugins reference them via the `package` field in `plugin-registry.json`.
-- `reference/` folders contain detailed context for human reading and Claude build sessions. They are NOT included in the plugin.
-- The plugin contains only the trimmed SKILL.md per skill.
+- All skills live in `skills/{package}/{name}/` at the repo root. Each package maps to a plugin. Each skill has a `SKILL.md` and optional supporting files (reference/, scripts/, templates/). Shared skills have one primary package; other plugins reference them via the `package` field in `plugin-registry.json`.
+- Supporting files (reference/, scripts/) are packaged into the plugin alongside SKILL.md. They count toward the 70 KB plugin limit.
+- The plugin contains the complete skill directory (SKILL.md + supporting files) per skill.
 - The repo is the source of truth for skill source code. Plugins are built artifacts.
 - Build scripts are generic tools at `tools/`. They are not hardcoded to any specific business.
 

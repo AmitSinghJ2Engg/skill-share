@@ -13,16 +13,16 @@ Transforms discovery data into scored, filtered, reported product opportunities.
 
 **Boundary:** Transforms and reports only. Does not evaluate gates (product-evaluate), discover (product-discover), or compute margins (margin-calculator).
 
-// TODO: reference/ paths below violate 03-implementation-standards.md §1.
+// TODO: reference/ paths below violate 03-implementation-standards.md section 1.
 // Move scoring rubric + risk filter content to project context (Phase 1).
 
 ## Modes
 
 | Mode | Input | Output | Downstream |
 |---|---|---|---|
-| **SCORE** | `ProductCandidate[]` | `ScoredCandidate[]` → CRM | REPORT |
-| **REPORT** | `ScoredCandidate[]` | `OpportunityReport` → Slack | product-evaluate |
-| **BRIEF** | Single evaluated product | `LaunchBrief` → CRM | vendor-ops, content-writer |
+| **SCORE** | `ProductCandidate[]` | `ScoredCandidate[]` -> CRM | REPORT |
+| **REPORT** | `ScoredCandidate[]` | `OpportunityReport` -> Slack | product-evaluate |
+| **BRIEF** | Single evaluated product | `LaunchBrief` -> CRM | vendor-ops, content-writer |
 
 If user provides raw CrawlBatch: redirect to product-discover BATCH. Never accept raw crawl data directly.
 

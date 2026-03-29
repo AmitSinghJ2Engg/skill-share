@@ -18,7 +18,7 @@ Profiles competitive landscape and mines review gaps for products promoted to St
 
 | Mode | Input | Output | Downstream |
 |---|---|---|---|
-| **PROFILE** | product_name + category | `CompetitorProfile[]` (5-10) → CRM | product-evaluate, GAPS |
+| **PROFILE** | product_name + category | `CompetitorProfile[]` (5-10) -> CRM | product-evaluate, GAPS |
 | **GAPS** | `CompetitorProfile[]` | `GapAnalysis` | product-evaluate (differentiation) |
 | **TRENDS** | product_name or category | `CompetitiveLandscape` | PROFILE (context), product-evaluate |
 

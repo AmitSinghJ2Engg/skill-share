@@ -239,10 +239,12 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
     }
     plugin_dir = os.path.join(build_dir, ".claude-plugin")
     os.makedirs(plugin_dir, exist_ok=True)
-    with open(os.path.join(plugin_dir, "plugin.json"), "w", encoding="utf-8") as f:
-        json.dump(plugin_json, f, indent=2, ensure_ascii=False)
+    with open(os.path.join(plugin_dir, "plugin.json"), "w", encoding="utf-8", newline="\n") as f:
+        json.dump(plugin_json, f, indent=2, ensure_ascii=True)
+        f.write("\n")
 
     # Copy SKILL.md files (only SKILL.md, not reference files)
+    # Normalize line endings to LF for cross-platform compatibility
     for skill_info in report["skills_found"]:
         skill_name = skill_info["name"]
         package = skill_info["package"]
@@ -250,7 +252,10 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
 
         dest_dir = os.path.join(build_dir, "skills", skill_name)
         os.makedirs(dest_dir, exist_ok=True)
-        shutil.copy2(src_path, os.path.join(dest_dir, "SKILL.md"))
+        with open(src_path, "r", encoding="utf-8") as sf:
+            content = sf.read()
+        with open(os.path.join(dest_dir, "SKILL.md"), "w", encoding="utf-8", newline="\n") as df:
+            df.write(content)
 
     # Calculate uncompressed size
     total_size = 0

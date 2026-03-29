@@ -2,7 +2,7 @@
   "_comment": "Plugin registry. All skills at skills/{package}/{skill}/SKILL.md. Source of truth for build-plugin.py.",
   "plugins": {
     "product-discovery": {
-      "description": "Domain 1 discovery stages — keyword intelligence, product discovery, screening, market intelligence.",
+      "description": "Domain 1 discovery stages -keyword intelligence, product discovery, screening, market intelligence.",
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
@@ -13,7 +13,7 @@
       ]
     },
     "product-evaluation": {
-      "description": "Domains 1 + 1.5 — deep evaluation, pre-test economics, compliance feasibility.",
+      "description": "Domains 1 + 1.5 -deep evaluation, pre-test economics, compliance feasibility.",
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
@@ -23,7 +23,7 @@
       ]
     },
     "product-sourcing": {
-      "description": "Domain 2 — product spec, supplier discovery, vendor evaluation, actual unit economics.",
+      "description": "Domain 2 -product spec, supplier discovery, vendor evaluation, actual unit economics.",
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
@@ -34,7 +34,7 @@
       ]
     },
     "product-testing": {
-      "description": "Domain 2.5 — test campaigns, monitoring, FBA dispatch, compliance initiation.",
+      "description": "Domain 2.5 -test campaigns, monitoring, FBA dispatch, compliance initiation.",
       "version": "1.0.0",
       "project": "Product Pipeline",
       "skills": [
@@ -45,7 +45,7 @@
       ]
     },
     "product-launch": {
-      "description": "Domain 3 — listing copy, capital planning, compliance completion, bulk fulfillment.",
+      "description": "Domain 3 -listing copy, capital planning, compliance completion, bulk fulfillment.",
       "version": "1.0.0",
       "project": "Launch & Ops",
       "skills": [
@@ -56,7 +56,7 @@
       ]
     },
     "product-ops": {
-      "description": "Domain 4 — live monitoring, ad management, revenue ops, learning engine.",
+      "description": "Domain 4 -live monitoring, ad management, revenue ops, learning engine.",
       "version": "1.0.0",
       "project": "Launch & Ops",
       "skills": [

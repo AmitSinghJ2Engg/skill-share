@@ -37,9 +37,7 @@ See `docs/03-implementation-standards.md` section 2 (Plugin Building Standards) 
    - `python build-plugin.py --all` (build all)
    - `python build-plugin.py --list product-discovery,product-evaluation` (build multiple)
 
-3. **Skill location resolution:** Read skill paths from the repo module structure:
-   - `{module}/skills/{skill-name}/SKILL.md`
-   - Module mapping is in `plugin-registry.json`
+3. **Skill location resolution:** All skills live at `skills/{skill-name}/SKILL.md`. No module mapping needed.
 
 4. **Intermediate build directory:** Assemble to `dist/build/{plugin-name}/` before zipping. This allows inspection. Zip only after `--confirm` flag or when using `--all`.
 

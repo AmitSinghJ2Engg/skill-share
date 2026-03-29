@@ -127,9 +127,12 @@
 `C:\Users\amits\ClaudeMain\Claude-Cowork\Git-Skill-Share\skill-share`
 
 ### Structure
-- 10 module directories (product-system, vendor-sourcing, revenue-finance, marketing-content, zoho-platform, governance, operations, founder-os, skill-management, market-research).
-- Each module: `{skill-name}/SKILL.md` + optional `references/` folder.
-- Plugin packages: `.plugin` files at root or in a `plugins/` directory.
+- `skills/` — all skill source files, one directory per skill (`skills/{name}/SKILL.md` + optional `reference/`)
+- `context/` — runtime config files deployed to Claude.ai project knowledge
+- `dist/` — built `.plugin` files (compiled artifacts)
+- `docs/` — architecture docs, standards, decisions
+- `artifacts/` — built JSX artifact files
+- `tools/` — build scripts and plugin registry
 
 ### Workflow
 - <<User CAN>> manually commits. <<On user demand, >> git push from Claude sessions.

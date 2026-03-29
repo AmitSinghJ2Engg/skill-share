@@ -10,7 +10,7 @@ Records architectural decisions and their rationale. Each entry captures the con
 **Status:** Accepted
 **Context:** The system had three conflicting gate definitions:
 - `01-system-constraints.md` defined 11 pipeline stages with 3 gates (Gate 1: CBFA/ACoS, Gate 2: CVR/CTR, Gate 3: Compliance)
-- `product-system/project-knowledge/gate-definitions.md` defined 8 gates (one per stage transition) with detailed criteria
+- `gate-definitions.md` (originally in product-system/project-knowledge/, now at docs/gate-definitions-superseded.md) defined 8 gates (one per stage transition) with detailed criteria
 - `02-business-domain-map.md` defined 3 gates aligned with investment decisions
 
 **Options considered:**
@@ -59,3 +59,28 @@ Records architectural decisions and their rationale. Each entry captures the con
 - Reference files stay in repo, never bundled in plugins.
 - Context files are the sole runtime configuration mechanism.
 - `03-implementation-standards.md` updated to document this architecture explicitly.
+
+---
+
+## DL-003: Centralized skills/ Directory
+
+**Date:** 2026-03-29
+**Status:** Accepted
+**Context:** Skills were scattered across 10 module directories (`product-system/skills/`, `vendor-sourcing/skills/`, etc.). The build script needed module-to-skill mappings to find SKILL.md files. The "compilable project" metaphor called for a `src/`-like structure.
+
+**Decision:** Move all skills to a centralized `skills/` directory at the repo root. Remove the 10 module directories.
+
+**Rationale:**
+- Mirrors the compilable project analogy: `skills/` = source code, `context/` = config, `dist/` = built artifacts
+- Build script simplifies — just scans `skills/{name}/SKILL.md`, no module mapping needed
+- Plugin registry simplifies — no `module` field, just skill names
+- Finding any skill is trivial — one flat directory
+- Business domain grouping is preserved in `plugin-registry.json` (which plugin = which domain)
+
+**Consequences:**
+- All `{module}/skills/{name}/` directories moved to `skills/{name}/`
+- `reference/` folders stay with their skills at `skills/{name}/reference/`
+- `project-knowledge/` files redistributed: skill-specific ones moved to `skills/{name}/reference/`, system-wide ones moved to `docs/`
+- Empty module directories (`packages/`, `project-knowledge/`) deleted
+- Plugin registry simplified: `module` field removed from skill entries
+- Build script simplified: `find_skill_path()` now checks `skills/{name}/SKILL.md` directly

@@ -104,9 +104,9 @@ def validate_frontmatter(skill_md_path):
     return meta, warnings
 
 
-def find_skill_path(repo_root, module, skill_name):
-    """Find the SKILL.md path for a skill in its module."""
-    path = os.path.join(repo_root, module, "skills", skill_name, "SKILL.md")
+def find_skill_path(repo_root, skill_name):
+    """Find the SKILL.md path for a skill. All skills live in skills/{name}/."""
+    path = os.path.join(repo_root, "skills", skill_name, "SKILL.md")
     if os.path.isfile(path):
         return path
     return None
@@ -127,11 +127,10 @@ def check_plugin(repo_root, plugin_name, plugin_def, shared_skills):
 
     for skill_entry in plugin_def["skills"]:
         skill_name = skill_entry["name"]
-        module = skill_entry["module"]
 
-        skill_path = find_skill_path(repo_root, module, skill_name)
+        skill_path = find_skill_path(repo_root, skill_name)
         if skill_path is None:
-            report["skills_missing"].append(f"{module}/skills/{skill_name}/SKILL.md")
+            report["skills_missing"].append(f"skills/{skill_name}/SKILL.md")
             continue
 
         meta, issues = validate_frontmatter(skill_path)
@@ -150,7 +149,6 @@ def check_plugin(repo_root, plugin_name, plugin_def, shared_skills):
         report["total_size"] += size
         report["skills_found"].append({
             "name": skill_name,
-            "module": module,
             "version": meta.get("version", "unknown"),
             "size": size,
         })
@@ -245,8 +243,7 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
     # Copy SKILL.md files (only SKILL.md, not reference files)
     for skill_info in report["skills_found"]:
         skill_name = skill_info["name"]
-        module = next(s["module"] for s in plugin_def["skills"] if s["name"] == skill_name)
-        src_path = find_skill_path(repo_root, module, skill_name)
+        src_path = find_skill_path(repo_root, skill_name)
 
         dest_dir = os.path.join(build_dir, "skills", skill_name)
         os.makedirs(dest_dir, exist_ok=True)

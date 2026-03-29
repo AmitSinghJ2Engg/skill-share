@@ -49,6 +49,16 @@ Comma-separated list of phrases that should activate this skill.
 - Frontmatter `version` follows semver: MAJOR.MINOR.PATCH. Bump PATCH for content fixes, MINOR for new modes, MAJOR for breaking I/O contract changes. Version is quoted as a string (e.g., `"1.0.0"`).
 - Frontmatter `lifecycle` tracks skill maturity: `prototype` (newly written, not validated), `active` (validated and in use), `stable` (proven across multiple products). New skills start as `prototype`. Promote after successful execution and human review.
 
+### Trimming Checklist (for all skills)
+
+When trimming an existing SKILL.md to meet the 5 KB target:
+
+1. **Keep:** Frontmatter, purpose, mode table, execution steps (5-10 per mode), input validation, halt conditions, rules, trigger phrases.
+2. **Move to project context:** Any business value (thresholds, CRM fields, rotation schedules, zone configs) — reference the JSON filename in the execution step.
+3. **Move to reference/:** Detailed methodology, scoring rubrics, protocol details, related skill maps — reference inline when the execution step needs it.
+4. **Remove:** Redundant pointers to project knowledge, verbose phase descriptions that can be compressed, execution log templates, metadata already in frontmatter.
+5. **Test:** Read only the trimmed SKILL.md + context file specs. Can you execute every mode? If any step is too vague, add specificity (not detail — specificity).
+
 ### Three-Layer Information Architecture
 
 Skills, project knowledge, and reference material serve different audiences at different times. See `docs/decision-log.md` DL-002.

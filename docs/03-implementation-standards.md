@@ -185,9 +185,36 @@ skills/
       compute.py
   skill-b/
     SKILL.md
+.mcp.json               # MCP server/connector definitions (optional)
+agents/                  # Custom agent definitions (optional)
+hooks/                   # Event handlers (optional)
+  hooks.json
+settings.json            # Default settings (optional)
 ```
 
 Supporting files (reference/, scripts/, templates/, examples/) are packaged into the plugin alongside SKILL.md. They count toward the 70 KB limit.
+
+### Connectors (.mcp.json)
+
+Plugins can declare which MCP servers they need to function. Place `.mcp.json` at the package root (`skills/{package}/.mcp.json`) and the build script copies it into the plugin.
+
+```json
+{
+  "mcpServers": {
+    "zoho-crm": {
+      "command": "npx",
+      "args": ["@anthropic/zoho-crm-mcp"],
+      "env": {
+        "ZOHO_CLIENT_ID": "${user_config.zoho_client_id}"
+      }
+    }
+  }
+}
+```
+
+Use `${CLAUDE_PLUGIN_ROOT}` to reference scripts bundled with the plugin. Use `userConfig` in plugin.json to prompt for credentials at install time.
+
+The build script also picks up `agents/`, `hooks/hooks.json`, and `settings.json` from the package root if present.
 
 ### Plugin-to-Task Relationship
 

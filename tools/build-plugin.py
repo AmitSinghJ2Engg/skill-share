@@ -264,11 +264,48 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
         "version": plugin_def.get("version", "1.0.0"),
         "author": plugin_def.get("author", {"name": "Ismokraft"}),
     }
+    # Add optional fields from registry if present
+    for field in ("homepage", "repository", "license", "keywords"):
+        if field in plugin_def:
+            plugin_json[field] = plugin_def[field]
     plugin_dir = os.path.join(build_dir, ".claude-plugin")
     os.makedirs(plugin_dir, exist_ok=True)
     with open(os.path.join(plugin_dir, "plugin.json"), "w", encoding="utf-8", newline="\n") as f:
         json.dump(plugin_json, f, indent=2, ensure_ascii=True)
         f.write("\n")
+
+    # Copy plugin-level files (connectors, agents, hooks, settings)
+    # These are optional files at the plugin source root in the registry
+    plugin_src_dir = os.path.join(repo_root, "skills", plugin_name)
+    plugin_level_files = [".mcp.json", ".lsp.json", "settings.json"]
+    plugin_level_dirs = ["agents", "hooks"]
+
+    for pf in plugin_level_files:
+        src = os.path.join(plugin_src_dir, pf)
+        if os.path.isfile(src):
+            with open(src, "r", encoding="utf-8") as sf:
+                content = sf.read()
+            with open(os.path.join(build_dir, pf), "w", encoding="utf-8", newline="\n") as df:
+                df.write(content)
+            print(f"    Included: {pf}")
+
+    for pd in plugin_level_dirs:
+        src = os.path.join(plugin_src_dir, pd)
+        if os.path.isdir(src):
+            dest = os.path.join(build_dir, pd)
+            for dirpath, dirnames, filenames in os.walk(src):
+                for f in filenames:
+                    if f == ".gitkeep":
+                        continue
+                    src_file = os.path.join(dirpath, f)
+                    rel_path = os.path.relpath(src_file, src)
+                    dest_file = os.path.join(dest, rel_path)
+                    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+                    with open(src_file, "r", encoding="utf-8") as sf:
+                        content = sf.read()
+                    with open(dest_file, "w", encoding="utf-8", newline="\n") as df:
+                        df.write(content)
+            print(f"    Included: {pd}/")
 
     # Copy entire skill directories (SKILL.md + supporting files)
     # Normalize line endings to LF for cross-platform compatibility

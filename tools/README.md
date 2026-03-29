@@ -6,8 +6,7 @@ These scripts are generic -- not hardcoded to Ismokraft. They work with any plug
 |---|---|---|
 | `build-plugin.py` | Packages skills into `.plugin` zip files | NEEDS REWRITE -- see below |
 | `build-skill.py` | Validates and prepares a SKILL.md for plugin inclusion | Operational |
-| `plugin-registry.json` | Maps each plugin to its skill list and metadata | TO BE CREATED |
-| `plugin-skill-map.json` | Maps shared skills to the plugins that include them | TO BE CREATED |
+| `plugin-registry.json` | Maps each plugin to its skill list and metadata | Created |
 
 See `docs/03-implementation-standards.md` section 2 (Plugin Building Standards) for the full build process.
 
@@ -53,12 +52,12 @@ See `docs/03-implementation-standards.md` section 2 (Plugin Building Standards) 
    - Total uncompressed size must be under 70,000 bytes
    - Skill name in frontmatter must match directory name
 
-7. **Skill dependency map (`plugin-skill-map.json`):** Auto-generated from registry or maintained manually. Used by the build script to report cross-plugin impact.
+7. **Shared skill detection:** Derived automatically from `plugin-registry.json` at build time. Any skill appearing in 2+ plugins is reported as shared. No separate file needed.
 
 ### Migration Path
 
 The rewrite should be done during a Cowork build session. Steps:
-1. Create `plugin-registry.json` and `plugin-skill-map.json`
+1. Create `plugin-registry.json`
 2. Rewrite `build-plugin.py` to read from registry
 3. Test with one plugin that has all skills ready (likely Plugin 1b: PE, MC, CO -- once CO is written)
 4. Validate output by installing in Claude Desktop

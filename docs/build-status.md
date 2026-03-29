@@ -73,7 +73,7 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 - [x] CLAUDE.md deprecated with header
 - [x] gate-definitions.md marked SUPERSEDED
 - [x] Plugin registry created (tools/plugin-registry.json)
-- [x] Skill dependency map created (tools/plugin-skill-map.json)
+- [x] Shared skill dependencies derived from registry (no separate file needed)
 - [x] Build script rewritten for 6-plugin architecture (tools/build-plugin.py)
 - [x] Feedback loops designed (supplier, differentiation, cost, alert)
 - [x] Stage 2 promotion criteria defined

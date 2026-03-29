@@ -154,28 +154,16 @@ skills/
 
 ### Skill-to-Plugin Dependency Map
 
-Skills that appear in multiple plugins require all affected plugins to be rebuilt when the skill changes. The dependency map is maintained as `tools/plugin-skill-map.json`:
+Skills that appear in multiple plugins require all affected plugins to be rebuilt when the skill changes. The build script derives shared skill dependencies automatically from `tools/plugin-registry.json` — any skill appearing in 2+ plugins is detected and reported. No separate dependency file is needed.
 
-```json
-{
-  "skills": {
-    "margin-calculator": ["product-evaluation", "product-sourcing"],
-    "compliance-ops": ["product-evaluation", "product-testing", "product-launch"],
-    "ads-ops": ["product-testing", "product-ops"],
-    "product-monitor": ["product-testing", "product-ops"],
-    "fulfillment-ops": ["product-testing", "product-launch"]
-  }
-}
-```
-
-The build script reads this map. When building a specific plugin, it reports which shared skills are included. When a skill version changes, it reports which plugins need rebuilding.
+When building a specific plugin, the script reports which shared skills are included. When a skill version changes, it reports which other plugins need rebuilding.
 
 ### Generic Build Script
 
 The build script (`build-plugin.py`) is a **generic tool** that supports the 6-plugin architecture. Required capabilities:
 - **Build modes:** `--plugin <name>` (one plugin), `--all` (all plugins), `--list <name1,name2>` (multiple)
 - **Plugin registry:** Reads plugin definitions from `tools/plugin-registry.json` — maps each plugin name to its skill list and metadata
-- **Dependency awareness:** Reads `tools/plugin-skill-map.json` — reports which plugins need rebuilding when a skill changes
+- **Dependency awareness:** Derives shared skills from `plugin-registry.json` — reports which plugins need rebuilding when a skill changes
 - **Intermediate build:** Assembles to `dist/build/{plugin-name}/` before zipping (reviewable intermediate state)
 - **Size validation:** Fails build if uncompressed size exceeds 70 KB
 - **Frontmatter validation:** Checks `name`, `description`, `version` in every SKILL.md
@@ -389,8 +377,7 @@ skill-share/
   tools/
     build-plugin.py               (generic — needs rewrite, see tools/README.md)
     build-skill.py                (generic)
-    plugin-registry.json          (to be created — plugin definitions)
-    plugin-skill-map.json         (to be created — shared skill dependencies)
+    plugin-registry.json          (plugin definitions — shared skills derived at build time)
   docs/
     01-system-constraints.md
     02-business-domain-map.md

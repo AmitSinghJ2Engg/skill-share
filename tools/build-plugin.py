@@ -3,8 +3,8 @@
 .build-plugin.py — Build .plugin files from the skill-share git repo.
 
 Supports the 6-plugin architecture. Reads plugin definitions from
-tools/plugin-registry.json. Reports shared skill dependencies from
-tools/plugin-skill-map.json.
+tools/plugin-registry.json. Derives shared skill dependencies automatically
+from the registry (no separate dependency file needed).
 
 Usage:
     python build-plugin.py --plugin <name>           # build one plugin
@@ -51,11 +51,16 @@ def load_registry(repo_root):
     return load_json(path)
 
 
-def load_skill_map(repo_root):
-    path = os.path.join(repo_root, "tools", "plugin-skill-map.json")
-    if not os.path.isfile(path):
-        return {"shared_skills": {}}
-    return load_json(path)
+def derive_shared_skills(plugins):
+    """Derive shared skill map from plugin registry. No separate file needed."""
+    skill_to_plugins = {}
+    for plugin_name, plugin_def in plugins.items():
+        for skill_entry in plugin_def["skills"]:
+            name = skill_entry["name"]
+            if name not in skill_to_plugins:
+                skill_to_plugins[name] = []
+            skill_to_plugins[name].append(plugin_name)
+    return {name: plist for name, plist in skill_to_plugins.items() if len(plist) > 1}
 
 
 def validate_frontmatter(skill_md_path):
@@ -107,7 +112,7 @@ def find_skill_path(repo_root, module, skill_name):
     return None
 
 
-def check_plugin(repo_root, plugin_name, plugin_def, skill_map):
+def check_plugin(repo_root, plugin_name, plugin_def, shared_skills):
     """Validate a plugin without building. Returns (is_valid, report)."""
     report = {
         "plugin": plugin_name,
@@ -151,12 +156,11 @@ def check_plugin(repo_root, plugin_name, plugin_def, skill_map):
         })
         report["warnings"].extend([f"{skill_name}: {w}" for w in issues])
 
-    # Check shared skill impact
-    shared = skill_map.get("shared_skills", {})
+    # Check shared skill impact (derived from registry)
     for skill_entry in plugin_def["skills"]:
         skill_name = skill_entry["name"]
-        if skill_name in shared:
-            other_plugins = [p for p in shared[skill_name]["plugins"] if p != plugin_name]
+        if skill_name in shared_skills:
+            other_plugins = [p for p in shared_skills[skill_name] if p != plugin_name]
             if other_plugins:
                 report["warnings"].append(
                     f"{skill_name} is shared — also in: {', '.join(other_plugins)}"
@@ -212,10 +216,9 @@ def print_report(report, verbose=True):
     return is_valid
 
 
-def build_plugin(repo_root, plugin_name, plugin_def, output_dir, confirm=False):
+def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, confirm=False):
     """Build a single plugin. Returns True on success."""
-    skill_map = load_skill_map(repo_root)
-    is_valid, report = check_plugin(repo_root, plugin_name, plugin_def, skill_map)
+    is_valid, report = check_plugin(repo_root, plugin_name, plugin_def, shared_skills)
     print_report(report)
 
     if not is_valid:
@@ -313,10 +316,10 @@ def main():
     output_dir = args.output or os.path.join(repo_root, "dist")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Load registry
+    # Load registry and derive shared skills
     registry = load_registry(repo_root)
     plugins = registry.get("plugins", {})
-    skill_map = load_skill_map(repo_root)
+    shared_skills = derive_shared_skills(plugins)
 
     if args.list_plugins:
         print("Available plugins:\n")
@@ -332,7 +335,7 @@ def main():
         if args.check not in plugins:
             print(f"ERROR: Unknown plugin '{args.check}'. Use --list-plugins to see available.")
             sys.exit(1)
-        is_valid, report = check_plugin(repo_root, args.check, plugins[args.check], skill_map)
+        is_valid, report = check_plugin(repo_root, args.check, plugins[args.check], shared_skills)
         print_report(report)
         sys.exit(0 if is_valid else 1)
 
@@ -353,7 +356,7 @@ def main():
     # Build
     results = {}
     for name in target_plugins:
-        success = build_plugin(repo_root, name, plugins[name], output_dir, confirm=args.confirm)
+        success = build_plugin(repo_root, name, plugins[name], shared_skills, output_dir, confirm=args.confirm)
         results[name] = success
 
     # Summary

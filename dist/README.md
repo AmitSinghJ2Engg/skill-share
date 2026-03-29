@@ -17,6 +17,6 @@ Built `.plugin` files ready for installation in Claude Desktop. These are compil
 | `product-ops.plugin` | Plugin 4 -- Domain 4 | MO, AO, RO, LE | Not built (future) |
 
 **Size limit:** Each plugin must be under 70 KB uncompressed.
-**Dependency tracking:** See `tools/plugin-skill-map.json` for shared skills across plugins.
+**Dependency tracking:** Shared skills are derived automatically from `tools/plugin-registry.json` at build time.
 See `docs/03-implementation-standards.md` section 2 for build process and rules.
 See `tools/README.md` for build script rewrite specification.

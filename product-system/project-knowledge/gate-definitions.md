@@ -1,4 +1,15 @@
-# 8 Launch Gates
+# SUPERSEDED — Do Not Use as Canonical Gate Reference
+
+**Superseded by:** `docs/02-business-domain-map.md` (canonical gate structure: 3 formal gates + stage checklists)
+**Decision record:** `docs/decision-log.md` DL-001
+**Status:** The criteria below are preserved as historical reference. They have been reclassified:
+- Gates 1, 2 (financial), 6 (test results) -> absorbed into formal Gates 1 and 2 in `02`
+- Gates 3, 4, 5, 7, 8 -> absorbed as stage exit checklists in `02` domain definitions
+- Gate 3 (compliance) -> formal Gate 3 in `02`
+
+---
+
+# 8 Launch Gates (Historical)
 
 Every product passes through 8 gates in the Bigin "Product Launches" pipeline. Each gate has hard requirements that must pass, blocking dependencies on other skills, and a CRM write that auto-syncs to Bigin stage transition on pass.
 

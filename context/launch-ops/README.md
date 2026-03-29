@@ -1,9 +1,9 @@
-# Context Files — Launch & Ops (Project B)
+# Context Files — Launch & Ops
 
-These files are loaded into Claude.ai Project Knowledge for Project B ("Launch & Ops").
+These files are loaded into Claude.ai Project Knowledge for "Launch & Ops" project.
 They cover Domains 3 and 4. Total target: under 14 KB.
 
-**Generate these files during Build Order step 8** using Claude in Project C (System Ops).
+**Generate these files during Build Order Phase 4, Step 8** using Claude in a Cowork session with workspace set to the repo.
 
 | File | Format | What it contains | Est. KB |
 |---|---|---|---|

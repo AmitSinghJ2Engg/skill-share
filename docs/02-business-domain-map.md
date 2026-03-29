@@ -52,6 +52,12 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - External signals (Google Trends, Amazon BSR movement, seasonal calendars)
 - Domain 4 (FeedbackSignals — read from ISM_Learnings CRM module at session start, applied to scoring weights)
 
+**Stage 2 promotion (human decision with AI insight):** All products in Stage 1 (Idea Intake) are visible in the Discovery Dashboard. For each product, the artifact displays an AI-generated promotion insight panel:
+- **Viability signal:** Composite score from ScoredCandidate data (demand strength, competition level, brand fit, margin potential)
+- **Risk flags:** Any data gaps, anomalies, or concerns that need attention before promotion
+- **Recommendation:** AI suggests PROMOTE / INVESTIGATE FURTHER / SKIP with reasoning
+- The human sees all products and makes the promotion decision — AI provides context, not the decision. There is no automatic filtering to "top 10." Every candidate is visible with its insight panel.
+
 **Human gate:** Gate 1 pass/fail — human approves in Discovery Dashboard before CRM record advances to Stage 2a.
 
 **Kill path:** Gate 1 fail → (1) artifact warning panel shown, (2) CRM Note written with reason + data snapshot, (3) Slack alert to #ism-launch-alerts → CRM record moves to Bigin Rejected → KillRecord written to ISM Execution Logs.
@@ -107,14 +113,16 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 
 **What it does:** Queries existing Vendors CRM module for category match before external search. Finds new suppliers, evaluates at two scoring tiers (global VendorScore + Product-Vendor Fit Score), generates specs and RFQs, manages sample procurement. Initiates compliance process in parallel. Performs QC inspection before dispatch.
 
-**Pipeline stages covered (Bigin):** Stage 3 (Supplier Discovery — queries existing Vendors module first) → Stage 4 (Sample Procurement + QC Inspection + Compliance Initiation) → handoff to Domain 2.5
+**Pipeline stages covered (Bigin):** Stage 3 (Test Sourcing — activity: supplier discovery, queries existing Vendors module first) → Stage 4 (Test Listing — activity: sample procurement + QC inspection + compliance initiation) → handoff to Domain 2.5
+
+> **Note:** Stage names "Test Sourcing" and "Test Listing" are the canonical Bigin API names per `01-system-constraints.md` §8. The activities described here happen within those stages.
 
 **Skills involved:**
 - `product-spec` — converts evaluated product into manufacturing spec, BOM, supplier brief, PRD; incorporates SelectedScenario. Canva design request for packaging mockup.
 - `supplier-intelligence` — queries Vendors CRM module first (category match, global score filter), then runs external search (IndiaMART, TradeIndia, factory directories + additional sources per Claude's expertise). Returns ranked vendor list.
 - `vendor-ops` — two-tier scoring: (1) updates global VendorScore in Vendors module, (2) creates Product-Vendor Fit Score in Vendor_Evaluations linked to both Vendors record and Product_Launches record. RFQ generation.
 - `margin-calculator` (ACTUAL mode) — unit economics against confirmed supplier quote; updates CostEstimate from Domain 1 with real numbers
-- `compliance-ops` (INITIATION mode) — generates compliance brief per product category + spec; creates Jira tickets for each certification via the flow: CRM update → Bigin trigger → Jira ticket. Management may be internal or external — ticket owner tracks it.
+- `compliance-ops` (INITIATION mode) — generates compliance brief per product category + spec; triggers Jira ticket creation via CRM activity → Bigin task activity → Jira "ismo scrum" board (existing automation). Management may be internal or external — ticket owner tracks it.
 
 **Data produced:**
 - ProductSpec (dimensions, materials, BOM, finish, packaging, compliance notes — incorporates SelectedScenario; packaging mockup request sent to Canva)
@@ -133,6 +141,10 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - Domain 1.5 (SelectedScenario, PositioningBrief)
 - Project context (`financial-constants.json`, `pipeline-config.json`)
 - CRM (Product_Launches record, Vendors module, Vendor_Evaluations records)
+
+**Stage exit checklists (enforced by Sourcing Workbench — artifact disables advance until met):**
+- Stage 3 (Test Sourcing) exit: ≥ 2 potential suppliers identified. Manufacturing cluster can produce the product. Estimated lead time ≤ 45 days.
+- Stage 4 (Test Listing) exit: Vendor Grade ≥ C. Sample received and quality approved (QC self-inspection checklist PASS). COGS confirmed within target margin.
 
 **Human gate:** SampleConfirmation dispatch approval — human reviews QC result in Sourcing Workbench and approves or rejects before sample ships.
 
@@ -158,7 +170,29 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - **Data-buying mode** — collects impression, CTR, keyword ranking data. Market signal goal. QC WAIVED permitted.
 - **Conversion testing mode** — measures actual CVR, ACoS, purchase behaviour. Unit economics validation. QC PASS mandatory.
 
-**Seller Central manual steps** (no MCP integration): creating the test listing, setting up FBA inbound shipment plan in Seller Central are done by team. Guided by the **Seller Central Operations artifact** (see Project B). Fulfillment-ops creates the Zoho records; team does Seller Central manually. Note: Zoho Inventory is connected to Seller Central as a selling channel — order data flows automatically once live.
+**Test execution framework:**
+
+Phase 1 (Data-buying): Run auto campaigns for 7-10 days. Goal is keyword discovery — which keywords Amazon associates with the product. Low budget. Output: keyword list with impression/CTR data.
+
+Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. Larger budget. Goal is actual CVR and ACoS per keyword to validate bottom-line economics.
+
+**Test stopping and data quality:**
+- Tests always run their configured duration (`duration_days` in `testing-config.json`). No early auto-stop.
+- After each phase completes, the analysis rates data quality as HIGH / MEDIUM / LOW based on volume collected in the given time:
+  - HIGH: Sufficient data across enough keywords to make confident margin decisions
+  - MEDIUM: Directional signal present but some keywords lack volume
+  - LOW: Insufficient data to draw conclusions
+- If data quality is LOW, Test Lab B surfaces an `extend_recommended: true` flag with suggested extension period (`max_extension_days` from config).
+- Extension is always human-approved — never automatic.
+
+**Keyword-level bottom-line validation:**
+- Human exports PPC Search Term Report from Seller Central as CSV
+- Imports into Test Lab B artifact (via papaparse CSV import)
+- Test Lab B + real-time Claude analyzes at keyword level: at this keyword's actual CPC and CVR, does the product make margin?
+- The Gate 2 decision is NOT "did we get enough impressions" — it is "across all viable keywords, is there enough volume at viable unit economics for bulk economics to work?"
+- `testing-config.json` contains: `duration_days` per mode, `data_quality_thresholds` (volume benchmarks for HIGH/MEDIUM/LOW rating), `max_extension_days`
+
+**Seller Central manual steps** (no MCP integration): creating the test listing, setting up FBA inbound shipment plan in Seller Central are done by team. Guided by the **Seller Central Operations artifact** (see "Launch & Ops" project). Fulfillment-ops creates the Zoho records; team does Seller Central manually. Note: Zoho Inventory is connected to Seller Central as a selling channel — order data flows automatically once live.
 
 **Skills involved:**
 - `ads-ops` (TEST mode) — test campaign setup: budget caps, bid strategy, duration, mode selection
@@ -182,6 +216,10 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - Domain 1.5 (USPStatement)
 - Project context (`testing-config.json`, `gate-criteria.json`, `financial-constants.json`)
 - CRM (Product_Launches record)
+
+**Stage exit checklists (enforced by Test Lab artifacts — disable advance until met):**
+- Stage 5 (Paid Testing) exit: Title + 5 bullets + description complete. Main image + 6 lifestyle images ready. Backend keywords set. TestPlan approved.
+- Stage 6 (Scale Decision) exit: Keyword-level bottom-line validation complete. CostComparison generated. ComplianceTimelineCheck performed.
 
 **Human gates:**
 - TestPlan approval — before any ad spend is committed
@@ -232,6 +270,11 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - Project context (`listing-standards.json`, `compliance-requirements.json`, `brand-rules.md`)
 - CRM (Product_Launches record)
 
+**Stage exit checklists (enforced by Launch Control — disable advance until met):**
+- Stage 7 (Bulk Order): Source to Pay pipeline record created. PO raised in Zoho Books.
+- Stage 8 (Final Listing): Final listing live and indexed. Both Amazon and Shopify listings approved.
+- Stage 10 (Platform Setup): Seller Central configured (shipping templates, tax settings, return policy, Brand Registry). Inventory received at FBA warehouse. Launch PPC campaign configured.
+
 **Human gates:**
 - Amazon listing copy approval
 - Shopify listing copy approval
@@ -267,10 +310,12 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 
 **Data produced:**
 - PerformanceRecord[] (BSR, reviews, ad metrics, returns — vs. ReviewStrategy targets)
-- CampaignVerdict (scale / pivot / kill)
+- CampaignVerdict (scale / pivot / reprice / kill)
+- RepricingDecision (trigger: competitor repricing, Buy Box loss, promotional window, margin drift. Output: recommended price, floor price, ceiling price, rationale, duration if promotional. Not ad-related pricing — separate from ads-ops ACoS decisions.)
 - SalesReport, ReturnsReport, PLStatement
 - HandoffPackage (sales velocity, current stock level, reorder formula, recommended next order quantity, ConfirmedVendorRecord, lead time — operations team may supplement from their own sources)
 - FeedbackSignals (written to ISM_Learnings CRM module — picked up by daily learning synthesis task → Git → Project Knowledge)
+- ShopifyCustomerSignal (future — when Shopify launches: purchase history, repeat rate, lifetime value. Feeds future product decisions. Not active until Shopify order volume warrants.)
 
 **Data consumed from:**
 - Domain 3 (live listing, launch data, ReviewStrategy, LaunchCapitalPlan)
@@ -316,11 +361,26 @@ Separate Bigin pipeline triggered at Gate 2 pass (ScaleDecision = commit). Linke
 | 1 | PO Raised | Founder | Zoho Books Purchase Order created via MCP |
 | 2 | Deposit Paid | Founder | Zoho Books payment entry; CRM updated |
 | 3 | Production Started | Supplier | CRM status update |
-| 4 | QC Inspection | Internal / 3PL | CRM QC result logged |
+| 4 | QC Inspection | Founder (self-inspection) | Self-inspection checklist completed with photos, linked to ProductSpec. CRM QC result logged. |
 | 5 | Shipment Booked | Founder | Carrier + shipment details in CRM |
 | 6 | Goods Arrived | Warehouse | Zoho Inventory receipt created via MCP |
 | 7 | FBA Inbound Created | Founder | `fulfillment-ops` BULK: Inventory Package + Books expense + FNSKU guide + checklist |
 | 8 | Stock Live | System | CRM updated; HandoffPackage stock levels updated |
+
+### Source to Pay — QC Self-Inspection Checklist (Stage 4)
+
+For a pre-revenue company with 1-2 people, no separate QC team exists. The founder performs self-inspection using a structured checklist linked to the ProductSpec:
+
+1. **Dimensions check:** Measure L/W/H against ProductSpec tolerances. Photograph with measuring tape.
+2. **Material check:** Verify wood type, finish, and material composition matches spec. Close-up photos.
+3. **Weight check:** Weigh sample. Must be within ProductSpec tolerance and under weight ceiling (2.0 kg for FBA).
+4. **Functionality check:** Test all moving parts, closures, mechanisms. Video if applicable.
+5. **Finish quality:** Check for defects — scratches, rough edges, uneven finish, color consistency.
+6. **Packaging check:** Verify packaging matches spec, product is secure, no damage risk in transit.
+7. **Labeling check:** MRP label, country of origin, brand name present and correct.
+8. **Photo documentation:** Minimum 6 photos uploaded to CRM record: front, back, top, detail, packaging, label.
+
+Result: PASS / FAIL / CONDITIONAL (with notes). Logged to CRM SampleConfirmation fields. Links to ProductSpec for reference comparison.
 
 ---
 
@@ -345,6 +405,40 @@ Domain 1       Domain 1.5      Domain 2       Domain 2.5      Domain 3       Dom
 **Handoff mechanism:** CRM record (Product_Launches). Gates carry all accumulated data forward. Skills read from CRM at start of each session.
 
 **Within a session:** `window.storage` (namespace `ism:`) for transient UI state only — active product ID, active tab, scroll position. Never for business data.
+
+---
+
+## Feedback Loops
+
+The system improves over time through structured feedback from Domain 4 back to earlier domains. Each loop has a data source, a synthesis mechanism, and a destination.
+
+### Loop 1: Scoring Calibration (existing — strengthen)
+
+**Source:** Domain 4 — `ism-learning-engine` produces FeedbackSignals on product kill or scale.
+**Mechanism:** Daily learning synthesis task (`ism-daily-learning`) reads ISM_Learnings CRM module → synthesizes → writes to `context/pending-updates/`.
+**Destination:** Domain 1 scoring weights in project context. Operator reviews pending-updates, commits to Git, deploys to Project Knowledge.
+**Strengthening:** Add Slack notification when pending-updates has new files: `ism-daily-learning` posts to `#ism-launch-reports`: "Learning synthesis complete — N files pending review in context/pending-updates/." This prevents stale scoring weights from unreviewed files accumulating.
+
+### Loop 2: Supplier Performance Feedback (new)
+
+**Source:** Domain 4 — when a product is killed or scaled, the confirmed vendor's contribution to the outcome is assessed.
+**Mechanism:** `ism-learning-engine` produces a SupplierPerformanceDelta: was the vendor's quality, delivery, or cost accuracy predictive of the outcome? Did poor quality contribute to failure?
+**Destination:** Vendors CRM module — VendorScore updated (quality_consistency_score, delivery_reliability_score). If systemic pattern confirmed across 3+ products, vendor grade adjusted.
+**Impact:** Future `supplier-intelligence` queries reflect updated vendor grades. Poor vendors deprioritized automatically.
+
+### Loop 3: Differentiation Outcome Feedback (new)
+
+**Source:** Domain 4 — PerformanceRecord[] shows how the product performed in market.
+**Mechanism:** `ism-learning-engine` attributes performance to the SelectedScenario from Domain 1.5. Was the differentiation angle (material upgrade, feature addition, bundle angle, price tier shift, audience pivot) correlated with success or failure?
+**Destination:** ISM_Learnings CRM module, field: `differentiation_outcome`. Over time, enables pattern analysis: "material upgrade differentiations succeed 70% of the time; price tier shifts fail 60%."
+**Impact:** Domain 1.5 (Positioning Workbench) can surface historical success rates per differentiation type when generating scenarios.
+
+### Loop 4: Actual vs. Estimated Cost Feedback (new)
+
+**Source:** Domain 3 / Source to Pay — when bulk order completes (Stage 8: Stock Live), the actual landed cost is known.
+**Mechanism:** Compare actual landed cost against: (a) Domain 1 CostEstimate (pre-test benchmark), (b) Domain 2 MarginRecord (supplier quote), (c) Domain 2.5 TestActuals. Produce CostAccuracyDelta.
+**Destination:** ISM_Learnings CRM module, field: `cost_accuracy_delta`. Daily synthesis task picks up and adjusts `financial-constants.json` baseline assumptions (e.g., if freight estimates are consistently 15% low, adjust default).
+**Impact:** Domain 1 CostEstimate accuracy improves over time. margin-calculator ESTIMATE mode becomes more reliable.
 
 ---
 
@@ -387,8 +481,12 @@ These fields are non-negotiable. Claude must include them in every output. ISM E
 | ShopifyListingCopy | title, description, seo_title, seo_description, tags[] | D3 | Confluence page + CRM Note ID |
 | ReviewStrategy | email_sequence{}, vine_eligible, launch_review_target | D3 | CRM text field (JSON) |
 | LaunchCapitalPlan | inventory_cost, working_capital, ad_budget, cash_flow_timeline[] | D3 | CRM text field (JSON) |
+| RepricingDecision | trigger, recommended_price, floor_price, ceiling_price, rationale, duration_days | D4 | CRM text field (JSON) |
 | HandoffPackage | sales_velocity, stock_level, reorder_formula, next_order_qty, vendor_id | D4 | CRM text field (JSON) |
-| FeedbackSignals | criteria_performance{}, estimate_accuracy{}, recommendations[] | D4 | ISM_Learnings CRM module |
+| FeedbackSignals | criteria_performance{}, estimate_accuracy{}, differentiation_outcome, cost_accuracy_delta{}, supplier_performance_delta{}, recommendations[] | D4 | ISM_Learnings CRM module |
+| ShopifyCustomerSignal | purchase_history[], repeat_rate, lifetime_value, segments[] | D4 (future) | CRM text field (JSON) |
+| SupplierPerformanceDelta | vendor_id, quality_score_delta, delivery_score_delta, cost_accuracy, outcome_correlation | D4 | Vendors CRM module + ISM_Learnings |
+| CostAccuracyDelta | estimate_landed, actual_landed, variance_pct, variance_category | D4 | ISM_Learnings CRM module |
 
 ---
 
@@ -491,8 +589,23 @@ All other Claude outputs are AI-produced, human-visible, but do not block pipeli
 | Launch Control | Tabs | Multiple independent views |
 | Operations Dashboard | Tabs | Multiple independent views |
 | Seller Central Operations | Checklist + tabs | Task tracking across two domains |
+| Portfolio Dashboard | Tabs | Independent strategic views, no product-specific flow |
 
-### Multi-Product Layout (all artifacts except Seller Central Operations)
+### Portfolio Dashboard (Strategic View — "Product Pipeline" project)
+
+Cross-cutting artifact that provides a portfolio-level view across all pipeline stages. Not domain-specific — aggregates data from all domains.
+
+**Purpose:** Total capital visibility, pipeline health, strategic decision support.
+**Tabs:**
+- **Pipeline Overview:** All active products across all stages. Count per stage. Visual funnel.
+- **Capital Committed:** Total ad spend + PO values + test costs across all active products. Broken down by stage.
+- **Parked Products:** Products tagged `Parked: true` with reasons, duration parked, and unpark recommendations.
+- **Kill Rate Analysis:** Kill rate by stage, by time period. Which stages are the biggest filters.
+- **Portfolio Insights:** AI-generated strategic observations — concentration risk, capital allocation, pipeline velocity trends.
+
+**Data source:** Reads from Bigin pipeline + CRM Product_Launches records via MCP. No real-time Claude API needed — pre-computed aggregation.
+
+### Multi-Product Layout (all artifacts except Seller Central Operations and Portfolio Dashboard)
 ```
 ┌──────────┬────────────────────────────────────────────────────┐
 │ Product  │ [AI Context Header — insights for selected product] │
@@ -597,7 +710,9 @@ All tasks are self-contained — no dependency on conversation state. Each task 
 
 ## Confluence Page Structure
 
-**Space:** ISM (to be created if not exists)
+**Space:** ISM
+**Root folder URL:** https://ismokraft.atlassian.net/wiki/spaces/iscom/folder/452788225
+**Management rule:** All pages created by skills/artifacts go inside the folder structure below. Claude must check for existing folder before creating. If folder doesn't exist, create it via Confluence MCP before writing pages.
 
 ```
 ISM Knowledge Base (Confluence Space: ISM)
@@ -618,7 +733,12 @@ ISM Knowledge Base (Confluence Space: ISM)
 **Page naming convention:** `[ProductName]-[DataType]-[YYYY-MM-DD]`
 Example: `WoodenSpiceRack-ResearchRecord-2026-03-28`
 
-**Jira ticket creation flow:** Artifact approval → CRM update → Bigin stage trigger → Jira ticket created via Bigin-Jira integration. Never directly from artifact to Jira. One Jira ticket per certification, with assignee and due date from ComplianceRecord.
+**Jira ticket creation flow:** No skill or artifact creates Jira tickets directly. The flow is:
+1. Artifact approval → CRM update (ComplianceRecord with cert details)
+2. CRM update triggers create 'task' type activity in CRM followed by task activity creation in Bigin. 
+3. Bigin activity task triggers Jira ticket creation in "ismo scrum" board (existing workflow automation)
+4. Team picks up tickets in coming sprints
+One Jira ticket per certification, with assignee and due date from ComplianceRecord.
 
 **Conflict prevention:** Each data type has a dedicated sub-folder. Pages are created by Claude via Confluence MCP — never manually unless explicitly overriding. Human edits are permitted but Claude will overwrite on next write unless record is marked `human_edited: true` in CRM.
 
@@ -626,7 +746,7 @@ Example: `WoodenSpiceRack-ResearchRecord-2026-03-28`
 
 ## Seller Central Operations Artifact
 
-Standalone React artifact in Project B. Covers all manual Seller Central steps across two domains in one place. Also linked to Confluence SOP for detailed instructions.
+Standalone React artifact in "Launch & Ops" project. Covers all manual Seller Central steps across two domains in one place. Also linked to Confluence SOP for detailed instructions.
 
 **Scope:** Stage 4/5 (test listing creation for Domain 2.5) + Stage 10 (platform setup for Domain 3)
 
@@ -643,28 +763,30 @@ Each checklist item has: step description, Confluence SOP link, completion check
 
 ### 2 Claude Projects + 1 Ops Project
 
-**Project A: "Product Pipeline"**
+**"Product Pipeline"** (Claude.ai project)
 - Covers: Domain 1 + 1.5 + 2 + 2.5
 - Plugins: 4 plugins (1a product-discovery, 1b product-evaluation, 2a product-sourcing, 2b product-testing — all under 20 KB each)
-- Artifacts: 5 (Discovery Dashboard v1.0, Positioning Workbench v1.0, Sourcing Workbench v1.0, Test Lab A v1.0, Test Lab B v1.0)
+- Artifacts: 6 (Discovery Dashboard v1.0, Positioning Workbench v1.0, Sourcing Workbench v1.0, Test Lab A v1.0, Test Lab B v1.0, Portfolio Dashboard v1.0)
 - Project knowledge: context files listed below
 - Requires: CLAUDE.md per 03 §4 — defines project context, pipeline, integrations, artifact registry
+- CLAUDE.md template: `docs/CLAUDE-product-pipeline.md` (to be created during build session)
 
-**Project B: "Launch & Ops"**
+**"Launch & Ops"** (Claude.ai project)
 - Covers: Domain 3 + 4 + Source to Pay tracking
 - Plugins: 2 plugins (3 product-launch, 4 product-ops)
 - Artifacts: 4 (Launch Control v1.0, Operations Dashboard v1.0, Source to Pay Tracker v1.0, Seller Central Operations v1.0)
 - Project knowledge: context files listed below
 - Requires: CLAUDE.md per 03 §4
+- CLAUDE.md template: `docs/CLAUDE-launch-ops.md` (to be created during build session)
 
-**Project C: "System Ops"**
+**"System Ops"** (Claude.ai project)
 - System-level skills, governance, Zoho platform. Amit only. Not shared.
 
 ### Context File Inventory
 
 All files are stored in Git at `skill-share/context/` and loaded into Claude.ai Project Knowledge. Total target: under 50 KB per project.
 
-**`context/product-pipeline/` files (Project A — Product Pipeline):**
+**`context/product-pipeline/` files ("Product Pipeline"):**
 
 | File | Format | Content | Est. KB |
 |---|---|---|---|
@@ -678,7 +800,7 @@ All files are stored in Git at `skill-share/context/` and loaded into Claude.ai 
 
 **Total `context/product-pipeline/`: ~26 KB**
 
-**`context/launch-ops/` files (Project B — Launch & Ops):**
+**`context/launch-ops/` files ("Launch & Ops"):**
 
 | File | Format | Content | Est. KB |
 |---|---|---|---|
@@ -710,7 +832,7 @@ Multi-mode skills use a **single SKILL.md covering all modes** — no reference 
 
 ## Plugin Splitting Plan
 
-Project A uses 4 plugins (1a, 1b, 2a, 2b). Project B uses 2 plugins (3, 4). Maximum 5 skills per plugin, no reference files. The same SKILL.md appears in multiple plugins where a skill serves multiple domains — mode switching is controlled by project context (`pipeline-config.json`), not by reference files. See 03 §2 for build process.
+"Product Pipeline" uses 4 plugins (1a, 1b, 2a, 2b). "Launch & Ops" uses 2 plugins (3, 4). Maximum 5 skills per plugin, no reference files. The same SKILL.md appears in multiple plugins where a skill serves multiple domains — mode switching is controlled by project context (`pipeline-config.json`), not by reference files. See 03 §2 for build process.
 
 ### Plugin 1a: "product-discovery" (Domain 1 — discovery stages) — ~17 KB
 - `ikraft-keyword-intelligence` (KI) → ~4 KB
@@ -753,27 +875,65 @@ Project A uses 4 plugins (1a, 1b, 2a, 2b). Project B uses 2 plugins (3, 4). Maxi
 
 ## Build Order
 
-| Priority | What | Why |
+### Phase 0: Prerequisites (MUST complete before proceeding)
+
+**Verification gate:** Do NOT proceed past Phase 0 until ALL items below are confirmed complete and their outputs are in `pipeline-config.json`. Each item has a verification check.
+
+| Step | What | Verification | Why |
+|---|---|---|---|
+| 0 | Retrieve CRM Product_Launches field API names via MCP | `crm-field-mappings.json` has Product_Launches fields populated | Prerequisite for all CRM write skills |
+| 0a | Retrieve Vendors module fields via MCP; add missing VendorScore fields | `crm-field-mappings.json` has Vendors fields; VendorScore fields exist in module | Prerequisite for supplier reuse architecture |
+| 0b | Audit ISM_Learnings module (CustomModule17) fields via MCP; add missing fields | `crm-field-mappings.json` has ISM_Learnings fields including differentiation_outcome, cost_accuracy_delta, supplier_performance_delta | Prerequisite for feedback loops |
+| 0c | Design Source to Pay Pipeline in Bigin (8 stages) | `pipeline-config.json` has Source to Pay pipeline ID and stage IDs | Prerequisite for Gate 2 trigger build |
+| 0d | Set up Confluence space ISM with folder structure | Confluence folders verified accessible via MCP write test | Prerequisite for large document storage |
+| 0e | Probe Zoho Books/Inventory available MCP operations | Document available operations, missing permissions, unneeded access in `pipeline-config.json` | Prerequisite for fulfillment-ops design |
+| 0f | Verify Confluence MCP page creation works | Test page created and deleted in ISM space | Prerequisite for document storage strategy |
+
+### Phase 1: Foundation
+
+| Step | What | Why |
 |---|---|---|
-| 0 | Retrieve CRM Product_Launches field API names via MCP | Prerequisite for all CRM write skills |
-| 0a | Retrieve Vendors module fields via MCP; add missing VendorScore fields | Prerequisite for supplier reuse architecture |
-| 0b | Audit ISM_Learnings module (CustomModule17) fields via MCP; add missing fields | Prerequisite for learning loop |
-| 0c | Design Source to Pay Pipeline in Bigin (8 stages) | Prerequisite for Gate 2 trigger build |
-| 0d | Set up Confluence space ISM with folder structure | Prerequisite for large document storage |
 | 1 | Design SKILL.md for `fulfillment-ops` and `compliance-ops` | New skills needed by multiple domains — design before plugin build |
 | 2 | Generate `context/product-pipeline/` files (all 7 JSON/MD files) | Required before any skill or artifact reads project context |
-| 2a | Create CLAUDE.md for Project A and Project B | Required per project per 03 §4 — defines context, pipeline stages, integrations, artifact registry |
-| 3 | Build Plugin 1a "product-discovery" (KI, PD, PS, MI — 4 skills) | Enable daily discovery pipeline |
-| 3a | Build Plugin 1b "product-evaluation" (PE, MC, CO — 3 skills) | Enable evaluation, pre-test economics, compliance feasibility |
+| 2a | Create CLAUDE.md for "Product Pipeline" and "Launch & Ops" | Required per 03 §4 — defines context, pipeline stages, integrations, artifact registry |
+
+**Context file generation instructions (Step 2):**
+Run in a Cowork session with workspace set to the repo. For each context file:
+1. Read the file spec from this document (Context File Inventory section above) for required content.
+2. Query MCP tools to retrieve live data: `GET /crm/v7/settings/fields` for CRM mappings, `GET /bigin/v1/settings/fields` for Bigin stage IDs, Slack MCP for channel IDs.
+3. Cross-reference with `01-system-constraints.md` for financial constants and `02-business-domain-map.md` for gate criteria.
+4. Write the file to `context/{project}/` in the repo.
+5. Validate: file format matches spec, total size under budget, all placeholder values filled or explicitly marked as Known Gap.
+
+### Phase 2: Plugins
+
+| Step | What | Why |
+|---|---|---|
+| 3 | Trim existing SKILL.md files to under 5 KB (start with product-discover as reference example) | Current files are 10-16 KB — must trim before plugin build |
+| 3a | Build Plugin 1a "product-discovery" (KI, PD, PS, MI — 4 skills) | Enable daily discovery pipeline |
+| 3b | Build Plugin 1b "product-evaluation" (PE, MC, CO — 3 skills) | Enable evaluation, pre-test economics, compliance feasibility |
 | 4 | Build Plugin 2a "product-sourcing" (SP, SI, VO, MC — 4 skills) | Enable vendor sourcing and actual unit economics |
 | 4a | Build Plugin 2b "product-testing" (AO, MO, FO, CO — 4 skills) | Enable paid testing, FBA dispatch, compliance initiation |
+
+### Phase 3: Automation + Artifacts
+
+| Step | What | Why |
+|---|---|---|
 | 5 | Set up 4 Cowork scheduled tasks (discovery, stage-2, stage-3, learning) | Automate daily pipeline and learning loop |
-| 6 | Build Discovery Dashboard artifact | Discovery + Gate 1 |
+| 6 | Build Discovery Dashboard artifact | Discovery + Stage 2 promotion + Gate 1 |
 | 6a | Build Positioning Workbench artifact | Differentiation + USP |
+| 6b | Build Portfolio Dashboard artifact | Strategic portfolio view |
 | 7 | Build Sourcing Workbench artifact | Vendor evaluation + dispatch approval |
 | 7a | Build Test Lab A artifact (Plan + Run) | Test campaign planning and live tracking |
-| 7b | Build Test Lab B artifact (Analyze + Decide) | Cost comparison + scale decision |
-| 8 | Plugin 3 + 4 + `context/launch-ops/` files + remaining artifacts when products go live | Launch, ops, Seller Central Operations, Source to Pay Tracker |
+| 7b | Build Test Lab B artifact (Analyze + Decide) | Cost comparison + keyword-level validation + scale decision |
+
+### Phase 4: Launch & Operations (when products go live)
+
+| Step | What | Why |
+|---|---|---|
+| 8 | Generate `context/launch-ops/` files | Required before Domain 3-4 skills read project context |
+| 8a | Build Plugin 3 "product-launch" + Plugin 4 "product-ops" | Enable listing, compliance completion, post-launch monitoring |
+| 8b | Build Launch Control, Operations Dashboard, Source to Pay Tracker, Seller Central Operations artifacts | Full launch and operations UI |
 
 ---
 
@@ -826,9 +986,11 @@ Do not assume values. Fill before dependent build tasks.
 | Slack channel IDs (#ism-launch-alerts, #ism-launch-reports) | Retrieve via Slack MCP then fill in `pipeline-config.json` | Before Slack integration |
 | Razorpay available MCP endpoints | Probe Razorpay MCP to confirm settlement/refund data available | Before Domain 4 build |
 | Zoho Flow IDs for registered flows | Retrieve from automation-registry.md | Before automation build |
-| `fulfillment-ops` SKILL.md | Design from scratch | Priority 1 |
-| `compliance-ops` SKILL.md | Design from scratch | Priority 1 |
-| `04-data-schemas.md` | Create full JSON schemas for all 25+ data types listed in Data Type Conventions. Lives at `skill-share/docs/04-data-schemas.md`. | Before skill build |
+| `fulfillment-ops` SKILL.md | Design from scratch. See `03-implementation-standards.md` §8 for directory and build instructions. | Priority 1 |
+| `compliance-ops` SKILL.md | Design from scratch. See `03-implementation-standards.md` §8 for directory and build instructions. | Priority 1 |
+| Zoho Books/Inventory available MCP operations | Probe via MCP: identify available operations, missing permissions, unneeded access. Document results in `pipeline-config.json`. | Phase 0e |
+| Confluence MCP page creation verification | Test page creation in ISM space. Verify folder creation works. URL: see Confluence Page Structure section. | Phase 0f |
+| `04-data-schemas.md` | Create full JSON schemas for all 25+ data types listed in Data Type Conventions (including new types: RepricingDecision, ShopifyCustomerSignal, SupplierPerformanceDelta, CostAccuracyDelta). Lives at `skill-share/docs/04-data-schemas.md`. | Before skill build |
 | `window.storage` key schema | Define full key table for all 8 artifacts (format: `ism:{entity}:{id}:{sub}` per 03 §7). Defer to artifact build phase — each artifact defines its own keys at build time. | Before artifact build |
 | `context/product-pipeline/` files (7 files) | Generate during build phase | Priority 2 |
 | Jira project key for compliance ticket creation via Bigin | Retrieve from Jira MCP | Before compliance build |

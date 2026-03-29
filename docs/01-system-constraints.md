@@ -174,27 +174,33 @@
 | Zoho Desk | Tickets | Customer support (future)                                |
 | Zoho Analytics | Custom views | Reporting (future)                                       |
 
-### Pipeline Stages (Bigin)
+### Pipeline Stages (Bigin) — Canonical Stage Names
 
-| # | Stage | Gate Before Exit |
+These are the authoritative Bigin API stage names. Other documents describe activities within these stages but must not rename them. See `02-business-domain-map.md` for detailed activity descriptions per stage.
+
+**Gate structure:** 3 formal gates (human approval, investment decisions) + stage exit checklists (automated, enforced by artifacts). See `docs/decision-log.md` DL-001 for rationale.
+
+| # | Stage | Gate / Checklist Before Exit |
 |---|---|---|
 | 1 | Idea Intake | — |
-| 2 | Market Research | Gate 1: CBFA ≥ ₹150, Break-even ACoS ≤ 50% |
-| 3 | Test Sourcing | — |
-| 4 | Test Listing | — |
-| 5 | Paid Testing | — |
-| 6 | Scale Decision | Gate 2: Path A (≥10 orders, CVR ≥5%) or Path B (≥500 impressions, CTR ≥0.3%) |
-| 7 | Sourcing Model Selection | — |
-| 8 | Final Listing | — |
-| 9 | Compliance | Gate 3: All certifications obtained |
-| 10 | Platform Setup | — |
+| 2 | Market Research | **Gate 1:** CBFA ≥ ₹150, Break-even ACoS ≤ 50%, Compliance feasibility ≤ MEDIUM risk |
+| 3 | Test Sourcing | Checklist: ≥ 2 suppliers identified, lead time ≤ 45 days |
+| 4 | Test Listing | Checklist: Vendor Grade ≥ C, sample approved, COGS confirmed |
+| 5 | Paid Testing | Checklist: Title + bullets + description complete, main image + 6 lifestyle images ready |
+| 6 | Scale Decision | **Gate 2:** Path A (≥10 orders, CVR ≥5%) or Path B (≥500 impressions, CTR ≥0.3%), keyword-level bottom-line validation |
+| 7 | Sourcing Model Selection | Checklist: Sourcing model selected (PL/RTS/DS/POD), unit economics validated at scale |
+| 8 | Final Listing | Checklist: Final listing live and indexed, inventory at FBA warehouse |
+| 9 | Compliance | **Gate 3:** All certifications obtained |
+| 10 | Platform Setup | Checklist: Seller Central configured, tax/shipping/returns set |
 | 11 | Product Live | — |
-| — | Rejected | Closed-Lost (any gate failure) |
+| — | Rejected | Closed-Lost (any gate failure or kill decision) |
 | — | Published | Closed-Won (graduated from pipeline) |
 
 ---
 
 ## 9. Financial Constants
+
+**Transitional source.** These hardcoded values are the operating reality until `context/product-pipeline/financial-constants.json` is generated and deployed to Project Knowledge. Once that file exists, it is the **authoritative source** for all financial constants. Skills and artifacts must read from project context, never from this table.
 
 | Constant | Value | Notes |
 |---|---|---|

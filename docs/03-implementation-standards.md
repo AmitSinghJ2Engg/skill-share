@@ -14,6 +14,7 @@
 ---
 name: skill-name
 description: One-line description under 160 characters. Start with a verb.
+version: "1.0.0"
 ---
 
 # {Skill Name}
@@ -44,6 +45,22 @@ Comma-separated list of phrases that should activate this skill.
 - The skill says "read gate criteria from project context" — it does not say "CBFA ≥ ₹150".
 - No code blocks in SKILL.md unless they define input/output JSON shapes.
 - Trigger description in frontmatter: include the skill's prefix code (e.g., "PD-", "PE-").
+- Frontmatter `version` follows semver: MAJOR.MINOR.PATCH. Bump PATCH for content fixes, MINOR for new modes, MAJOR for breaking I/O contract changes. Version is quoted as a string (e.g., `"1.0.0"`).
+
+### Three-Layer Information Architecture
+
+Skills, project knowledge, and reference material serve different audiences at different times. See `docs/decision-log.md` DL-002.
+
+| Layer | What | Where | Who Consumes | In Plugin? |
+|-------|------|-------|-------------|------------|
+| **SKILL.md** | Instructions: purpose, modes, I/O contracts, execution steps | `{module}/skills/{skill}/SKILL.md` | Everyone (plugin users, Cowork) | Yes |
+| **Project Knowledge** | Runtime values: thresholds, CRM fields, gate criteria, brand rules | `context/{project}/` -> deployed to Claude.ai | Everyone running the system | No (deployed separately) |
+| **Reference Material** | Deep domain knowledge: financial models, scoring rubrics, evaluation frameworks | `{module}/skills/{skill}/reference/` or `{module}/project-knowledge/` | Builders only (maintaining skills/context) | No |
+
+- SKILL.md never contains file paths to reference files. It says "read from project context."
+- Reference files are a BUILD-TIME dependency. They inform how skills and context files are written/maintained.
+- Plugin users (team members who install .plugin + project knowledge) have everything needed to RUN the system without reference files.
+- Builders working in Cowork set workspace to the repo and can read reference files during development.
 
 ### Naming Convention
 `{domain}-{verb}` or `{domain}-{noun}` in kebab-case.
@@ -126,14 +143,43 @@ skills/
 
 ### Build Process
 1. Create plugin directory with `.claude-plugin/plugin.json` and `skills/*/SKILL.md`.
-2. Verify each SKILL.md has valid YAML frontmatter with `name` and `description`.
+2. Verify each SKILL.md has valid YAML frontmatter with `name`, `description`, and `version`.
 3. Check total size: `du -sb` on the directory. Must be under 70,000 bytes.
-4. Package: `cd /plugin-dir && zip -r /output/name.plugin . -x "*.DS_Store"`
-5. Validate: `claude plugin validate .claude-plugin/plugin.json` (if available).
-6. Test: Install in Claude Desktop, verify all skills appear and trigger correctly.
+4. **Intermediate review step:** Assemble the plugin directory at `dist/build/{plugin-name}/` before zipping. This allows inspection of what goes into the plugin. Only zip after review.
+5. Package: `cd /dist/build/{plugin-name} && zip -r /dist/{plugin-name}.plugin . -x "*.DS_Store"`
+6. Validate: `claude plugin validate .claude-plugin/plugin.json` (if available).
+7. Test: Install in Claude Desktop, verify all skills appear and trigger correctly.
+
+### Skill-to-Plugin Dependency Map
+
+Skills that appear in multiple plugins require all affected plugins to be rebuilt when the skill changes. The dependency map is maintained as `tools/plugin-skill-map.json`:
+
+```json
+{
+  "skills": {
+    "margin-calculator": ["product-evaluation", "product-sourcing"],
+    "compliance-ops": ["product-evaluation", "product-testing", "product-launch"],
+    "ads-ops": ["product-testing", "product-ops"],
+    "product-monitor": ["product-testing", "product-ops"],
+    "fulfillment-ops": ["product-testing", "product-launch"]
+  }
+}
+```
+
+The build script reads this map. When building a specific plugin, it reports which shared skills are included. When a skill version changes, it reports which plugins need rebuilding.
 
 ### Generic Build Script
-The build script (`build-plugin.py`) is a **generic tool** that works with any plugin, not hardcoded to Ismokraft. It takes a source directory and output path as arguments.
+
+The build script (`build-plugin.py`) is a **generic tool** that supports the 6-plugin architecture. Required capabilities:
+- **Build modes:** `--plugin <name>` (one plugin), `--all` (all plugins), `--list <name1,name2>` (multiple)
+- **Plugin registry:** Reads plugin definitions from `tools/plugin-registry.json` — maps each plugin name to its skill list and metadata
+- **Dependency awareness:** Reads `tools/plugin-skill-map.json` — reports which plugins need rebuilding when a skill changes
+- **Intermediate build:** Assembles to `dist/build/{plugin-name}/` before zipping (reviewable intermediate state)
+- **Size validation:** Fails build if uncompressed size exceeds 70 KB
+- **Frontmatter validation:** Checks `name`, `description`, `version` in every SKILL.md
+- **No hardcoded skills or plugin names** — all configuration comes from registry files
+
+**Current status:** `tools/build-plugin.py` is hardcoded to the old single-plugin architecture and must be rewritten before any plugin can be built. See `tools/README.md` for rewrite specification.
 
 ---
 
@@ -305,6 +351,7 @@ skill-share/
     vendor-ops/
     ...
   dist/
+    build/                        (intermediate build directory — reviewable before zipping)
     product-discovery.plugin      (Plugin 1a)
     product-evaluation.plugin     (Plugin 1b)
     product-sourcing.plugin       (Plugin 2a)
@@ -332,17 +379,25 @@ skill-share/
     sourcing-workbench-v1.0.jsx
     test-lab-a-v1.0.jsx
     test-lab-b-v1.0.jsx
+    portfolio-dashboard-v1.0.jsx
     launch-control-v1.0.jsx
     ops-dashboard-v1.0.jsx
     seller-central-ops-v1.0.jsx
+    source-to-pay-tracker-v1.0.jsx
   tools/
-    build-plugin.py               (generic)
+    build-plugin.py               (generic — needs rewrite, see tools/README.md)
     build-skill.py                (generic)
+    plugin-registry.json          (to be created — plugin definitions)
+    plugin-skill-map.json         (to be created — shared skill dependencies)
   docs/
     01-system-constraints.md
     02-business-domain-map.md
     03-implementation-standards.md
     04-data-schemas.md            (to be created — full JSON schemas for all data types)
+    05-data-crawling-rules.md
+    decision-log.md               (architectural decisions with rationale)
+    CLAUDE-product-pipeline.md    (to be created — project instructions for "Product Pipeline")
+    CLAUDE-launch-ops.md          (to be created — project instructions for "Launch & Ops")
 ```
 
 ### Rules
@@ -369,7 +424,32 @@ skill-share/
 
 ---
 
-## 8. Skill Trimming Guide
+## 8. Skills Awaiting SKILL.md
+
+The following skills are defined in the architecture (`02-business-domain-map.md`) but do not yet have a SKILL.md file. They must be written during Cowork build sessions following the standards in §1. Each skill's SKILL.md goes in its module directory under `skills/{skill-name}/SKILL.md`.
+
+| Skill | Module Directory | Priority | Needed For |
+|-------|-----------------|----------|------------|
+| `ikraft-keyword-intelligence` | `product-system/skills/ikraft-keyword-intelligence/` | High | Plugin 1a, daily discovery task |
+| `product-market-intelligence` | `product-system/skills/product-market-intelligence/` | High | Plugin 1a, Stage 2 intelligence task |
+| `compliance-ops` | `product-system/skills/compliance-ops/` | High | Plugins 1b, 2b, 3 |
+| `fulfillment-ops` | `vendor-sourcing/skills/fulfillment-ops/` | High | Plugins 2b, 3 |
+| `supplier-intelligence` | `vendor-sourcing/skills/supplier-intelligence/` | Medium | Plugin 2a |
+| `ads-ops` | `marketing-content/skills/ads-ops/` | Medium | Plugins 2b, 4 |
+| `capital-planner` | `revenue-finance/skills/capital-planner/` | Medium | Plugin 3 |
+| `revenue-ops` | `revenue-finance/skills/revenue-ops/` | Low | Plugin 4 |
+| `ism-learning-engine` | `governance/skills/ism-learning-engine/` | Low | Plugin 4 |
+
+**Build session instructions:** When writing a new SKILL.md:
+1. Read `02-business-domain-map.md` for the skill's domain, modes, data produced/consumed.
+2. Read existing reference files in the skill's `reference/` folder (if any) for domain knowledge.
+3. Follow §1 structure exactly: frontmatter, purpose, modes, input/output contracts, execution steps, trigger phrases.
+4. Ensure the file stays under 5 KB. Move detailed rubrics/thresholds to reference files or project context.
+5. Copy the completed SKILL.md to the repo directory listed above.
+
+---
+
+## 9. Skill Trimming Guide
 
 When trimming a skill from its current size (15-58 KB) to plugin-ready size (~3-5 KB):
 
@@ -401,7 +481,7 @@ When trimming a skill from its current size (15-58 KB) to plugin-ready size (~3-
 
 ---
 
-## 9. Cross-Domain Data Handoff Protocol
+## 10. Cross-Domain Data Handoff Protocol
 
 When a product moves from one domain to another:
 
@@ -417,7 +497,7 @@ This ensures:
 
 ---
 
-## 10. Change Management
+## 11. Change Management
 
 When updating a skill, plugin, artifact, or project context file:
 
@@ -430,14 +510,17 @@ When updating a skill, plugin, artifact, or project context file:
 
 ---
 
-## 11. Confluence & Jira Integration Standards
+## 12. Confluence & Jira Integration Standards
 
 ### Confluence
 
 **Purpose:** Stores large documents that are too big for CRM fields (ResearchRecord, PositioningBrief, TestResults, listing copy, supplier briefs). Every Confluence page is linked from its corresponding CRM record.
 
+**Root folder URL:** https://ismokraft.atlassian.net/wiki/spaces/iscom/folder/452788225
+
 **Page creation rules:**
 - Claude creates Confluence pages via Confluence MCP — never manually unless overriding
+- All pages go under the root folder URL above. Check for existing folder before creating.
 - Naming convention: `[ProductName]-[DataType]-[YYYY-MM-DD]`
 - If a page already exists for that product + data type, Claude **updates** the existing page (do not create duplicates)
 - If a page has been manually edited by a human (`human_edited: true` in CRM record field), Claude does not overwrite — flag for human review instead
@@ -457,16 +540,21 @@ When updating a skill, plugin, artifact, or project context file:
 
 **Purpose:** Tracks compliance certification work as actionable tickets — one ticket per certification, with assignee, due date, and status.
 
-**Ticket creation flow:** Artifacts never create Jira tickets directly. The flow is:
-`Artifact approval button → CRM update (ComplianceRecord with cert details) → Bigin stage trigger → Bigin-Jira integration creates Jira ticket`
+**Ticket creation flow:** No skill or artifact creates Jira tickets directly. The flow is:
+1. Artifact approval button → CRM update (ComplianceRecord with cert details)
+2. CRM update triggers a 'task' type activity in Bigin (via CRM activity creation)
+3. Bigin activity task creation triggers Jira ticket creation in "ismo scrum" board (via existing Bigin workflow automation)
+4. Team picks up tickets in coming sprints
 
-**Ticket fields:** Project key (from `pipeline-config.json`), summary: `[ProductName] — [CertType] certification`, due date from `ComplianceRecord.expectedCompletionDate`, assignee from `ComplianceRecord.owner_name`.
+This Bigin-to-Jira workflow automation already exists and is operational.
+
+**Ticket fields:** Project: "ismo scrum", summary: `[ProductName] — [CertType] certification`, due date from `ComplianceRecord.expectedCompletionDate`, assignee from `ComplianceRecord.owner_name`.
 
 **Status sync:** When a Jira ticket is closed (cert obtained), the corresponding CRM ComplianceRecord field is updated and Gate 3 compliance checklist advances. This sync must be confirmed during Jira integration build.
 
 ---
 
-## 12. What NOT To Do
+## 13. What NOT To Do
 
 - Do not hardcode business values in skills, plugins, or artifacts. They change.
 - Do not create skills with overlapping functions. One function, one skill.

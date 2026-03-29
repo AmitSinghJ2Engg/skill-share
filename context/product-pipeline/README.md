@@ -1,9 +1,9 @@
-# Context Files — Product Pipeline (Project A)
+# Context Files — Product Pipeline
 
-These files are loaded into Claude.ai Project Knowledge for Project A ("Product Pipeline").
+These files are loaded into Claude.ai Project Knowledge for "Product Pipeline" project.
 They cover Domains 1, 1.5, 2, and 2.5. Total target: under 26 KB.
 
-**Generate these files during Build Order step 2** using Claude in Project C (System Ops).
+**Generate these files during Build Order Phase 1, Step 2** using Claude in a Cowork session with workspace set to the repo. See `docs/02-business-domain-map.md` → Build Order for detailed generation instructions.
 
 | File | Format | What it contains | Est. KB |
 |---|---|---|---|

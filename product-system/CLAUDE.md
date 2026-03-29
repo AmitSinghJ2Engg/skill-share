@@ -1,4 +1,15 @@
-# Ismokraft Product Operations — Project Instruction
+# ⚠ DEPRECATED — DO NOT USE IN ANY CLAUDE SESSION
+
+**This file reflects the old single-plugin architecture (v1.0) and is completely superseded.**
+**Canonical project instructions are being built at:**
+- `docs/CLAUDE-product-pipeline.md` — for "Product Pipeline" project (Domains 1-2.5)
+- `docs/CLAUDE-launch-ops.md` — for "Launch & Ops" project (Domains 3-4)
+
+**Known conflicts in this file:** wrong gate structure (8 gates vs. current 3), product-ops-config (removed), single plugin (replaced by 6), old Slack channels, old skill prefixes.
+
+---
+
+# Ismokraft Product Operations — Project Instruction (DEPRECATED)
 
 ## What This Project Is
 

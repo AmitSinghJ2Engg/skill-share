@@ -51,8 +51,18 @@
 
   "confluence": {
     "space_key": "iscom",
+    "space_name": "Ismokraft Discovery & Scrums",
+    "space_id": "443809796",
+    "root_folder_id": "452788225",
     "root_folder_url": "https://ismokraft.atlassian.net/wiki/spaces/iscom/folder/452788225",
-    "_status": "not yet verified via API"
+    "existing_pages": {
+      "Order Processing": "445579265",
+      "KPI Charter": "469794935",
+      "Keyword Research - Ops": "575340545"
+    },
+    "test_page_id": "590446593",
+    "api_verified": true,
+    "write_access_verified": true
   },
 
   "slack": {
@@ -69,13 +79,18 @@
   },
 
   "zoho_books": {
-    "_status": "not yet probed",
-    "_mcp_url": "https://books-financial-overview-60067027941.zohomcp.in/mcp/3b6556127a96758a589270817dd9a162/message"
+    "organization_id": "60018085540",
+    "organization_name": "Ismokraft Enterprises",
+    "currency": "INR",
+    "available_operations": ["list_items", "list_invoices", "list_contacts", "list_bills", "list_expenses", "list_bank_accounts", "list_bank_transactions", "list_chart_of_accounts", "get_invoice", "get_contact", "get_organization"],
+    "read_only": true,
+    "_note": "12 MCP tools available. Read-only access. Items exist with product data."
   },
 
   "zoho_inventory": {
-    "_status": "not yet probed",
-    "_mcp_url": "https://manage-inventory-logistics-60067027941.zohomcp.in/mcp/25d8d6e39b669251815f5651f893c38f/message"
+    "available_operations": ["create_item", "update_item", "get_item", "create_purchase_order", "get_purchase_order", "create_sales_order", "get_sales_order", "create_bill", "get_bill", "create_shipment_order", "get_shipment_order", "create_package", "get_package", "create_purchase_receive", "get_purchase_receive", "create_composite_item", "get_composite_item", "get_item_group", "get_item_adjustment", "get_transfer_order", "get_sales_return", "create_retainer_invoice", "get_invoice", "list_taxes", "create_pricebook", "mark_item_as_active", "mark_item_as_inactive"],
+    "read_write": true,
+    "_note": "26 MCP tools available. Full read/write access including item creation, POs, shipments."
   },
 
   "mcp_endpoints": {

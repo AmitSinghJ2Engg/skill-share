@@ -10,9 +10,9 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 - [x] **0a:** Retrieve Vendors module fields via MCP; add missing VendorScore fields (47 fields, Vendor_Grade + Evaluation_Score exist)
 - [x] **0b:** Audit ISM_Learnings module fields via MCP; add missing feedback loop fields (29 fields, module API: ISM_Learnings, also found ISM_ExecutionLogs, ISM_SkillFeedback, ISM_SkillHealth)
 - [x] **0c:** Document Bigin pipeline structure -> populate `pipeline-config.json` (Product Launch Factory: 13 stages, Procure To Pay: 5 stages exist)
-- [ ] **0d:** Set up Confluence space ISM with folder structure
-- [ ] **0e:** Probe Zoho Books/Inventory available MCP operations -> document in `pipeline-config.json`
-- [ ] **0f:** Verify Confluence MCP page creation works (test page in ISM space)
+- [x] **0d:** Verify Confluence space ISM exists (space: iscom, ID: 443809796, root folder: 452788225, 3 existing pages)
+- [x] **0e:** Probe Zoho Books/Inventory MCP operations (Books: 12 tools read-only, org: 60018085540; Inventory: 26 tools read/write)
+- [x] **0f:** Verify Confluence page creation works (test page ID: 590446593, write access confirmed)
 
 **Gate: Do NOT proceed to Phase 1 until all Phase 0 items are confirmed and outputs are in pipeline-config.json.**
 

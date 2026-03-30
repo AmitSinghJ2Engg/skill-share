@@ -23,8 +23,8 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 - [x] **1:** Write SKILL.md for `compliance-ops` (skills/product-evaluation/compliance-ops/) — 4.8 KB, 3 modes
 - [x] **1a:** Write SKILL.md for `fulfillment-ops` (skills/product-testing/fulfillment-ops/) — 4.4 KB, 2 modes
 - [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.json, financial-constants.json, gate-criteria.json, zone-rotation.json, brand-rules.md, testing-config.json, pipeline-config.json)
-- [ ] **2a:** Create `docs/CLAUDE-product-pipeline.md` (project instructions for "Product Pipeline")
-- [ ] **2b:** Create `docs/CLAUDE-launch-ops.md` (project instructions for "Launch & Ops")
+- [x] **2a:** Create `docs/CLAUDE-product-pipeline.md` (project instructions for "Product Pipeline")
+- [x] **2b:** Create `docs/CLAUDE-launch-ops.md` (project instructions for "Launch & Ops")
 
 ---
 
@@ -32,8 +32,8 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 Tracks readiness of project instructions, task instructions, and plugin deployment for Claude Desktop / Cowork.
 
-- [ ] CLAUDE-product-pipeline.md project instructions written (also Phase 1 item 2a)
-- [ ] CLAUDE-launch-ops.md project instructions written (also Phase 1 item 2b)
+- [x] CLAUDE-product-pipeline.md project instructions written (also Phase 1 item 2a)
+- [x] CLAUDE-launch-ops.md project instructions written (also Phase 1 item 2b)
 - [ ] ism-daily-discovery task instructions written
 - [ ] ism-stage2-intelligence task instructions written
 - [ ] ism-stage3-vendor-search task instructions written

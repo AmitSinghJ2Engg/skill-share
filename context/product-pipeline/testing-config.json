@@ -1,0 +1,86 @@
+{
+  "_generated": "2026-03-30",
+  "_source": "docs/02-business-domain-map.md test execution framework",
+  "_note": "Some values marked NEEDS_CONFIRMATION require Amit's input before skills use them.",
+
+  "test_modes": {
+    "data_buying": {
+      "description": "Collects impression, CTR, keyword ranking data. Market signal goal.",
+      "goal": "Keyword discovery and market signals",
+      "qc_requirement": "WAIVED permitted (with human approval)",
+      "duration_days": 10,
+      "duration_note": "NEEDS_CONFIRMATION: 7-10 days typical, using 10 as default",
+      "budget_daily_inr": 500,
+      "budget_note": "NEEDS_CONFIRMATION: suggested daily budget for auto campaigns"
+    },
+    "conversion_testing": {
+      "description": "Measures actual CVR, ACoS, purchase behaviour. Unit economics validation.",
+      "goal": "Bottom-line unit economics validation and margin confirmation",
+      "qc_requirement": "PASS mandatory",
+      "duration_days": 14,
+      "duration_note": "NEEDS_CONFIRMATION: suggested duration for manual campaigns",
+      "budget_daily_inr": 1000,
+      "budget_note": "NEEDS_CONFIRMATION: suggested daily budget for manual campaigns"
+    }
+  },
+
+  "test_phases": {
+    "phase_1": {
+      "mode": "data_buying",
+      "campaign_type": "auto campaigns",
+      "duration_days": 10,
+      "output": "Keyword list with impression/CTR data"
+    },
+    "phase_2": {
+      "mode": "conversion_testing",
+      "campaign_type": "manual campaigns",
+      "duration_days": 14,
+      "output": "Margin validation data per keyword"
+    }
+  },
+
+  "data_quality_thresholds": {
+    "HIGH": {
+      "min_keywords_with_data": 5,
+      "min_impressions_per_keyword": 1000,
+      "description": "Sufficient data across enough keywords for confident margin decisions"
+    },
+    "MEDIUM": {
+      "min_keywords_with_data": 3,
+      "min_impressions_per_keyword": 500,
+      "description": "Directional signal present but some keywords lack volume"
+    },
+    "LOW": {
+      "min_keywords_with_data": 1,
+      "min_impressions_per_keyword": 100,
+      "description": "Insufficient data to draw conclusions"
+    },
+    "_note": "NEEDS_CONFIRMATION: these thresholds are initial estimates"
+  },
+
+  "extension_rules": {
+    "max_extension_days": 7,
+    "trigger": "Data quality is LOW after Phase 2",
+    "requires_human_approval": true
+  },
+
+  "bid_strategy_defaults": {
+    "auto_campaign": {
+      "strategy": "dynamic bids - down only",
+      "default_bid_inr": 5,
+      "_note": "NEEDS_CONFIRMATION"
+    },
+    "manual_campaign": {
+      "strategy": "dynamic bids - up and down",
+      "default_bid_inr": 8,
+      "_note": "NEEDS_CONFIRMATION"
+    }
+  },
+
+  "stopping_rules": {
+    "early_stop": false,
+    "early_stop_note": "Tests always run their configured duration. No early auto-stop.",
+    "extend_recommended_flag": "extend_recommended",
+    "extension_requires_approval": true
+  }
+}

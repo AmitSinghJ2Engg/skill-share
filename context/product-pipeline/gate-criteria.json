@@ -1,0 +1,69 @@
+{
+  "_generated": "2026-03-30",
+  "_source": "docs/02-business-domain-map.md gate definitions",
+
+  "gate_1": {
+    "name": "Market Research Gate",
+    "stage": "Research & Profitability",
+    "stage_api": "Validation & Research",
+    "human_approval_required": true,
+    "crm_field": "Gate_1_Decision",
+    "criteria": {
+      "cbfa_min_inr": 150,
+      "break_even_acos_max_pct": 50,
+      "compliance_feasibility_max_risk": "MEDIUM"
+    },
+    "pass_condition": "All three thresholds must be met",
+    "override_field": "Gate_1_Override_Notes",
+    "approval_fields": {
+      "decision": "Gate_1_Decision",
+      "approved_by": "Gate_1_Approved_By",
+      "approval_date": "Gate_1_Approval_Date",
+      "notes": "Gate_1_Notes"
+    }
+  },
+
+  "gate_2": {
+    "name": "Scale Decision Gate",
+    "stage": "Scale Decision",
+    "stage_api": "Listing & Launch Setup",
+    "human_approval_required": true,
+    "crm_field": "Scale_Verdict",
+    "criteria": {
+      "path_a": {
+        "name": "Data-buying mode",
+        "min_orders": 10,
+        "min_cvr_pct": 5
+      },
+      "path_b": {
+        "name": "Conversion testing mode",
+        "min_impressions": 500,
+        "min_ctr_pct": 0.3
+      }
+    },
+    "pass_condition": "Meet Path A OR Path B, plus keyword-level bottom-line validation complete",
+    "approval_fields": {
+      "verdict": "Scale_Verdict",
+      "complete": "Scale_Decision_Complete"
+    }
+  },
+
+  "gate_3": {
+    "name": "Compliance Gate",
+    "stage": "Compliance & Certifications",
+    "stage_api": "Compliance",
+    "human_approval_required": true,
+    "crm_field": "Gate_3_Approval",
+    "criteria": {
+      "all_certifications_obtained": true
+    },
+    "pass_condition": "100% certification completion",
+    "approval_fields": {
+      "decision": "Gate_3_Approval",
+      "decision_date": "Gate_3_Decision_Date",
+      "notes": "Gate_3_Notes",
+      "override_notes": "Gate_3_Override_Notes",
+      "compliance_approver": "Compliance_Lead_Approver"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "_generated": "2026-03-30",
+  "_source": "docs/02-business-domain-map.md zone definitions",
+
+  "rotation_formula": {
+    "method": "cycle_position = (day_of_year - 1) mod 9",
+    "total_cycle_days": 9,
+    "description": "P1 zones get 2 days each (4 days), P2-P4 get 1 day each (5 days) = 9-day cycle"
+  },
+
+  "marketplace_rotation": {
+    "always_on": ["Amazon India", "Amazon US", "Etsy", "Pinterest", "Google Trends"],
+    "rotating": {
+      "formula": "(day_of_year - 1) mod 2",
+      "0": "Europe",
+      "1": "Australia"
+    }
+  },
+
+  "zones": [
+    {
+      "id": 1,
+      "name": "Workspace Products",
+      "priority": "P1",
+      "cycle_positions": [0, 1],
+      "days_per_cycle": 2,
+      "price_range_inr": {"min": 800, "max": 3000},
+      "manufacturing_cluster": "Jodhpur",
+      "seed_keywords": [
+        "wooden desk organizer",
+        "wooden laptop stand",
+        "wooden cable management",
+        "wooden pen holder",
+        "wooden monitor riser"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Personalized Gifts",
+      "priority": "P1",
+      "cycle_positions": [2, 3],
+      "days_per_cycle": 2,
+      "price_range_inr": {"min": 800, "max": 4000},
+      "manufacturing_cluster": "Jodhpur",
+      "seed_keywords": [
+        "personalized wooden gift",
+        "engraved wooden box",
+        "custom wooden photo frame",
+        "wooden anniversary gift",
+        "wooden name plate"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Home Decor",
+      "priority": "P2",
+      "cycle_positions": [4],
+      "days_per_cycle": 1,
+      "price_range_inr": {"min": 600, "max": 3500},
+      "manufacturing_cluster": "Jodhpur",
+      "seed_keywords": [
+        "wooden wall decor",
+        "wooden candle holder",
+        "wooden shelf display",
+        "wooden table decor",
+        "wooden tray"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Cultural Gifting",
+      "priority": "P2",
+      "cycle_positions": [5],
+      "days_per_cycle": 1,
+      "price_range_inr": {"min": 800, "max": 5000},
+      "manufacturing_cluster": "Vrindavan",
+      "seed_keywords": [
+        "wooden puja mandir",
+        "wooden temple home",
+        "wooden god idol stand",
+        "wooden diya holder",
+        "wooden incense holder"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Jewelry & Accessories Storage",
+      "priority": "P3",
+      "cycle_positions": [6],
+      "days_per_cycle": 1,
+      "price_range_inr": {"min": 800, "max": 3000},
+      "manufacturing_cluster": "Jodhpur",
+      "seed_keywords": [
+        "wooden jewelry box",
+        "wooden watch organizer",
+        "wooden earring stand",
+        "wooden ring holder",
+        "wooden bangle stand"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Lifestyle Accessories",
+      "priority": "P3",
+      "cycle_positions": [7],
+      "days_per_cycle": 1,
+      "price_range_inr": {"min": 600, "max": 2500},
+      "manufacturing_cluster": "Jodhpur",
+      "seed_keywords": [
+        "wooden key holder wall",
+        "wooden charging station",
+        "wooden remote organizer",
+        "wooden coaster set",
+        "wooden valet tray"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Hobby & Specialty",
+      "priority": "P4",
+      "cycle_positions": [8],
+      "days_per_cycle": 1,
+      "price_range_inr": {"min": 1000, "max": 5000},
+      "manufacturing_cluster": "Jodhpur",
+      "seed_keywords": [
+        "wooden chess board",
+        "wooden art supplies box",
+        "wooden guitar stand",
+        "wooden book ends",
+        "wooden display case"
+      ]
+    }
+  ]
+}

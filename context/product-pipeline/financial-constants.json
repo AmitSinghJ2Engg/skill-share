@@ -1,0 +1,52 @@
+{
+  "_generated": "2026-03-30",
+  "_source": "docs/01-system-constraints.md section 9, docs/02-business-domain-map.md",
+  "_note": "Authoritative source for all financial constants. Skills read from here, not from docs.",
+
+  "margins": {
+    "target_gross_margin_pct": 44,
+    "target_net_margin_pct": 15,
+    "gst_rate_pct": 12,
+    "gst_note": "Wooden products standard rate"
+  },
+
+  "pricing": {
+    "sweet_spot_min_inr": 800,
+    "sweet_spot_max_inr": 2000,
+    "price_floor_inr": 1000,
+    "price_floor_note": "Brand rule - no products below 1000 INR",
+    "zero_referral_fee_threshold_inr": 1000,
+    "zero_referral_fee_note": "Amazon India zero referral fee for items at or below 1000 INR (effective 2026-03-16)"
+  },
+
+  "acos_targets": {
+    "test_phase_max_pct": 40,
+    "scale_phase_max_pct": 30
+  },
+
+  "logistics": {
+    "weight_ceiling_kg": 2.0,
+    "weight_ceiling_note": "FBA optimization - products above 2 kg incur higher fulfillment fees"
+  },
+
+  "formulas": {
+    "cbfa": {
+      "formula": "Price - Cost - (Price * platform_fee_pct) - fixed_fee",
+      "platform_fee_pct": 0.20,
+      "fixed_fee_inr": 60,
+      "description": "Contribution Before Fixed Advertising. Used in Gate 1."
+    },
+    "break_even_acos": {
+      "formula": "(CBFA / Price) * 100",
+      "description": "Break-even Advertising Cost of Sale percentage. Used in Gate 1."
+    },
+    "break_even_cac": {
+      "formula": "CBFA",
+      "description": "Break-even Customer Acquisition Cost equals CBFA in rupees."
+    },
+    "projected_roi": {
+      "formula": "((Revenue - Total_Cost) / Total_Cost) * 100",
+      "description": "Return on investment percentage."
+    }
+  }
+}

@@ -10,7 +10,7 @@ Records architectural decisions and their rationale. Each entry captures the con
 **Status:** Accepted
 **Context:** The system had three conflicting gate definitions:
 - `01-system-constraints.md` defined 11 pipeline stages with 3 gates (Gate 1: CBFA/ACoS, Gate 2: CVR/CTR, Gate 3: Compliance)
-- `gate-definitions.md` (originally in product-system/project-knowledge/, now at docs/gate-definitions-superseded.md) defined 8 gates (one per stage transition) with detailed criteria
+- `gate-definitions.md` (originally in product-system/project-knowledge/, now at docs/archive/gate-definitions-superseded.md) defined 8 gates (one per stage transition) with detailed criteria
 - `02-business-domain-map.md` defined 3 gates aligned with investment decisions
 
 **Options considered:**

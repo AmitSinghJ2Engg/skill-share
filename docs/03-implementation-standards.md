@@ -501,8 +501,9 @@ skill-share/
     05-data-crawling-rules.md
     decision-log.md               (architectural decisions with rationale)
     build-status.md               (phase-based progress tracker)
-    CLAUDE-product-pipeline.md    (to be created — project instructions for "Product Pipeline")
-    CLAUDE-launch-ops.md          (to be created — project instructions for "Launch & Ops")
+    projects/
+      CLAUDE-product-pipeline.md  (project instructions for "Product Pipeline")
+      CLAUDE-launch-ops.md        (project instructions for "Launch & Ops")
 ```
 
 ### Rules

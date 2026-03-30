@@ -6,10 +6,10 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 ## Phase 0: Prerequisites
 
-- [ ] **0:** Retrieve CRM Product_Launches field API names via MCP -> populate `crm-field-mappings.json`
-- [ ] **0a:** Retrieve Vendors module fields via MCP; add missing VendorScore fields
-- [ ] **0b:** Audit ISM_Learnings module (CustomModule17) fields via MCP; add missing feedback loop fields
-- [ ] **0c:** Design Source to Pay Pipeline in Bigin (8 stages) -> populate `pipeline-config.json`
+- [x] **0:** Retrieve CRM Product_Launches field API names via MCP -> populate `crm-field-mappings.json` (141 fields, module API: Product_Launches)
+- [x] **0a:** Retrieve Vendors module fields via MCP; add missing VendorScore fields (47 fields, Vendor_Grade + Evaluation_Score exist)
+- [x] **0b:** Audit ISM_Learnings module fields via MCP; add missing feedback loop fields (29 fields, module API: ISM_Learnings, also found ISM_ExecutionLogs, ISM_SkillFeedback, ISM_SkillHealth)
+- [x] **0c:** Document Bigin pipeline structure -> populate `pipeline-config.json` (Product Launch Factory: 13 stages, Procure To Pay: 5 stages exist)
 - [ ] **0d:** Set up Confluence space ISM with folder structure
 - [ ] **0e:** Probe Zoho Books/Inventory available MCP operations -> document in `pipeline-config.json`
 - [ ] **0f:** Verify Confluence MCP page creation works (test page in ISM space)
@@ -42,6 +42,7 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 - [x] Marketplace.json created (AmitSinghJ2Engg/skill-share)
 - [x] Plugin 1a uploaded to Claude Desktop (.zip format)
 - [x] Plugin 1a installable via marketplace
+- [ ] CLI marketplace install tested (`/plugin marketplace add AmitSinghJ2Engg/skill-share`)
 
 ---
 

@@ -1,0 +1,92 @@
+{
+  "_generated": "2026-03-30",
+  "_source": "Phase 0 MCP probes via Zoho CRM and Bigin APIs",
+
+  "bigin": {
+    "product_launch_pipeline": {
+      "layout_name": "Product Launches",
+      "layout_id": "677677000003294514",
+      "sub_pipeline_name": "Product Launch Factory",
+      "sub_pipeline_api": "Refund Processing Standard 1",
+      "stages": [
+        {"display": "Idea Intake", "api": "Idea Intake", "domain": "D1", "order": 1},
+        {"display": "Research & Profitability", "api": "Validation & Research", "domain": "D1", "order": 2},
+        {"display": "Test Sourcing", "api": "Design & Branding", "domain": "D2", "order": 3},
+        {"display": "Test Listing", "api": "Supplier & Sourcing", "domain": "D2", "order": 4},
+        {"display": "Paid Testing", "api": "Pre-Production Setup", "domain": "D2.5", "order": 5},
+        {"display": "Scale Decision", "api": "Listing & Launch Setup", "domain": "D2.5", "order": 6},
+        {"display": "Sourcing Model Selection", "api": "Sourcing Model", "domain": "D3", "order": 7},
+        {"display": "Final Listing", "api": "Final Listing", "domain": "D3", "order": 8},
+        {"display": "Compliance & Certifications", "api": "Compliance", "domain": "D3", "order": 9},
+        {"display": "Platform Setup", "api": "Platform Setup", "domain": "D3", "order": 10},
+        {"display": "Published", "api": "Published", "domain": "D4", "order": 11},
+        {"display": "Transaction Completed", "api": "Transaction Completed", "domain": "terminal", "order": 12},
+        {"display": "Rejected", "api": "Rejected", "domain": "terminal", "order": 13}
+      ],
+      "_note": "API names differ from display names because pipeline was repurposed from Refund Processing template. Use api values in Bigin API calls."
+    },
+    "procure_to_pay_pipeline": {
+      "layout_name": "Procure To Pay",
+      "layout_id": "677677000002680495",
+      "sub_pipeline_name": "Source To Pay Standard",
+      "stages": [
+        {"display": "New Request", "api": "New Request", "order": 1},
+        {"display": "Working", "api": "Working", "order": 2},
+        {"display": "On Hold", "api": "On Hold", "order": 3},
+        {"display": "Transaction Completed", "api": "Transaction Completed", "order": 4},
+        {"display": "Cancelled", "api": "Cancelled", "order": 5}
+      ],
+      "_note": "Source to Pay pipeline exists but has only 5 stages. May need expansion for 8-stage design per 02-business-domain-map.md."
+    }
+  },
+
+  "crm": {
+    "product_launches_module_id": "645926000008511067",
+    "vendors_module_id": "645926000000000099",
+    "ism_learnings_module_id": "645926000009174002",
+    "ism_execution_logs_module_id": "645926000009175428",
+    "ism_skill_feedback_module_id": "645926000009176002",
+    "ism_skill_health_module_id": "645926000009179002"
+  },
+
+  "confluence": {
+    "space_key": "iscom",
+    "root_folder_url": "https://ismokraft.atlassian.net/wiki/spaces/iscom/folder/452788225",
+    "_status": "not yet verified via API"
+  },
+
+  "slack": {
+    "channels": {
+      "ism_launch_alerts": {"name": "#ism-launch-alerts", "id": "_not_yet_retrieved"},
+      "ism_launch_reports": {"name": "#ism-launch-reports", "id": "_not_yet_retrieved"},
+      "product_discovery": {"name": "#product-discovery", "id": "_not_yet_retrieved"}
+    }
+  },
+
+  "jira": {
+    "project_key": "_not_yet_retrieved",
+    "board_name": "ismo scrum"
+  },
+
+  "zoho_books": {
+    "_status": "not yet probed",
+    "_mcp_url": "https://books-financial-overview-60067027941.zohomcp.in/mcp/3b6556127a96758a589270817dd9a162/message"
+  },
+
+  "zoho_inventory": {
+    "_status": "not yet probed",
+    "_mcp_url": "https://manage-inventory-logistics-60067027941.zohomcp.in/mcp/25d8d6e39b669251815f5651f893c38f/message"
+  },
+
+  "mcp_endpoints": {
+    "crm_data_metadata": "https://crm-data-metadata-60067027941.zohomcp.in/mcp/76237c8b96aabb527311ade333cbfeb3/message",
+    "crm_automation": "https://crm-automation-workflow-60067027941.zohomcp.in/mcp/f64ab450fc9915d0999dfb07085a95cd/message",
+    "activity_center": "https://activity-center-60067027941.zohomcp.in/mcp/843d1777dc30d9195525b3fefdb2a374/message",
+    "notes_collaboration": "https://notes-collaboration-60067027941.zohomcp.in/mcp/dbc4d38c4ccd63275b395747a9f9b678/message",
+    "accountant": "https://accountant-60067027941.zohomcp.in/mcp/d56475dc45df3a815f7b6af9f87fd212/message",
+    "desk_tickets": "https://desk-ticket-operations-60067027941.zohomcp.in/mcp/7709aad8e7a4b2c97af8d5adad269fcb/message",
+    "books_financial": "https://books-financial-overview-60067027941.zohomcp.in/mcp/3b6556127a96758a589270817dd9a162/message",
+    "bigin_crm": "https://bigin-crm-operations-60067027941.zohomcp.in/mcp/55275dd3b92b5d2069b6edc2ecd5c5f8/message",
+    "inventory_logistics": "https://manage-inventory-logistics-60067027941.zohomcp.in/mcp/25d8d6e39b669251815f5651f893c38f/message"
+  }
+}

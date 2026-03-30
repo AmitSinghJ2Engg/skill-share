@@ -20,8 +20,8 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 ## Phase 1: Foundation
 
-- [ ] **1:** Write SKILL.md for `compliance-ops` (skills/product-evaluation/compliance-ops/)
-- [ ] **1a:** Write SKILL.md for `fulfillment-ops` (skills/product-testing/fulfillment-ops/)
+- [x] **1:** Write SKILL.md for `compliance-ops` (skills/product-evaluation/compliance-ops/) — 4.8 KB, 3 modes
+- [x] **1a:** Write SKILL.md for `fulfillment-ops` (skills/product-testing/fulfillment-ops/) — 4.4 KB, 2 modes
 - [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.json, financial-constants.json, gate-criteria.json, zone-rotation.json, brand-rules.md, testing-config.json, pipeline-config.json)
 - [ ] **2a:** Create `docs/CLAUDE-product-pipeline.md` (project instructions for "Product Pipeline")
 - [ ] **2b:** Create `docs/CLAUDE-launch-ops.md` (project instructions for "Launch & Ops")

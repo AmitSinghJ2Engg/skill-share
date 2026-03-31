@@ -221,21 +221,51 @@
       "api_name": "ISM_ExecutionLogs",
       "id": "645926000009175428",
       "label": "ISM Execution Logs",
-      "_note": "Fields not yet probed. Run getFields with module=ISM_ExecutionLogs."
+      "fields": {
+        "Skill_Name": {"type": "text", "label": "Skill Name", "custom": true},
+        "Input_Fingerprint": {"type": "text", "label": "Input Fingerprint", "custom": true},
+        "Status": {"type": "picklist", "label": "Status", "custom": true},
+        "Output_Summary": {"type": "textarea", "label": "Output Summary", "custom": true},
+        "Systems_Modified": {"type": "text", "label": "Systems Modified", "custom": true},
+        "Slack_Tag": {"type": "text", "label": "Slack Tag", "custom": true},
+        "Execution_Date": {"type": "datetime", "label": "Execution Date", "custom": true}
+      }
     },
 
     "ISM_SkillFeedback": {
       "api_name": "ISM_SkillFeedback",
       "id": "645926000009176002",
       "label": "ISM Skill Feedbacks",
-      "_note": "Fields not yet probed. Run getFields with module=ISM_SkillFeedback."
+      "fields": {
+        "Skill_Name": {"type": "text", "label": "Skill Name", "custom": true},
+        "Outcome_Tag": {"type": "picklist", "label": "Outcome Tag", "custom": true},
+        "Rating": {"type": "integer", "label": "Rating", "custom": true},
+        "Feedback_Note": {"type": "textarea", "label": "Feedback Note", "custom": true},
+        "Session_Date": {"type": "date", "label": "Session Date", "custom": true},
+        "Submitted_By": {"type": "text", "label": "Submitted By", "custom": true}
+      }
     },
 
     "ISM_SkillHealth": {
       "api_name": "ISM_SkillHealth",
       "id": "645926000009179002",
       "label": "ISM Skill Health",
-      "_note": "Fields not yet probed. Run getFields with module=ISM_SkillHealth."
+      "fields": {
+        "Domain": {"type": "picklist", "label": "Domain", "custom": true},
+        "Version": {"type": "text", "label": "Version", "custom": true},
+        "Quality_Score": {"type": "double", "label": "Quality Score", "custom": true},
+        "Maturity_Level": {"type": "picklist", "label": "Maturity Level", "custom": true},
+        "Trigger_Accuracy": {"type": "double", "label": "Trigger Accuracy", "custom": true},
+        "Health_Band": {"type": "picklist", "label": "Health Band", "custom": true},
+        "Standards_Passed": {"type": "integer", "label": "Standards Passed", "custom": true},
+        "Standards_Failed": {"type": "integer", "label": "Standards Failed", "custom": true},
+        "Violations": {"type": "textarea", "label": "Violations", "custom": true},
+        "Upstream": {"type": "textarea", "label": "Upstream", "custom": true},
+        "Downstream": {"type": "textarea", "label": "Downstream", "custom": true},
+        "Last_Audited": {"type": "date", "label": "Last Audited", "custom": true},
+        "Audit_Notes": {"type": "textarea", "label": "Audit Notes", "custom": true},
+        "Source_System": {"type": "text", "label": "Source System", "custom": true}
+      }
     }
   },
 

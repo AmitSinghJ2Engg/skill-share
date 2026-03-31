@@ -34,7 +34,7 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 
 - [x] CLAUDE-product-pipeline.md project instructions written (also Phase 1 item 2a)
 - [x] CLAUDE-launch-ops.md project instructions written (also Phase 1 item 2b)
-- [ ] ism-daily-discovery task instructions written
+- [x] ism-daily-discovery task instructions written (docs/tasks/product-pipeline-scheduled-daily-discovery.md)
 - [ ] ism-stage2-intelligence task instructions written
 - [ ] ism-stage3-vendor-search task instructions written
 - [ ] ism-daily-learning task instructions written

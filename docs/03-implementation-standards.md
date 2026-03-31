@@ -408,7 +408,11 @@ Each project has a set of reference files loaded into every conversation:
 ### Rules
 - Task instructions are self-contained. No dependency on conversation history.
 - Task references project context by file path, not by "the context we discussed."
+- **Tasks are orchestrators, not executors.** A task invokes skills by mode (e.g., "Invoke PD- product-discover BATCH mode"). It does NOT reference skill-internal files (reference/, scripts/). The skill handles its own internals. The task handles flow control, error recovery, and telemetry.
+- **Tasks must NOT reference `reference/` files.** If a task says "follow reference/source-protocols.md", that's a boundary violation. The skill knows its own protocols. The task just invokes the skill.
 - Each task produces an observable output (Slack message, CRM update, file) so Amit can verify it ran.
+- Every task writes to ISM_ExecutionLogs (telemetry) and ISM_Learnings (feedback signals) at the end of each run.
+- Every task starts with a dedup check (query ISM_ExecutionLogs for today's run) to prevent duplicate execution.
 - Tasks do not chain to other tasks. If Task A needs Task B's output, design Task A to read from CRM where Task B writes.
 - Tasks skip CRM records tagged `Parked: true` unless the task is explicitly designed to process parked records. State this explicitly in the task's "What This Task Does" section.
 - Tasks do not auto-commit to Git. Tasks that generate context file content write output to `skill-share/context/pending-updates/[task-name]-[YYYY-MM-DD].md` for human review and manual commit. Reference this path in the task's Outputs section.
@@ -504,6 +508,9 @@ skill-share/
     projects/
       CLAUDE-product-pipeline.md  (project instructions for "Product Pipeline")
       CLAUDE-launch-ops.md        (project instructions for "Launch & Ops")
+    tasks/                          (task instructions — pasted into Claude Desktop scheduler)
+      {project}-{type}-{trigger}-{action}.md
+    archive/                        (superseded docs — reference only)
 ```
 
 ### Rules

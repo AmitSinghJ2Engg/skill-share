@@ -18,7 +18,7 @@ Profiles competitive landscape and mines review gaps for products promoted to St
 
 | Mode | Input | Output | Downstream |
 |---|---|---|---|
-| **PROFILE** | product_name + category | `CompetitorProfile[]` (5-10) -> CRM | product-evaluate, GAPS |
+| **PROFILE** | product_name + category | `CompetitorProfile[]` (5-10) | product-evaluate, GAPS |
 | **GAPS** | `CompetitorProfile[]` | `GapAnalysis` | product-evaluate (differentiation) |
 | **TRENDS** | product_name or category | `CompetitiveLandscape` | PROFILE (context), product-evaluate |
 
@@ -31,7 +31,7 @@ Competitive landscape scan for a product. Identify top 5-10 direct competitors a
 3. **Etsy scan**: Equivalent products -- listing URL, price, sales_count, favorites, shop rating.
 4. **Rank and select** top 5-10 most direct competitors by relevance.
 5. **Per-competitor**: price tier, positioning angle, listing quality score, review sentiment themes.
-6. **CRM write**: Store summary on Product_Launches record. Full profiles to Confluence.
+6. Return `CompetitorProfile[]`. CRM summary writes and Confluence page creation handled by zoho-data-ops.
 
 **Output:** `CompetitorProfile[]` per competitor: competitor_id (`MI-C-{NNN}`), asin/url, title, marketplace, price_inr, bsr, review_count, rating, price_tier, positioning, review_themes[]. Run ID: `MI-P-{YYYYMMDD}-{NNN}`.
 
@@ -76,7 +76,7 @@ BSR trend analysis and competitive landscape movement over time.
 
 1. Never invent BSR, review counts, or prices. Unverifiable data = null + data_gap.
 2. Source every data point to URL or user export.
-3. All writes to CRM `Product_Launches` records. Full profiles stored as Confluence pages.
+3. Returns structured data only. CRM writes and Confluence pages handled by zoho-data-ops.
 4. Review mining is read-only analysis. Never post reviews or interact with competitor listings.
 5. Price conversions use live exchange rates. Note rate and date used.
 6. Data integrity rules from project context apply to all modes.

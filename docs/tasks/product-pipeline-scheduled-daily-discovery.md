@@ -4,7 +4,7 @@ version: "1.1.0"
 project: Product Pipeline
 type: scheduled
 schedule: "Daily, 7:00 AM IST"
-skills_invoked: [KI-GENERATE, PD-BATCH, PS-SCORE, PS-REPORT]
+skills_invoked: [KI-GENERATE, PD-BATCH, ZO-WRITE, PS-SCORE, PS-REPORT]
 ---
 
 # Task: Daily Product Discovery Pipeline
@@ -46,19 +46,33 @@ Invoke **KI- ikraft-keyword-intelligence GENERATE mode** with today's zone.
 
 Invoke **PD- product-discover BATCH mode** with keywords from Step 2 and today's zone.
 
-The skill handles its own crawling protocols, normalization, deduplication, and CRM record creation internally. The task receives the output `ProductCandidate[]`.
+The skill handles its own crawling protocols, normalization, and deduplication internally. It returns structured `ProductCandidate[]` data. **PD does NOT write to CRM** -- data persistence is handled in Step 3b.
 
 **Partial failure:** If some marketplaces are unreachable, the skill returns candidates from available marketplaces with null signals for unreachable ones. The task continues with available data.
 
 **Guard:** If zero candidates returned, skip to Step 7 (telemetry) and Step 8 (Slack) with status = "zero candidates discovered."
 
+### Step 3b: Persist candidates to CRM
+
+Invoke **ZO- zoho-data-ops WRITE mode** to create Product_Launches records from the `ProductCandidate[]` returned in Step 3. Target: CRM > Product_Launches module. See `zoho-data-ops/reference/write-patterns.md` for the standard field mapping.
+
+The skill handles dedup checking (matching by product name + target platform), field name resolution via `crm-field-mappings.json`, and returns created record IDs for use in Step 4.
+
+**Guard:** If CRM write fails after retry, log error to `#ism-launch-alerts` and skip to Step 7 with status = "FAILED: CRM write error."
+
 ### Step 4: Score candidates
 
 Invoke **PS- product-screen SCORE mode** on the `ProductCandidate[]` from Step 3.
 
-The skill handles scoring dimensions, CRM field updates (Opportunity_Score, Competition_Level, Search_Trend), and score band assignment internally.
+The skill handles scoring dimensions and score band assignment internally. It returns `ScoredCandidate[]` with Opportunity_Score, Competition_Level, Search_Trend, and Financial_Viability values. **PS does NOT write to CRM** -- score persistence is handled in Step 4b.
 
 **Guard:** If scoring fails (skill error), log error details and skip to Step 7.
+
+### Step 4b: Persist scores to CRM
+
+Invoke **ZO- zoho-data-ops WRITE mode** to update Product_Launches records with scores from `ScoredCandidate[]`. Uses record IDs from Step 3b. Target fields: Opportunity_Score, Competition_Level, Search_Trend, Financial_Viability.
+
+**Guard:** If CRM update fails, log error and continue to Step 5 (scores are not blocking for report generation).
 
 ### Step 5: Generate report (conditional)
 
@@ -126,8 +140,8 @@ This step runs regardless of candidate count. Even a zero-yield run posts a summ
 
 | Output | Destination | Condition |
 |--------|-------------|-----------|
-| Product_Launches records | CRM (created by PD skill) | Always (if candidates found) |
-| Opportunity scores | CRM (updated by PS skill) | Always (if candidates scored) |
+| Product_Launches records | CRM (created by ZO skill, Step 3b) | Always (if candidates found) |
+| Opportunity scores | CRM (updated by ZO skill, Step 4b) | Always (if candidates scored) |
 | OpportunityReport | Returned by PS REPORT mode | If candidates >= 55 score |
 | Learning signals | ISM_Learnings CRM module | Always |
 | Execution log | ISM_ExecutionLogs CRM module | Always |
@@ -153,5 +167,6 @@ This step runs regardless of candidate count. Even a zero-yield run posts a summ
 - Never invent data. Unreachable marketplace = null signals, not estimates.
 - Every metric produced by a skill must cite its source platform and date.
 - Do NOT promote candidates to Stage 2. That is a human decision via the Discovery Dashboard.
-- This task only CREATES new Product_Launches records. It does not modify existing records (except adding scores to records it created in the same run).
+- This task only CREATES new Product_Launches records (via ZO skill). It does not modify existing records (except adding scores to records it created in the same run, also via ZO skill).
+- Business skills (PD, PS) produce data only. All CRM/Bigin writes go through `zoho-data-ops` (ZO).
 - If this task has already run today (dedup check), do not run again.

@@ -16,8 +16,8 @@ Three modes — invoke independently or chain:
 
 | Mode | Input | Output | Feeds |
 |---|---|---|---|
-| **DEEP-EVAL** | product_name + ResearchRecord | EvalRecord with verdict + evidence → CRM update | GATE-CHECK |
-| **GATE-CHECK** | product data + gate_number (or "all") | GateResult[] go/no-go per gate → CRM + Slack | product-screen BRIEF |
+| **DEEP-EVAL** | product_name + ResearchRecord | EvalRecord with verdict + evidence | GATE-CHECK |
+| **GATE-CHECK** | product data + gate_number (or "all") | GateResult[] go/no-go per gate | product-screen BRIEF |
 | **IDEATE** | zone or product + optional research | ConceptBatch structured concepts | product-discover SINGLE or vendor-ops |
 
 **Capability boundary:** This skill evaluates single products and generates concepts. It does not score batches (product-screen SCORE mode), gather market data (product-discover), calculate margins (margin-calculator), or write listings (content-writer).
@@ -45,13 +45,13 @@ The 7 data integrity rules are defined in project knowledge under data-integrity
 4. **Gate verdicts cite the specific criterion that failed.** "Gate 2 FAIL: Net margin = 11.2% — below 15% threshold." No vague failures.
 5. **Ideation hooks cite every differentiation claim.** Every hook references a real signal. Generic claims are not valid.
 6. **Formulas are not invented in this skill.** Gate 2 thresholds use financial formulas from project knowledge. Scoring uses the eval model reference file.
-7. **Opportunity_Score is the authoritative Gate 1 value.** Written to CRM `Product_Launches` module (auto-syncs to Bigin). niche_score from product-discover is research-phase only — never used as a gate criterion.
+7. **Opportunity_Score is the authoritative Gate 1 value.** Returned to caller for CRM persistence via zoho-data-ops. niche_score from product-discover is research-phase only — never used as a gate criterion.
 
 ---
 
 ## MODE: DEEP-EVAL
 
-**Purpose:** Deep 16-criteria weighted evaluation of a single product using structured research data from multiple marketplaces. Returns EvalRecord with Opportunity_Score. Updates CRM record.
+**Purpose:** Deep 16-criteria weighted evaluation of a single product using structured research data from multiple marketplaces. Returns EvalRecord with Opportunity_Score.
 
 **When to invoke:** "evaluate this product", "deep evaluate", "16-criteria score", "product verdict", "should we pursue this".
 
@@ -66,9 +66,7 @@ Read [reference/product-eval-model.md](reference/product-eval-model.md) for full
 5. Compute Adjusted_Total = raw_total x (100 / max_possible_from_scored_criteria).
 6. Apply verdict thresholds: STRONG (75–100), MODERATE (55–74), WEAK (35–54), REJECT (0–34).
 7. Identify top 3 strengths and top 3 risks — every point must cite source data.
-8. **CRM update:** Write Opportunity_Score and Gate_1_Decision to the product's CRM `Product_Launches` record. CRM auto-syncs to Bigin, triggering New Request → Validated transition if STRONG or MODERATE.
-9. **Slack notification:** Send gate result to #product-alerts if verdict is STRONG (opportunity found) or REJECT (flagged for review).
-10. Return EvalRecord.
+8. Return EvalRecord with Opportunity_Score and Gate_1_Decision. CRM writes and Slack notifications handled by zoho-data-ops and task orchestrator.
 
 ### 4 Dimensions Overview
 
@@ -102,9 +100,7 @@ Gate definitions: read formal gate criteria from project context (`gate-criteria
 3. Assign verdict: PASS / MARGINAL / FAIL / INCOMPLETE.
 4. If FAIL: state the specific criterion, actual value, threshold, and minimum fix required.
 5. If INCOMPLETE: state exactly what data is missing.
-6. **CRM update:** Write gate decision and notes to CRM `Product_Launches` record (Gate_1_Decision, Gate_1_Notes, etc.). CRM auto-syncs to Bigin, triggering the appropriate stage transition.
-7. **Slack notification:** Send gate result to #product-alerts — PASS (celebrate), FAIL (with fix actions), INCOMPLETE (with data needed).
-8. Return GateResult[].
+6. Return GateResult[] with gate decisions and notes. CRM writes and Slack notifications handled by zoho-data-ops and task orchestrator.
 
 ### Fix Action Format
 
@@ -121,7 +117,7 @@ Formula reference: financial-formulas.md, Core Chain
 
 ### Gate Map — CRM + Bigin Pipeline Alignment
 
-All gate writes go to CRM `Product_Launches` module first. CRM auto-syncs to Bigin, triggering the stage transition.
+All gate data returned to caller. CRM writes handled by zoho-data-ops (auto-syncs to Bigin, triggering stage transitions).
 
 | Gate | Name | CRM Fields Written | Bigin Transition (auto-sync) |
 |---|---|---|---|
@@ -214,8 +210,8 @@ If blocked: state exact missing input. Do not proceed. Do not substitute with as
 4. Gate FAIL verdicts include specific threshold, actual value, and actionable fix direction.
 5. Ideation concepts satisfy all 7 hard rules or are discarded.
 6. Financial thresholds come from project knowledge (financial-formulas.md). Never hardcoded.
-7. All writes go to CRM `Product_Launches` module. CRM auto-syncs to Bigin. No direct Bigin writes.
-8. Gate pass/fail notifications go to Slack #product-alerts. No auto-memory storage.
+7. Returns structured data only. CRM writes handled by zoho-data-ops. No direct Bigin writes.
+8. Gate results returned to caller. Notifications handled by task orchestrator. No auto-memory storage.
 
 ---
 

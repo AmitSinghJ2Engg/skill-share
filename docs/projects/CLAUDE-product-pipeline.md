@@ -36,8 +36,8 @@ CRM module: Product_Launches (141 fields)
 1. Never invent data. If a field is null, report null -- do not estimate.
 2. Source everything. Every data point traces to a URL, API response, or user input.
 3. Confidence levels are mandatory. HIGH (verified), MEDIUM (single source), LOW (estimated).
-4. CRM is the single source of truth. Write to Product_Launches records, not local files.
-5. All score updates go to CRM. No local score storage.
+4. Zoho CRM is the single source of truth. Write to Product_Launches records, not local files.
+5. All score updates go to Zoho CRM. No local score storage.
 6. Slack notifications for alerts go to #ism-launch-alerts, reports to #ism-launch-reports.
 7. Confluence pages link from CRM records (field_confluence_url pattern).
 

@@ -12,20 +12,20 @@ metadata:
     - listing-writer → mode LISTING
   write_permissions:
     - NONE. Content generation only. No CRM or system writes.
-    - Optional: LISTING output can be pushed to CRM Products via ism-learning-engine PERSIST mode if requested
+    - Optional: LISTING output can be pushed to CRM Products via zoho-data-ops WRITE mode if requested
   dependencies:
     upstream:
       - product-spec (ProductSpec feeds LISTING mode — dimensions, materials, features)
       - product-screen (LaunchBrief triggers LISTING mode)
     downstream:
-      - ism-learning-engine PERSIST mode: optional LISTING push to CRM Products listing_copy field
+      - zoho-data-ops WRITE mode: optional LISTING push to CRM Products listing_copy field
 ---
 # Content Writer
 
 Three-mode content production: research → write → listing. Modes can run standalone or in sequence.
 
 **No auto-publish. All output is draft. the operator reviews and publishes.**  
-**Writes to CRM Products listing_copy only if explicitly requested, via ism-learning-engine PERSIST mode.**
+**Writes to CRM Products listing_copy only if explicitly requested, via zoho-data-ops WRITE mode.**
 
 ---
 
@@ -375,7 +375,8 @@ When the user says "push listing to CRM":
 |---|---|
 | `product-spec` | Upstream — ProductSpec feeds LISTING mode (dimensions, materials, features) |
 | `product-screen` | Upstream — LaunchBrief triggers LISTING mode |
-| `ism-learning-engine` | Exception capture + optional listing push to CRM Products via PERSIST mode |
+| `zoho-data-ops` | Optional listing push to CRM Products via WRITE mode |
+| `ism-learning-engine` | Exception capture [future] |
 | `ism-scrum-master` | Downstream — content tasks become sprint tickets |
 
 ---
@@ -414,10 +415,10 @@ maturity_level: L2_operational
 systems_accessed:
   - None (generation only)
 write_permissions:
-  - NONE — content generation only. Optional LISTING push to CRM Products via ism-learning-engine PERSIST mode.
+  - NONE — content generation only. Optional LISTING push to CRM Products via zoho-data-ops WRITE mode.
 validation_rules: >
   Required fields per mode must be present. See Pre-Execution Validation.
-  No external writes from this skill directly — all CRM writes via ism-learning-engine PERSIST mode.
+  No external writes from this skill directly — all CRM writes via zoho-data-ops WRITE mode.
 logging_level: summary
 ```
 

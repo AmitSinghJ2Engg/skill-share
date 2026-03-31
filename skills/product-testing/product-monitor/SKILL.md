@@ -16,9 +16,9 @@ Three modes — run in sequence (MONITOR → CLASSIFY → FEEDBACK) or independe
 
 | Mode | Input | Output | Feeds |
 |---|---|---|---|
-| **MONITOR** | launched_products[] | PerformanceRecord[] + anomalies → CRM notes | CLASSIFY |
-| **CLASSIFY** | performance_records + original_eval_records | OutcomeClassification[] → CRM update | FEEDBACK |
-| **FEEDBACK** | classifications | Learning signals → CRM notes + Slack | Upstream skills calibration |
+| **MONITOR** | launched_products[] | PerformanceRecord[] + anomalies | CLASSIFY |
+| **CLASSIFY** | performance_records + original_eval_records | OutcomeClassification[] | FEEDBACK |
+| **FEEDBACK** | classifications | FeedbackSignals (learning signals) | Upstream skills calibration |
 
 **Capability boundary:** This skill monitors and classifies launched products only. It does not discover products (product-discover), score batches (product-screen), evaluate opportunity or gates (product-evaluate), or make launch/kill decisions (Gate 7 is product-evaluate GATE-CHECK).
 
@@ -90,7 +90,7 @@ Anomalies are flagged with severity (CRITICAL / WARNING) and marketplace context
 
 ### CRM Output
 
-Add monitoring results as a note on the product's CRM `Product_Launches` record via `ZohoCRM_createNotesModule`. Include: monitoring date, all metrics with sources, anomalies flagged. Update Post_Launch_Status field if applicable.
+Return PerformanceRecord[] with all metrics and anomalies. CRM note creation and Post_Launch_Status updates handled by zoho-data-ops.
 
 ### Output: PerformanceRecord[]
 
@@ -128,7 +128,7 @@ For each classified product: compare outcome against original verdict. Flag whic
 
 ### CRM Output
 
-Update CRM `Product_Launches` record: Post_Launch_Status field with classification, add note with classification reasoning.
+Return OutcomeClassification[]. CRM updates (Post_Launch_Status, classification notes) handled by zoho-data-ops.
 
 ### Output: OutcomeClassification[]
 
@@ -156,11 +156,7 @@ Run ID: PM-C-{YYYYMMDD}-{NNN}.
 
 ### Output Destinations
 
-1. **CRM notes:** Per-product learning signals added as notes on CRM `Product_Launches` records.
-2. **Slack #product-alerts:** Pattern alerts (3+ products same failure), dimension unreliability warnings, zone underperformance.
-3. **Slack canvas (if available):** Aggregated learning summary for the portfolio — updated monthly.
-
-No auto-memory storage. All learning signals persist in CRM and Slack.
+Return FeedbackSignals. CRM notes, Slack alerts, and Slack canvas updates handled by zoho-data-ops and task orchestrator. No auto-memory storage.
 
 ### Alert Generation
 
@@ -222,8 +218,7 @@ If blocked: state exact missing input. Do not proceed. Do not invent data.
 3. Products under 30 days cannot be classified. Always "pending".
 4. Without original scores, prediction accuracy is "unknown".
 5. Failure categories must use the defined enum. No free-text categories.
-6. All monitoring data and learning signals persist as CRM notes. No local file saves. No auto-memory.
-7. Pattern alerts and critical anomalies go to Slack #product-alerts.
+6. Returns structured data only. CRM notes and Slack alerts handled by zoho-data-ops and task orchestrator. No local file saves. No auto-memory.
 
 ---
 

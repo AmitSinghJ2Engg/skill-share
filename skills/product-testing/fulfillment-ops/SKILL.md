@@ -27,12 +27,11 @@ Prepare a test unit for FBA inbound shipment after QC approval.
 
 1. Read ProductSpec from CRM Product_Launches record (weight, dimensions, materials).
 2. Read ConfirmedVendorRecord (supplier name, sample quantity = 1 unit typical).
-3. Create Zoho Inventory Package record via MCP: item from `Zoho_Inventory_Item_ID`, quantity, weight, dimensions.
-4. Create Zoho Books shipping expense entry via MCP: inbound sample shipping cost, linked to product.
+3. Prepare Inventory Package data: item from `Zoho_Inventory_Item_ID`, quantity, weight, dimensions.
+4. Prepare Books shipping expense data: inbound sample shipping cost, linked to product.
 5. Generate FNSKU labeling guide: ASIN/FNSKU mapping, label placement instructions per Amazon FBA requirements, barcode specifications.
 6. Generate inbound shipment checklist: step-by-step instructions for founder to prep sample -- box sizing, bubble wrap, FNSKU label, shipping label, carrier booking.
-7. CRM write: update Product_Launches record with Inventory Package ID, expense entry ID.
-8. Store FNSKU guide and checklist as Confluence pages under `ISM/Product Launch Factory/`.
+7. Return `FulfillmentSamplePackage` with all data. Zoho Inventory/Books/CRM writes and Confluence storage handled by zoho-data-ops.
 
 **Output:** `FulfillmentSamplePackage` -- inventory_package_id, books_expense_id, fnsku_guide_url, checklist_url. Run ID: `FO-S-{YYYYMMDD}-{NNN}`.
 
@@ -42,12 +41,11 @@ Prepare production order for FBA inbound after bulk arrival at warehouse.
 
 1. Read ProductSpec from CRM Product_Launches record.
 2. Read bulk order quantity, confirmed supplier, and Source to Pay pipeline status.
-3. Create Zoho Inventory Package record via MCP: item, bulk quantity, total weight, carton count.
-4. Create Zoho Books shipping expense entry via MCP: inbound bulk shipping cost.
+3. Prepare Inventory Package data: item, bulk quantity, total weight, carton count.
+4. Prepare Books shipping expense data: inbound bulk shipping cost.
 5. Generate FNSKU labeling guide: same format as SAMPLE but with bulk quantity instructions, carton-level labeling, pallet requirements if applicable.
 6. Generate bulk inbound checklist: carton count verification, weight check vs. PO, FNSKU placement per unit, Amazon shipment plan creation steps, carrier pickup scheduling.
-7. CRM write: update Product_Launches record with package tracking, `Initial_Stock_Quantity`.
-8. Update Source to Pay pipeline (Bigin) to "FBA Inbound Created" stage if applicable.
+7. Return `FulfillmentBulkPackage` with all data. Zoho Inventory/Books/CRM/Bigin writes handled by zoho-data-ops.
 
 **Output:** `FulfillmentBulkPackage` -- inventory_package_id, books_expense_id, fnsku_guide_url, checklist_url, carton_count. Run ID: `FO-B-{YYYYMMDD}-{NNN}`.
 

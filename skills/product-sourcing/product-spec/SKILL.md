@@ -16,9 +16,6 @@ metadata:
   domain: product
   prefix: SP-
   version: 1.0.0
-  write_permissions:
-    - Zoho CRM Product_Launches: Product_Spec_Status, Spec_Version, BOM_Total_COGS
-    - Bigin: read-only (auto-sync from CRM)
   dependencies:
     upstream:
       - product-evaluate (EvalRecord or GateResult feeds SPEC mode)
@@ -37,9 +34,9 @@ Three modes — run in sequence (SPEC → BRIEF → PRD) or independently:
 
 | Mode | Input | Output | Feeds |
 |---|---|---|---|
-| **SPEC** | product_name + EvalRecord or LaunchBrief | ProductSpec → CRM update | BRIEF, PRD, content-writer, margin-calculator |
+| **SPEC** | product_name + EvalRecord or LaunchBrief | ProductSpec | BRIEF, PRD, content-writer, margin-calculator |
 | **BRIEF** | ProductSpec | SupplierBrief → ready for vendor-ops RFQ | vendor-ops RFQ mode |
-| **PRD** | ProductSpec + market context | ProductRequirementsDoc → CRM note | Launch team reference |
+| **PRD** | ProductSpec + market context | ProductRequirementsDoc | Launch team reference |
 
 **Capability boundary:** This skill defines what to build. It does not evaluate opportunity (product-evaluate), find vendors (vendor-ops), calculate margins (margin-calculator), or write listings (content-writer).
 
@@ -111,8 +108,7 @@ Read [reference/bom-template.md](reference/bom-template.md) for component catego
    - If BOM > target: flag as COGS_RISK with specific components to optimize.
    - If BOM < 70% of target: flag as COGS_LOW — verify no critical components missed.
 5. Set confidence: HIGH (competitor data + eval available), MEDIUM (partial data), LOW (concept only).
-6. **CRM update:** Write Product_Spec_Status = "Draft", Spec_Version = "1.0", BOM_Total_COGS to Product_Launches record.
-7. Return ProductSpec.
+6. Return ProductSpec with BOM_Total_COGS. CRM writes (Product_Spec_Status, Spec_Version, BOM_Total_COGS) handled by zoho-data-ops.
 
 ### Wood Species Database (Quick Reference)
 
@@ -316,8 +312,7 @@ Read [reference/bom-template.md](reference/bom-template.md) for component catego
    - Risk Register (from EvalRecord risks + compliance gaps)
    - Success Metrics (30-day: BSR target, review count; 90-day: revenue, return rate)
    - Open Questions (unresolved items requiring decisions)
-3. **CRM update:** Add PRD as a note on the Product_Launches record.
-4. Return ProductRequirementsDoc.
+3. Return ProductRequirementsDoc. CRM note creation handled by zoho-data-ops.
 
 ### Output: ProductRequirementsDoc
 

@@ -35,6 +35,7 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - `product-evaluate` — deep 16-criteria evaluation, gate checks, ideation
 - `margin-calculator` (ESTIMATE mode) — pre-test cost estimation using category benchmarks and assumed landed costs; generates CostEstimate as baseline for Domain 2.5 comparison
 - `compliance-ops` (FEASIBILITY mode) — checks applicable certifications per product category, estimates timeline in weeks, risk level. Category only — no spec needed.
+- `zoho-data-ops` — handles all CRM/Bigin record creation and updates via MCP. Business skills above return structured data; zoho-data-ops persists it. See `skills/platform/zoho-data-ops/`.
 
 **Data produced:**
 - TrendSignal[] (emerging categories, rising keywords, seasonal opportunities — automated daily output)

@@ -12,7 +12,7 @@ metadata:
     - vendor-scorer → mode SCORE
     - rfq-generator → mode RFQ
   write_permissions:
-    - Zoho CRM Contacts: Vendor_Score (int), Vendor_Grade (picklist) — SCORE mode only, via ism-learning-engine PERSIST mode
+    - Zoho CRM Contacts: Vendor_Score (int), Vendor_Grade (picklist) — SCORE mode only, via zoho-data-ops WRITE mode
     - Bigin Contacts: read-only
     - All RFQ documents: generate only, no auto-send
   dependencies:
@@ -20,7 +20,7 @@ metadata:
       - product-spec (SupplierBrief triggers DISCOVER and feeds RFQ)
       - product-screen (LaunchBrief triggers DISCOVER)
     downstream:
-      - ism-learning-engine PERSIST mode (SCORE mode writes Vendor_Score, Vendor_Grade)
+      - zoho-data-ops WRITE mode (SCORE mode writes Vendor_Score, Vendor_Grade)
       - rfq-generator output feeds Slack vendor channel manually
 ---
 # Vendor Ops
@@ -32,7 +32,7 @@ Three-mode vendor qualification workflow: find → score → contact.
 - SCORE: evaluate them
 - RFQ: contact them
 
-**Writes only Vendor_Score and Vendor_Grade to CRM Contacts via ism-learning-engine PERSIST mode. Everything else is generate/display only.**
+**Writes only Vendor_Score and Vendor_Grade to CRM Contacts via zoho-data-ops WRITE mode. Everything else is generate/display only.**
 
 ---
 
@@ -162,7 +162,7 @@ F (<40): Reject
 }
 ```
 
-After confirmation, route `crm_write` payload to `ism-learning-engine` PERSIST mode.
+After confirmation, route `crm_write` payload to `zoho-data-ops` WRITE mode.
 
 ---
 
@@ -406,7 +406,7 @@ Use `references/vendor-tracker-extras.md` for the price comparison template and 
 |---|---|
 | `product-spec` | Upstream — SupplierBrief triggers DISCOVER and feeds RFQ |
 | `product-screen` | Upstream — LaunchBrief triggers DISCOVER mode |
-| `ism-learning-engine` | Write gate — PERSIST mode writes Vendor_Score, Vendor_Grade to CRM |
+| `zoho-data-ops` | Write gate — WRITE mode writes Vendor_Score, Vendor_Grade to CRM |
 | `margin-calculator` | Peer — margin viability informs vendor COGS target |
 | `ism-scrum-master` | Downstream — vendor gaps become Jira tickets |
 
@@ -426,7 +426,7 @@ upstream_skills:
     required: false
 
 downstream_skills:
-  - skill_name: ism-learning-engine
+  - skill_name: zoho-data-ops
     data_produced: VendorScore + VendorGrade for CRM Contacts write
     trigger_condition: SCORE mode confirmed grade
 
@@ -444,12 +444,12 @@ owner: Ismokraft
 domain: supply
 maturity_level: L2_operational
 systems_accessed:
-  - Zoho CRM Contacts (read + write via ism-learning-engine)
+  - Zoho CRM Contacts (read + write via zoho-data-ops)
 write_permissions:
-  - Zoho CRM Contacts: Vendor_Score (int), Vendor_Grade (picklist) — via ism-learning-engine PERSIST mode only
+  - Zoho CRM Contacts: Vendor_Score (int), Vendor_Grade (picklist) — via zoho-data-ops WRITE mode only
 validation_rules: >
   Required fields per mode must be present. See Pre-Execution Validation.
-  No external writes from this skill directly — all CRM writes via ism-learning-engine PERSIST mode.
+  No external writes from this skill directly — all CRM writes via zoho-data-ops WRITE mode.
 logging_level: summary
 ```
 

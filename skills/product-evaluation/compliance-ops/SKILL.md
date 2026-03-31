@@ -30,7 +30,7 @@ Category-level compliance check for Gate 1 assessment. No product spec needed.
 2. Look up applicable certifications per category from project context. India marketplace: BIS (electrical), FSSAI (food-contact), CPSC (children's). Most wooden home decor/gifting = no mandatory certs.
 3. Estimate timeline in weeks per certification.
 4. Assign risk level: LOW (no mandatory certs), MEDIUM (optional certs recommended), HIGH (mandatory certs required).
-5. CRM write: update `Product_Compliance_Status`, `Certifications_Required` on Product_Launches record.
+5. Return `ComplianceFeasibility`. CRM writes (`Product_Compliance_Status`, `Certifications_Required`) handled by zoho-data-ops.
 
 **Output:** `ComplianceFeasibility` -- applicable_certs[], estimated_weeks_per_cert, risk_level (LOW/MEDIUM/HIGH). Run ID: `CO-F-{YYYYMMDD}-{NNN}`.
 
@@ -42,8 +42,7 @@ Generates compliance brief and triggers Jira ticket creation after vendor select
 2. Determine applicable certifications based on category + spec combination.
 3. Generate compliance brief document: cert type, requirements, estimated cost, timeline, responsible party (internal/external).
 4. Trigger Jira ticket creation: CRM activity -> Bigin task activity -> Jira "ismo scrum" board (existing automation). One ticket per certification.
-5. CRM write: update Product_Launches record with `ComplianceRecord` (cert list, Jira ticket IDs, owner, initiated date, expected completion dates).
-6. Store compliance brief as Confluence page under `ISM/Compliance & Regulatory/Certification Tracking/`.
+5. Return `ComplianceRecord`. CRM writes and Confluence page creation handled by zoho-data-ops.
 
 **Output:** `ComplianceRecord` -- certs_applicable[], jira_ticket_ids[], owner, initiated_date, expected_completion_dates[]. Run ID: `CO-I-{YYYYMMDD}-{NNN}`.
 
@@ -55,8 +54,7 @@ Monitors Jira cert tickets to completion for Gate 3.
 2. Check Jira ticket status for each certification (via CRM activity sync).
 3. For completed certs: collect certificate numbers, issuing bodies, expiry dates.
 4. Generate Gate 3 compliance checklist: all certs obtained? all valid? no expired?
-5. CRM write: update `Certifications_Obtained`, `Gate_3_Approval`, `Gate_3_Decision_Date`.
-6. If Gate 3 FAIL: trigger artifact warning, write CRM Note with reason, Slack alert to `#ism-launch-alerts`.
+5. Return `ComplianceCompletionRecord` with gate 3 result. CRM writes and Slack alerts handled by zoho-data-ops and task orchestrator.
 
 **Output:** `ComplianceCompletionRecord` -- cert_numbers[], issuing_bodies[], expiry_dates[], gate_3_result (PASS/FAIL). Run ID: `CO-C-{YYYYMMDD}-{NNN}`.
 

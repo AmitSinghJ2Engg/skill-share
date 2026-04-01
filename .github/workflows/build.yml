@@ -1,0 +1,115 @@
+name: Build Plugins
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'tools/**'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+    inputs:
+      plugin:
+        description: 'Plugin to build (leave empty for all)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    name: Build & Package Plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate registry
+        run: python tools/generate-registry.py
+
+      - name: Validate system
+        run: python tools/validate-system.py --check-only
+        continue-on-error: true
+
+      - name: Build plugins
+        run: |
+          if [ -n "${{ github.event.inputs.plugin }}" ]; then
+            python tools/build.py --plugin "${{ github.event.inputs.plugin }}" --confirm
+          else
+            python tools/build.py --all --confirm
+          fi
+
+      - name: Generate manifest & marketplace
+        run: |
+          python tools/validate-system.py --manifest-only
+          python tools/validate-system.py --update-marketplace
+
+      - name: Upload plugin zips
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugins
+          path: dist/*.zip
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest
+          path: |
+            dist/skill-manifest.json
+            .claude-plugin/marketplace.json
+          retention-days: 30
+
+  size-report:
+    name: Plugin Size Report
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Generate registry
+        run: python tools/generate-registry.py
+
+      - name: Report plugin sizes
+        run: |
+          python -c "
+          import json, os
+
+          with open('tools/plugin-registry.json') as f:
+              registry = json.load(f)
+
+          print('## Plugin Size Report')
+          print()
+          print('| Plugin | Skills | Est. Size | Limit | Status |')
+          print('|--------|--------|-----------|-------|--------|')
+
+          for name, defn in registry.get('plugins', {}).items():
+              total = 200  # plugin.json overhead
+              skill_count = 0
+              for skill in defn.get('skills', []):
+                  pkg = skill.get('package', name)
+                  skill_dir = os.path.join('skills', pkg, skill['name'])
+                  if os.path.isdir(skill_dir):
+                      for dp, _, fns in os.walk(skill_dir):
+                          for f in fns:
+                              if f != '.gitkeep':
+                                  total += os.path.getsize(os.path.join(dp, f))
+                      skill_count += 1
+
+              pct = total * 100 // 70000
+              status = 'OVER' if total > 70000 else 'WARN' if total > 60000 else 'OK'
+              icon = ':x:' if status == 'OVER' else ':warning:' if status == 'WARN' else ':white_check_mark:'
+              print(f'| {name} | {skill_count} | {total/1024:.1f} KB | 70 KB | {icon} {status} ({pct}%) |')
+          " >> "$GITHUB_STEP_SUMMARY"

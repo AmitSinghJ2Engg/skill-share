@@ -1,0 +1,50 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'tasks/**'
+      - 'context/**'
+      - 'tools/**'
+      - '.github/workflows/validate.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'tasks/**'
+      - 'context/**'
+      - 'tools/**'
+
+jobs:
+  validate:
+    name: Registry & System Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate plugin.json definitions
+        run: python tools/generate-registry.py --check
+
+      - name: Generate registry
+        run: python tools/generate-registry.py
+
+      - name: Run system validation
+        run: python tools/validate-system.py --check-only
+
+      - name: Check for stale path references
+        run: |
+          echo "Checking for stale docs/ subdir references..."
+          if grep -rn 'docs/tasks/\|docs/projects/\|docs/resources/' \
+            --include='*.md' --include='*.py' --include='*.json' \
+            --exclude-dir='.git' --exclude-dir='node_modules' \
+            --exclude-dir='dist' .; then
+            echo "::error::Found stale path references (docs/tasks/, docs/projects/, or docs/resources/)"
+            exit 1
+          fi
+          echo "No stale references found."

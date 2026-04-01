@@ -55,7 +55,8 @@ def validate_skill(skill_dir):
     return meta
 
 
-def build_skill(skill_dir, output_dir):    """Package a skill folder into a .skill zip file."""
+def build_skill(skill_dir, output_dir):
+    """Package a skill folder into a .skill zip file."""
     skill_dir = os.path.abspath(skill_dir)
     if not os.path.isdir(skill_dir):
         print(f"ERROR: {skill_dir} is not a directory")
@@ -66,7 +67,9 @@ def build_skill(skill_dir, output_dir):    """Package a skill folder into a .ski
         return False
 
     skill_name = meta["name"]
-    version = meta.get("metadata", {}).get("version", "0.0.0") if isinstance(meta.get("metadata"), dict) else "0.0.0"
+    version = meta.get("version", "0.0.0")
+    if version == "0.0.0" and isinstance(meta.get("metadata"), dict):
+        version = meta["metadata"].get("version", "0.0.0")
     output_file = os.path.join(output_dir, f"{skill_name}.skill")
 
     os.makedirs(output_dir, exist_ok=True)

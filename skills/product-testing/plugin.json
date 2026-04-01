@@ -1,0 +1,9 @@
+{
+  "name": "product-testing",
+  "description": "Domain 2.5 -test campaigns, monitoring, FBA dispatch, compliance initiation.",
+  "version": "1.0.0",
+  "project": "Product Pipeline",
+  "include": [
+    {"skill": "compliance-ops", "from": "product-evaluation"}
+  ]
+}

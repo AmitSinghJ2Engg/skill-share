@@ -24,8 +24,8 @@ Discovers and researches product opportunities across Amazon India, Amazon US, E
 
 ## MODE: BATCH
 
-1. Load keywords --from `ikraft-keyword-intelligence` output (preferred) or seed expansion from zone defaults in project context (`zone-rotation.json`).
-2. Determine today's marketplace set: always-on + rotating marketplace per rotation formula in project context (`pipeline-config.json`).
+1. Load keywords --from `ikraft-keyword-intelligence` output (preferred) or seed expansion from zone defaults in project context (`zone-rotation.ctx.json`).
+2. Determine today's marketplace set: always-on + rotating marketplace per rotation formula in project context (`pipeline-config.ctx.json`).
 3. For each keyword x marketplace: crawl per source protocols in `reference/source-protocols.md`. Produce `CrawlRecord` with raw fields as-is.
 4. Extract and normalize: parse per platform, convert currencies to INR, apply category filter from project context, deduplicate (exact ID + fuzzy title >= 80%).
 5. Assign `candidate_id`: `PD-{YYYYMMDD}-{0001..NNNN}`. Compute `data_completeness_pct`.
@@ -40,7 +40,7 @@ Deep multi-marketplace research on one product. Depth: quick (steps 1-2), standa
 
 1. Keyword discovery --search across Amazon India, US, Etsy. Record primary/secondary keywords.
 2. Demand analysis --BSR, Etsy sales rank, Pinterest saves, Google Trends. Assign demand band per scoring model in `reference/scoring-bands.md`.
-// TODO: Move scoring band thresholds to gate-criteria.json in project context so both Cowork and Desktop plugin users have them at runtime.
+// TODO: Move scoring band thresholds to gate-criteria.ctx.json in project context so both Cowork and Desktop plugin users have them at runtime.
 3. Competitor analysis --page 1 scan on Amazon India + US + Etsy. Assign competition band.
 4. Differentiation scan --review mining (1-star/2-star), Q&A gaps, Etsy review patterns.
 5. Financial quick check --price viability flag (not a margin calculation).
@@ -52,7 +52,7 @@ Note: `niche_score` is a research indicator only. `Opportunity_Score` in CRM is 
 
 ## MODE: TRENDS
 
-1. Load zone from project context (`zone-rotation.json`) --get zone default keywords (max 3).
+1. Load zone from project context (`zone-rotation.ctx.json`) --get zone default keywords (max 3).
 2. For each keyword: Google Trends (India geo), web search for signals, Amazon India + US best sellers, Etsy trending.
 3. Pinterest scan if available.
 4. Produce `TrendSignal` per keyword: signal_strength, trend_direction, confidence, evidence[], marketplaces_checked[].

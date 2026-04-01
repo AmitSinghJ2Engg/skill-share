@@ -230,7 +230,7 @@ These are the authoritative Bigin API stage names. Other documents describe acti
 
 ## 9. Financial Constants
 
-**Transitional source.** These hardcoded values are the operating reality until `context/product-pipeline/financial-constants.json` is generated and deployed to Project Knowledge. Once that file exists, it is the **authoritative source** for all financial constants. Skills and artifacts must read from project context, never from this table.
+**Transitional source.** These hardcoded values are the operating reality until `context/product-pipeline/financial-constants.ctx.json` is generated and deployed to Project Knowledge. Once that file exists, it is the **authoritative source** for all financial constants. Skills and artifacts must read from project context, never from this table.
 
 | Constant | Value | Notes |
 |---|---|---|
@@ -251,7 +251,7 @@ These are the authoritative Bigin API stage names. Other documents describe acti
 
 These items exist as placeholders. Do not assume values for them.
 
-- Zoho Flow IDs for all 6 registered flows (to be populated in pipeline-config.json)
+- Zoho Flow IDs for all 6 registered flows (to be populated in pipeline-config.ctx.json)
 - Slack channel IDs for #ism-launch-alerts, #ism-launch-reports
 - Jira project key for Flow 14 (Activity-to-Jira bridge)
 - Bigin custom field API names (need `GET /bigin/v1/settings/fields?module=Deals` to confirm)

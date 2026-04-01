@@ -36,7 +36,7 @@ Before creating any record, search for existing records with matching key fields
 ```
 1. If required field is missing from input data: return error listing missing fields
 2. If field type mismatch (e.g., string sent for integer field): attempt coercion, warn if coerced
-3. If field API name not found in crm-field-mappings.json: halt, report "unknown field" error
+3. If field API name not found in crm-field-mappings.ctx.json: halt, report "unknown field" error
 ```
 
 ### Partial Write Failure (batch operations)
@@ -162,4 +162,4 @@ Linkage: Match by vendor name or cross-system ID
 | Inventory | Create PO | `create_purchase_order` with PO data |
 | Desk | Create ticket | Desk MCP ticket operations |
 
-Exact MCP tool names and endpoints are in `pipeline-config.json` under `mcp_endpoints`.
+Exact MCP tool names and endpoints are in `pipeline-config.ctx.json` under `mcp_endpoints`.

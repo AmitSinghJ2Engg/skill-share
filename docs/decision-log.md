@@ -28,7 +28,7 @@ Records architectural decisions and their rationale. Each entry captures the con
 
 **Consequences:**
 - `gate-definitions.md` marked as SUPERSEDED. Criteria absorbed into `02-business-domain-map.md` as stage exit checklists.
-- `gate-criteria.json` (context file) contains Gate 1, 2, 3 thresholds. Stage checklists are defined per-domain in `02`.
+- `gate-criteria.ctx.json` (context file) contains Gate 1, 2, 3 thresholds. Stage checklists are defined per-domain in `02`.
 - Artifacts enforce stage checklists at the UI level — buttons disabled until criteria met, missing items displayed.
 - If the team grows and needs more formal control, any stage checklist can be promoted to a formal gate by adding human approval.
 

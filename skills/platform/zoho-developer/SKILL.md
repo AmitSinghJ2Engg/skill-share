@@ -36,7 +36,7 @@ surfaces. Responsible for all code running in the Ismokraft Zoho stack.
 ## Execution Steps
 
 1. **Identify build surface.** Pick one: Deluge Function, Zoho Flow, Creator App, CRM Widget, Client Script, REST API, MCP. See `reference/surfaces.md` for capabilities and limits.
-2. **Pre-code checklist.** Verify field names against `crm-field-mappings.json` (never guess). Check standard patterns. Define input, output, failure modes, API credit cost, cascade effects.
+2. **Pre-code checklist.** Verify field names against `crm-field-mappings.ctx.json` (never guess). Check standard patterns. Define input, output, failure modes, API credit cost, cascade effects.
 3. **Write code.** Follow mandatory Deluge structure per `reference/deluge-patterns.md`: header comment (name, purpose, trigger, registry ID), input validation first, main logic, error handling last. Use Zoho Connections (never hardcode credentials). Batch over loops. Event-driven only.
 4. **Error handling.** Apply severity levels per `reference/error-patterns.md`: INFO (log), WARNING (Cliq alert + continue), ERROR (Cliq alert + halt), CRITICAL (Cliq + Desk ticket).
 5. **Test.** Execute test sequence per `reference/testing.md`: editor dry run -> sandbox -> edge cases -> cascade -> production. Minimum 5 test cases per function.

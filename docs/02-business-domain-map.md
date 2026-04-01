@@ -48,7 +48,7 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 - Gate 1 result (CBFA, break-even ACoS, competitive gap score, compliance feasibility check, pass/fail)
 
 **Data consumed from:**
-- Project context (`financial-constants.json`, `gate-criteria.json`, `zone-rotation.json`)
+- Project context (`financial-constants.ctx.json`, `gate-criteria.ctx.json`, `zone-rotation.ctx.json`)
 - CRM (existing Product_Launches records for duplicate checking)
 - External signals (Google Trends, Amazon BSR movement, seasonal calendars)
 - Domain 4 (FeedbackSignals — read from ISM_Learnings CRM module at session start, applied to scoring weights)
@@ -93,7 +93,7 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 
 **Data consumed from:**
 - Domain 1 (CompetitorProfile[], ResearchRecord, Gate 1 pass product)
-- Project context (`brand-rules.md`)
+- Project context (`brand-rules.ctx.md`)
 - CRM (Product_Launches record)
 
 **Human gate:** SelectedScenario is human-approved — Claude generates 3–5 scenario cards in Positioning Workbench, human selects one.
@@ -140,7 +140,7 @@ All other domains (marketing, fulfillment, finance, customer support) are **futu
 **Data consumed from:**
 - Domain 1 (ResearchRecord, CostEstimate, CompetitorProfile[])
 - Domain 1.5 (SelectedScenario, PositioningBrief)
-- Project context (`financial-constants.json`, `pipeline-config.json`)
+- Project context (`financial-constants.ctx.json`, `pipeline-config.ctx.json`)
 - CRM (Product_Launches record, Vendors module, Vendor_Evaluations records)
 
 **Stage exit checklists (enforced by Sourcing Workbench — artifact disables advance until met):**
@@ -178,7 +178,7 @@ Phase 1 (Data-buying): Run auto campaigns for 7-10 days. Goal is keyword discove
 Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. Larger budget. Goal is actual CVR and ACoS per keyword to validate bottom-line economics.
 
 **Test stopping and data quality:**
-- Tests always run their configured duration (`duration_days` in `testing-config.json`). No early auto-stop.
+- Tests always run their configured duration (`duration_days` in `testing-config.ctx.json`). No early auto-stop.
 - After each phase completes, the analysis rates data quality as HIGH / MEDIUM / LOW based on volume collected in the given time:
   - HIGH: Sufficient data across enough keywords to make confident margin decisions
   - MEDIUM: Directional signal present but some keywords lack volume
@@ -191,7 +191,7 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 - Imports into Test Lab B artifact (via papaparse CSV import)
 - Test Lab B + real-time Claude analyzes at keyword level: at this keyword's actual CPC and CVR, does the product make margin?
 - The Gate 2 decision is NOT "did we get enough impressions" — it is "across all viable keywords, is there enough volume at viable unit economics for bulk economics to work?"
-- `testing-config.json` contains: `duration_days` per mode, `data_quality_thresholds` (volume benchmarks for HIGH/MEDIUM/LOW rating), `max_extension_days`
+- `testing-config.ctx.json` contains: `duration_days` per mode, `data_quality_thresholds` (volume benchmarks for HIGH/MEDIUM/LOW rating), `max_extension_days`
 
 **Seller Central manual steps** (no MCP integration): creating the test listing, setting up FBA inbound shipment plan in Seller Central are done by team. Guided by the **Seller Central Operations artifact** (see "Launch & Ops" project). Fulfillment-ops creates the Zoho records; team does Seller Central manually. Note: Zoho Inventory is connected to Seller Central as a selling channel — order data flows automatically once live.
 
@@ -215,7 +215,7 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 - Domain 2 (SampleConfirmation, MarginRecord, PricingStrategy, ProductSpec, ConfirmedVendorRecord, ComplianceRecord)
 - Domain 1 (CostEstimate)
 - Domain 1.5 (USPStatement)
-- Project context (`testing-config.json`, `gate-criteria.json`, `financial-constants.json`)
+- Project context (`testing-config.ctx.json`, `gate-criteria.ctx.json`, `financial-constants.ctx.json`)
 - CRM (Product_Launches record)
 
 **Stage exit checklists (enforced by Test Lab artifacts — disable advance until met):**
@@ -270,7 +270,7 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 - Domain 2.5 (ScaleDecision, CostingScenarios, TestResults, TestListingDraft)
 - Domain 2 (ProductSpec, ConfirmedVendorRecord, PricingStrategy, ComplianceRecord)
 - Domain 1.5 (USPStatement)
-- Project context (`listing-standards.json`, `compliance-requirements.json`, `brand-rules.md`)
+- Project context (`listing-standards.json`, `compliance-requirements.json`, `brand-rules.ctx.md`)
 - CRM (Product_Launches record)
 
 **Stage exit checklists (enforced by Launch Control — disable advance until met):**
@@ -440,7 +440,7 @@ The system improves over time through structured feedback from Domain 4 back to 
 
 **Source:** Domain 3 / Source to Pay — when bulk order completes (Stage 8: Stock Live), the actual landed cost is known.
 **Mechanism:** Compare actual landed cost against: (a) Domain 1 CostEstimate (pre-test benchmark), (b) Domain 2 MarginRecord (supplier quote), (c) Domain 2.5 TestActuals. Produce CostAccuracyDelta.
-**Destination:** ISM_Learnings CRM module, field: `cost_accuracy_delta`. Daily synthesis task picks up and adjusts `financial-constants.json` baseline assumptions (e.g., if freight estimates are consistently 15% low, adjust default).
+**Destination:** ISM_Learnings CRM module, field: `cost_accuracy_delta`. Daily synthesis task picks up and adjusts `financial-constants.ctx.json` baseline assumptions (e.g., if freight estimates are consistently 15% low, adjust default).
 **Impact:** Domain 1 CostEstimate accuracy improves over time. margin-calculator ESTIMATE mode becomes more reliable.
 
 ---
@@ -707,7 +707,7 @@ All tasks are self-contained — no dependency on conversation state. Each task 
 - **On-demand report** — human requests pipeline or financial report from artifact → Claude generates and posts
 - **Peer review** (future) — sends evaluation to a reviewer for feedback
 
-**Known gap:** Slack channel IDs for `#ism-launch-alerts` and `#ism-launch-reports` still not filled. Fill in `pipeline-config.json` before Slack integration is built.
+**Known gap:** Slack channel IDs for `#ism-launch-alerts` and `#ism-launch-reports` still not filled. Fill in `pipeline-config.ctx.json` before Slack integration is built.
 
 ---
 
@@ -772,7 +772,7 @@ Each checklist item has: step description, Confluence SOP link, completion check
 - Artifacts: 6 (Discovery Dashboard v1.0, Positioning Workbench v1.0, Sourcing Workbench v1.0, Test Lab A v1.0, Test Lab B v1.0, Portfolio Dashboard v1.0)
 - Project knowledge: context files listed below
 - Requires: CLAUDE.md per 03 §4 — defines project context, pipeline, integrations, artifact registry
-- CLAUDE.md template: `docs/projects/CLAUDE-product-pipeline.md` (to be created during build session)
+- CLAUDE.md template: `docs/projects/CLAUDE-product-pipeline.proj.md` (to be created during build session)
 
 **"Launch & Ops"** (Claude.ai project)
 - Covers: Domain 3 + 4 + Source to Pay tracking
@@ -780,7 +780,7 @@ Each checklist item has: step description, Confluence SOP link, completion check
 - Artifacts: 4 (Launch Control v1.0, Operations Dashboard v1.0, Source to Pay Tracker v1.0, Seller Central Operations v1.0)
 - Project knowledge: context files listed below
 - Requires: CLAUDE.md per 03 §4
-- CLAUDE.md template: `docs/projects/CLAUDE-launch-ops.md` (to be created during build session)
+- CLAUDE.md template: `docs/projects/CLAUDE-launch-ops.proj.md` (to be created during build session)
 
 **"System Ops"** (Claude.ai project)
 - System-level skills, governance, Zoho platform. Amit only. Not shared.
@@ -793,13 +793,13 @@ All files are stored in Git at `skill-share/context/` and loaded into Claude.ai 
 
 | File | Format | Content | Est. KB |
 |---|---|---|---|
-| `crm-field-mappings.json` | JSON | Product_Launches field names + API names, Vendors module fields, Vendor_Evaluations fields, ISM Execution Logs fields, ISM Learnings fields, Bigin pipeline ID + stage IDs | ~8 KB |
-| `financial-constants.json` | JSON | CBFA formula, break-even ACoS formula, target margins, GST rate, price sweet spot, price floor, weight ceiling, ACoS targets per phase | ~3 KB |
-| `gate-criteria.json` | JSON | Gate 1 thresholds (CBFA min, ACoS max, compliance rules), Gate 2 thresholds (CVR/CTR paths A+B), Gate 3 checklist | ~4 KB |
-| `zone-rotation.json` | JSON | Zone definitions, rotation schedule, marketplace rotation, scoring weights per zone | ~3 KB |
-| `brand-rules.md` | MD | Brand name, brand story, values, price floor rule, target customer profiles, positioning guardrails, tone of voice | ~3 KB |
-| `testing-config.json` | JSON | Default test budgets per mode, duration range, mode decision criteria, scaling thresholds, bid strategy defaults | ~3 KB |
-| `pipeline-config.json` | JSON | Bigin pipeline IDs, Bigin stage IDs, Source to Pay pipeline ID, Slack channel IDs (fill when known), ISM Learnings module ID + fields, Vendors module ID, Confluence space key | ~2 KB |
+| `crm-field-mappings.ctx.json` | JSON | Product_Launches field names + API names, Vendors module fields, Vendor_Evaluations fields, ISM Execution Logs fields, ISM Learnings fields, Bigin pipeline ID + stage IDs | ~8 KB |
+| `financial-constants.ctx.json` | JSON | CBFA formula, break-even ACoS formula, target margins, GST rate, price sweet spot, price floor, weight ceiling, ACoS targets per phase | ~3 KB |
+| `gate-criteria.ctx.json` | JSON | Gate 1 thresholds (CBFA min, ACoS max, compliance rules), Gate 2 thresholds (CVR/CTR paths A+B), Gate 3 checklist | ~4 KB |
+| `zone-rotation.ctx.json` | JSON | Zone definitions, rotation schedule, marketplace rotation, scoring weights per zone | ~3 KB |
+| `brand-rules.ctx.md` | MD | Brand name, brand story, values, price floor rule, target customer profiles, positioning guardrails, tone of voice | ~3 KB |
+| `testing-config.ctx.json` | JSON | Default test budgets per mode, duration range, mode decision criteria, scaling thresholds, bid strategy defaults | ~3 KB |
+| `pipeline-config.ctx.json` | JSON | Bigin pipeline IDs, Bigin stage IDs, Source to Pay pipeline ID, Slack channel IDs (fill when known), ISM Learnings module ID + fields, Vendors module ID, Confluence space key | ~2 KB |
 
 **Total `context/product-pipeline/`: ~26 KB**
 
@@ -835,7 +835,7 @@ Multi-mode skills use a **single SKILL.md covering all modes** — no reference 
 
 ## Plugin Splitting Plan
 
-"Product Pipeline" uses 4 plugins (1a, 1b, 2a, 2b). "Launch & Ops" uses 2 plugins (3, 4). Maximum 5 skills per plugin, no reference files. The same SKILL.md appears in multiple plugins where a skill serves multiple domains — mode switching is controlled by project context (`pipeline-config.json`), not by reference files. See 03 §2 for build process.
+"Product Pipeline" uses 4 plugins (1a, 1b, 2a, 2b). "Launch & Ops" uses 2 plugins (3, 4). Maximum 5 skills per plugin, no reference files. The same SKILL.md appears in multiple plugins where a skill serves multiple domains — mode switching is controlled by project context (`pipeline-config.ctx.json`), not by reference files. See 03 §2 for build process.
 
 ### Plugin 1a: "product-discovery" (Domain 1 — discovery stages) — ~17 KB
 - `ikraft-keyword-intelligence` (KI) → ~4 KB
@@ -880,16 +880,16 @@ Multi-mode skills use a **single SKILL.md covering all modes** — no reference 
 
 ### Phase 0: Prerequisites (MUST complete before proceeding)
 
-**Verification gate:** Do NOT proceed past Phase 0 until ALL items below are confirmed complete and their outputs are in `pipeline-config.json`. Each item has a verification check.
+**Verification gate:** Do NOT proceed past Phase 0 until ALL items below are confirmed complete and their outputs are in `pipeline-config.ctx.json`. Each item has a verification check.
 
 | Step | What | Verification | Why |
 |---|---|---|---|
-| 0 | Retrieve CRM Product_Launches field API names via MCP | `crm-field-mappings.json` has Product_Launches fields populated | Prerequisite for all CRM write skills |
-| 0a | Retrieve Vendors module fields via MCP; add missing VendorScore fields | `crm-field-mappings.json` has Vendors fields; VendorScore fields exist in module | Prerequisite for supplier reuse architecture |
-| 0b | Audit ISM_Learnings module (CustomModule17) fields via MCP; add missing fields | `crm-field-mappings.json` has ISM_Learnings fields including differentiation_outcome, cost_accuracy_delta, supplier_performance_delta | Prerequisite for feedback loops |
-| 0c | Design Source to Pay Pipeline in Bigin (8 stages) | `pipeline-config.json` has Source to Pay pipeline ID and stage IDs | Prerequisite for Gate 2 trigger build |
+| 0 | Retrieve CRM Product_Launches field API names via MCP | `crm-field-mappings.ctx.json` has Product_Launches fields populated | Prerequisite for all CRM write skills |
+| 0a | Retrieve Vendors module fields via MCP; add missing VendorScore fields | `crm-field-mappings.ctx.json` has Vendors fields; VendorScore fields exist in module | Prerequisite for supplier reuse architecture |
+| 0b | Audit ISM_Learnings module (CustomModule17) fields via MCP; add missing fields | `crm-field-mappings.ctx.json` has ISM_Learnings fields including differentiation_outcome, cost_accuracy_delta, supplier_performance_delta | Prerequisite for feedback loops |
+| 0c | Design Source to Pay Pipeline in Bigin (8 stages) | `pipeline-config.ctx.json` has Source to Pay pipeline ID and stage IDs | Prerequisite for Gate 2 trigger build |
 | 0d | Set up Confluence space ISM with folder structure | Confluence folders verified accessible via MCP write test | Prerequisite for large document storage |
-| 0e | Probe Zoho Books/Inventory available MCP operations | Document available operations, missing permissions, unneeded access in `pipeline-config.json` | Prerequisite for fulfillment-ops design |
+| 0e | Probe Zoho Books/Inventory available MCP operations | Document available operations, missing permissions, unneeded access in `pipeline-config.ctx.json` | Prerequisite for fulfillment-ops design |
 | 0f | Verify Confluence MCP page creation works | Test page created and deleted in ISM space | Prerequisite for document storage strategy |
 
 ### Phase 1: Foundation
@@ -986,12 +986,12 @@ Do not assume values. Fill before dependent build tasks.
 | ISM_Learnings module field structure (CustomModule17) | `GET /crm/v7/settings/fields?module=CustomModule17` then audit and add fields | 0b |
 | Source to Pay Pipeline in Bigin | Create via Bigin MCP or UI — 8 stages | 0c |
 | Confluence space ISM + folder structure | Create via Confluence MCP | 0d |
-| Slack channel IDs (#ism-launch-alerts, #ism-launch-reports) | Retrieve via Slack MCP then fill in `pipeline-config.json` | Before Slack integration |
+| Slack channel IDs (#ism-launch-alerts, #ism-launch-reports) | Retrieve via Slack MCP then fill in `pipeline-config.ctx.json` | Before Slack integration |
 | Razorpay available MCP endpoints | Probe Razorpay MCP to confirm settlement/refund data available | Before Domain 4 build |
 | Zoho Flow IDs for registered flows | Retrieve from automation-registry.md | Before automation build |
 | `fulfillment-ops` SKILL.md | Design from scratch. See `03-implementation-standards.md` §8 for directory and build instructions. | Priority 1 |
 | `compliance-ops` SKILL.md | Design from scratch. See `03-implementation-standards.md` §8 for directory and build instructions. | Priority 1 |
-| Zoho Books/Inventory available MCP operations | Probe via MCP: identify available operations, missing permissions, unneeded access. Document results in `pipeline-config.json`. | Phase 0e |
+| Zoho Books/Inventory available MCP operations | Probe via MCP: identify available operations, missing permissions, unneeded access. Document results in `pipeline-config.ctx.json`. | Phase 0e |
 | Confluence MCP page creation verification | Test page creation in ISM space. Verify folder creation works. URL: see Confluence Page Structure section. | Phase 0f |
 | `04-data-schemas.md` | Create full JSON schemas for all 25+ data types listed in Data Type Conventions (including new types: RepricingDecision, ShopifyCustomerSignal, SupplierPerformanceDelta, CostAccuracyDelta). Lives at `skill-share/docs/04-data-schemas.md`. | Before skill build |
 | `window.storage` key schema | Define full key table for all 8 artifacts (format: `ism:{entity}:{id}:{sub}` per 03 §7). Defer to artifact build phase — each artifact defines its own keys at build time. | Before artifact build |

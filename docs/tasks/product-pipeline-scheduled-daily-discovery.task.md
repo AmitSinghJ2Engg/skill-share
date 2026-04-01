@@ -19,9 +19,9 @@ Runs the Ismokraft daily product discovery pipeline: determines today's zone, ge
 
 ## Inputs
 
-- Project context: `zone-rotation.json` (today's zone and rotation formula)
-- Project context: `crm-field-mappings.json` (CRM field API names)
-- Project context: `financial-constants.json` (scoring thresholds)
+- Project context: `zone-rotation.ctx.json` (today's zone and rotation formula)
+- Project context: `crm-field-mappings.ctx.json` (CRM field API names)
+- Project context: `financial-constants.ctx.json` (scoring thresholds)
 - CRM read: ISM_ExecutionLogs (dedup check -- has today's run already happened?)
 - CRM write: Product_Launches, ISM_ExecutionLogs, ISM_Learnings
 - Slack write: `#ism-launch-reports`, `#ism-launch-alerts`
@@ -34,7 +34,7 @@ Query ISM_ExecutionLogs for a record where Skill_Name = "daily-discovery" AND Ex
 
 ### Step 1: Determine today's zone and marketplace rotation
 
-Read `zone-rotation.json` from project context. Calculate today's zone and marketplace set. State the zone name, seed keywords, and active marketplaces before proceeding.
+Read `zone-rotation.ctx.json` from project context. Calculate today's zone and marketplace set. State the zone name, seed keywords, and active marketplaces before proceeding.
 
 ### Step 2: Generate keywords
 
@@ -56,7 +56,7 @@ The skill handles its own crawling protocols, normalization, and deduplication i
 
 Invoke **ZO- zoho-data-ops WRITE mode** to create Product_Launches records from the `ProductCandidate[]` returned in Step 3. Target: CRM > Product_Launches module. See `zoho-data-ops/reference/write-patterns.md` for the standard field mapping.
 
-The skill handles dedup checking (matching by product name + target platform), field name resolution via `crm-field-mappings.json`, and returns created record IDs for use in Step 4.
+The skill handles dedup checking (matching by product name + target platform), field name resolution via `crm-field-mappings.ctx.json`, and returns created record IDs for use in Step 4.
 
 **Guard:** If CRM write fails after retry, log error to `#ism-launch-alerts` and skip to Step 7 with status = "FAILED: CRM write error."
 

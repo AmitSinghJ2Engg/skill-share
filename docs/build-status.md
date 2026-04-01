@@ -6,15 +6,15 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 ## Phase 0: Prerequisites
 
-- [x] **0:** Retrieve CRM Product_Launches field API names via MCP -> populate `crm-field-mappings.json` (141 fields, module API: Product_Launches)
+- [x] **0:** Retrieve CRM Product_Launches field API names via MCP -> populate `crm-field-mappings.ctx.json` (141 fields, module API: Product_Launches)
 - [x] **0a:** Retrieve Vendors module fields via MCP; add missing VendorScore fields (47 fields, Vendor_Grade + Evaluation_Score exist)
 - [x] **0b:** Audit ISM_Learnings module fields via MCP; add missing feedback loop fields (29 fields, module API: ISM_Learnings, also found ISM_ExecutionLogs, ISM_SkillFeedback, ISM_SkillHealth)
-- [x] **0c:** Document Bigin pipeline structure -> populate `pipeline-config.json` (Product Launch Factory: 13 stages, Procure To Pay: 5 stages exist)
+- [x] **0c:** Document Bigin pipeline structure -> populate `pipeline-config.ctx.json` (Product Launch Factory: 13 stages, Procure To Pay: 5 stages exist)
 - [x] **0d:** Verify Confluence space ISM exists (space: iscom, ID: 443809796, root folder: 452788225, 3 existing pages)
 - [x] **0e:** Probe Zoho Books/Inventory MCP operations (Books: 12 tools read-only, org: 60018085540; Inventory: 26 tools read/write)
 - [x] **0f:** Verify Confluence page creation works (test page ID: 590446593, write access confirmed)
 
-**Gate: Do NOT proceed to Phase 1 until all Phase 0 items are confirmed and outputs are in pipeline-config.json.**
+**Gate: Do NOT proceed to Phase 1 until all Phase 0 items are confirmed and outputs are in pipeline-config.ctx.json.**
 
 ---
 
@@ -22,9 +22,9 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 - [x] **1:** Write SKILL.md for `compliance-ops` (skills/product-evaluation/compliance-ops/) — 4.8 KB, 3 modes
 - [x] **1a:** Write SKILL.md for `fulfillment-ops` (skills/product-testing/fulfillment-ops/) — 4.4 KB, 2 modes
-- [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.json, financial-constants.json, gate-criteria.json, zone-rotation.json, brand-rules.md, testing-config.json, pipeline-config.json)
-- [x] **2a:** Create `docs/projects/CLAUDE-product-pipeline.md` (project instructions for "Product Pipeline")
-- [x] **2b:** Create `docs/projects/CLAUDE-launch-ops.md` (project instructions for "Launch & Ops")
+- [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.ctx.json, financial-constants.ctx.json, gate-criteria.ctx.json, zone-rotation.ctx.json, brand-rules.ctx.md, testing-config.ctx.json, pipeline-config.ctx.json)
+- [x] **2a:** Create `docs/projects/CLAUDE-product-pipeline.proj.md` (project instructions for "Product Pipeline")
+- [x] **2b:** Create `docs/projects/CLAUDE-launch-ops.proj.md` (project instructions for "Launch & Ops")
 
 ---
 
@@ -32,9 +32,9 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 Tracks readiness of project instructions, task instructions, and plugin deployment for Claude Desktop / Cowork.
 
-- [x] CLAUDE-product-pipeline.md project instructions written (also Phase 1 item 2a)
-- [x] CLAUDE-launch-ops.md project instructions written (also Phase 1 item 2b)
-- [x] ism-daily-discovery task instructions written (docs/tasks/product-pipeline-scheduled-daily-discovery.md)
+- [x] CLAUDE-product-pipeline.proj.md project instructions written (also Phase 1 item 2a)
+- [x] CLAUDE-launch-ops.proj.md project instructions written (also Phase 1 item 2b)
+- [x] ism-daily-discovery task instructions written (docs/tasks/product-pipeline-scheduled-daily-discovery.task.md)
 - [ ] ism-stage2-intelligence task instructions written
 - [ ] ism-stage3-vendor-search task instructions written
 - [ ] ism-daily-learning task instructions written

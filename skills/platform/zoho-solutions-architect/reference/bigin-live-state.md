@@ -5,8 +5,8 @@ Prevents designing fields that already exist, or assumptions about fields that d
 
 **Source:** Bigin MCP `getFieldsMetadata` for Pipelines and Contacts modules.
 **Last verified:** 2026-03-11
-**For exact field API names:** Read `crm-field-mappings.json` from project context.
-**For pipeline stage API names:** Read `pipeline-config.json` from project context.
+**For exact field API names:** Read `crm-field-mappings.ctx.json` from project context.
+**For pipeline stage API names:** Read `pipeline-config.ctx.json` from project context.
 
 ---
 
@@ -49,7 +49,7 @@ Field distribution by function:
 - Subforms: 1 field
 - Email: 3 fields
 
-For the complete field list with API names, types, and labels, read `crm-field-mappings.json` from project context (sections: `bigin.product_launch_fields` for key Bigin fields, `modules.Product_Launches.fields` for CRM-side mappings).
+For the complete field list with API names, types, and labels, read `crm-field-mappings.ctx.json` from project context (sections: `bigin.product_launch_fields` for key Bigin fields, `modules.Product_Launches.fields` for CRM-side mappings).
 
 ---
 

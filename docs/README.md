@@ -22,16 +22,16 @@
 
 | File | Project | Domains |
 |------|---------|---------|
-| [projects/CLAUDE-product-pipeline.md](projects/CLAUDE-product-pipeline.md) | Product Pipeline | D1-D2.5 (discovery through testing) |
-| [projects/CLAUDE-launch-ops.md](projects/CLAUDE-launch-ops.md) | Launch & Ops | D3-D4 (launch through live operations) |
+| [projects/CLAUDE-product-pipeline.proj.md](projects/CLAUDE-product-pipeline.proj.md) | Product Pipeline | D1-D2.5 (discovery through testing) |
+| [projects/CLAUDE-launch-ops.proj.md](projects/CLAUDE-launch-ops.proj.md) | Launch & Ops | D3-D4 (launch through live operations) |
 
 ## Task Instructions (for Claude Desktop scheduler)
 
-Naming: `{project}-{type}-{trigger}-{action}.md` (type = scheduled/manual)
+Naming: `{project}-{type}-{trigger}-{action}.task.md` (type = scheduled/manual)
 
 | File | Schedule | Skills |
 |------|----------|--------|
-| [tasks/product-pipeline-scheduled-daily-discovery.md](tasks/product-pipeline-scheduled-daily-discovery.md) | Daily 7 AM IST | KI, PD, PS |
+| [tasks/product-pipeline-scheduled-daily-discovery.task.md](tasks/product-pipeline-scheduled-daily-discovery.task.md) | Daily 7 AM IST | KI, PD, PS |
 
 Pending: stage2-intelligence, stage3-vendor-search, daily-learning (see build-status.md)
 

@@ -25,14 +25,14 @@ Runtime Zoho data I/O layer for Ismokraft. Handles all MCP-based read, write, se
 | READ | Target app/module + query criteria | Record data or list | Fetching data from any Zoho app |
 | SYNC | Source + target app/module + field mapping | Sync result, records updated | Cross-app field synchronization |
 
-Supported apps: CRM (read/write), Bigin (read/write), Books (read-only), Inventory (read/write), Desk (read/write), Analytics (read-only). For MCP endpoints, see `pipeline-config.json`.
+Supported apps: CRM (read/write), Bigin (read/write), Books (read-only), Inventory (read/write), Desk (read/write), Analytics (read-only). For MCP endpoints, see `pipeline-config.ctx.json`.
 
 ## Execution Steps
 
 ### WRITE Mode
 
 1. Identify target app, module, and operation (create or update).
-2. Resolve field API names from `crm-field-mappings.json`. Never guess.
+2. Resolve field API names from `crm-field-mappings.ctx.json`. Never guess.
 3. Validate: all required fields present. Halt if missing.
 4. Dedup: search for existing records with matching key fields. If found, switch to update.
 5. Execute MCP call. Retry once on transient failure.
@@ -41,7 +41,7 @@ Supported apps: CRM (read/write), Bigin (read/write), Books (read-only), Invento
 ### READ Mode
 
 1. Identify target app, module, query criteria.
-2. Build query using field API names from `crm-field-mappings.json`.
+2. Build query using field API names from `crm-field-mappings.ctx.json`.
 3. Execute MCP call. Return structured data or empty result.
 
 ### SYNC Mode
@@ -69,7 +69,7 @@ Returns: `status` (success/partial/failed), `record_ids[]`, `operation`, `errors
 
 ## Rules
 
-- Never guess field API names. Always read from `crm-field-mappings.json` or `pipeline-config.json`.
+- Never guess field API names. Always read from `crm-field-mappings.ctx.json` or `pipeline-config.ctx.json`.
 - Never write to Analytics or Books (read-only via MCP).
 - Every write is idempotent. Dedup check before create.
 - If MCP unavailable, return structured error. Do not retry indefinitely.

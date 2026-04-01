@@ -43,7 +43,7 @@ CRM module: Product_Launches (141 fields)
 
 ## Key Financial Constants
 
-Read from `financial-constants.json`:
+Read from `financial-constants.ctx.json`:
 - Target gross margin: >= 44%
 - Price sweet spot: 800-2000 INR
 - Price floor: 1000 INR (brand rule)
@@ -58,7 +58,7 @@ Read from `financial-constants.json`:
 - Vendors: `Vendors` (ID: 645926000000000099)
 - ISM Learnings: `ISM_Learnings` (ID: 645926000009174002)
 - Execution Logs: `ISM_ExecutionLogs` (ID: 645926000009175428)
-- Field mappings: see `crm-field-mappings.json`
+- Field mappings: see `crm-field-mappings.ctx.json`
 
 ## Integrations
 
@@ -72,4 +72,4 @@ Read from `financial-constants.json`:
 
 ## Zone Rotation
 
-7 product zones rotate on a 9-day cycle. Read `zone-rotation.json` for today's zone, seed keywords, and marketplace rotation.
+7 product zones rotate on a 9-day cycle. Read `zone-rotation.ctx.json` for today's zone, seed keywords, and marketplace rotation.

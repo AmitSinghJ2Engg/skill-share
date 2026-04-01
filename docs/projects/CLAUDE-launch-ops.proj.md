@@ -32,19 +32,19 @@ Same 7 rules as Product Pipeline project. CRM is single source of truth. Never i
 
 ## Key Constants
 
-Read from `financial-constants.json`:
+Read from `financial-constants.ctx.json`:
 - Target ACoS (scale phase): <= 30%
 - Target net margin: >= 15%
 - All pricing and margin formulas same as Product Pipeline
 
-Read from `gate-criteria.json`:
+Read from `gate-criteria.ctx.json`:
 - Gate 3: all certifications obtained (100% completion)
 
 ## CRM Configuration
 
 Same modules as Product Pipeline:
 - Product_Launches, Vendors, ISM_Learnings, ISM_ExecutionLogs
-- Field mappings: see `crm-field-mappings.json`
+- Field mappings: see `crm-field-mappings.ctx.json`
 
 Post-launch fields: `Post_Launch_Status`, `Month_1_*`, `Month_3_*`, `BSR_at_Launch`, `Final_Listing_URL_Amz`, `Final_Listing_URL_com`, `Live_Date`
 

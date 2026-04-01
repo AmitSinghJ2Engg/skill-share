@@ -371,7 +371,19 @@ Each project has a set of reference files loaded into every conversation:
 - Automation registry (if project triggers Zoho Flows)
 - Artifact registry (if project manages multiple artifacts)
 
-**File formats:** Structured data (thresholds, field mappings, IDs) in `.json`. Narrative content (brand rules, customer profiles) in `.md`. JSON is preferred for exact-value lookups by skills and artifacts.
+**File formats:** Structured data (thresholds, field mappings, IDs) in `.ctx.json`. Narrative content (brand rules, customer profiles) in `.ctx.md`. JSON is preferred for exact-value lookups by skills and artifacts.
+
+### File Type Suffix Convention
+
+| File type | Suffix | Example |
+|-----------|--------|---------|
+| Task instruction | `.task.md` | `product-pipeline-scheduled-daily-discovery.task.md` |
+| Context JSON | `.ctx.json` | `crm-field-mappings.ctx.json` |
+| Context MD | `.ctx.md` | `brand-rules.ctx.md` |
+| Project instruction | `.proj.md` | `CLAUDE-product-pipeline.proj.md` |
+| Artifact | `.artifact.jsx` | `discovery-dashboard-v1.0.artifact.jsx` |
+
+**Not renamed:** SKILL.md (Claude spec), reference/ files (already in typed directory), architecture docs (01-03 series), decision-log, build-status, README files.
 
 **Size rule:** Total text content in project knowledge should be under 50 KB. Do not add large files (xlsx, jsx artifacts) unless they are actively referenced in every conversation.
 
@@ -461,13 +473,13 @@ skill-share/
     research/                     (future)
   context/                        (runtime config — deployed to Claude.ai project knowledge)
     product-pipeline/
-      crm-field-mappings.json
-      financial-constants.json
-      gate-criteria.json
-      zone-rotation.json
-      brand-rules.md
-      testing-config.json
-      pipeline-config.json
+      crm-field-mappings.ctx.json
+      financial-constants.ctx.json
+      gate-criteria.ctx.json
+      zone-rotation.ctx.json
+      brand-rules.ctx.md
+      testing-config.ctx.json
+      pipeline-config.ctx.json
     launch-ops/
       listing-standards.json
       compliance-requirements.json
@@ -506,10 +518,10 @@ skill-share/
     decision-log.md               (architectural decisions with rationale)
     build-status.md               (phase-based progress tracker)
     projects/
-      CLAUDE-product-pipeline.md  (project instructions for "Product Pipeline")
-      CLAUDE-launch-ops.md        (project instructions for "Launch & Ops")
+      CLAUDE-product-pipeline.proj.md  (project instructions for "Product Pipeline")
+      CLAUDE-launch-ops.proj.md        (project instructions for "Launch & Ops")
     tasks/                          (task instructions — pasted into Claude Desktop scheduler)
-      {project}-{type}-{trigger}-{action}.md
+      {project}-{type}-{trigger}-{action}.task.md
     archive/                        (superseded docs — reference only)
 ```
 
@@ -534,7 +546,7 @@ skill-share/
 | Storage key | `ism:{entity}:{id}:{sub}` | ism:p:p123:out:scout |
 | Slack channel | `#ism-{purpose}` | #ism-launch-alerts |
 | Git branch | `{domain}/{change}` | product-system/trim-skills |
-| Scheduled task | `{frequency}-{action}` | daily-product-discovery |
+| Scheduled task | `{project}-{type}-{trigger}-{action}.task.md` | product-pipeline-scheduled-daily-discovery.task.md |
 
 ---
 
@@ -583,7 +595,7 @@ Any business value that could change independently of the skill logic. Move to a
 
 Examples: thresholds, CRM field mappings, picklist values, rotation schedules, zone configs, gate criteria, scoring weights, marketplace URL patterns.
 
-The skill says `"per rotation formula in project context (pipeline-config.json)"` — it does not embed the formula.
+The skill says `"per rotation formula in project context (pipeline-config.ctx.json)"` — it does not embed the formula.
 
 ### Step 3 — Move to Reference
 

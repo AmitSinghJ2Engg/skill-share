@@ -528,7 +528,16 @@ skill-share/
     build-skill.py                (packages single skill)
     validate-system.py            (cross-cutting validation + manifest)
     plugin-registry.json          (GENERATED — do not edit manually)
-  docs/                           (architecture docs, standards, decisions)
+  tasks/                          (task instructions — orchestration definitions)
+    {project}-{type}-{trigger}-{action}.task.md
+  projects/                       (project instructions / CLAUDE.md files)
+    CLAUDE-product-pipeline.proj.md
+    CLAUDE-launch-ops.proj.md
+  resources/                      (reference PDFs, external guides)
+  tests/                          (skill evaluations and test suites per skill-creator)
+    {skill-name}/
+      evals.json
+  docs/                           (architecture docs, standards, decisions ONLY)
     01-system-constraints.md
     02-business-domain-map.md
     03-implementation-standards.md
@@ -536,11 +545,6 @@ skill-share/
     05-data-crawling-rules.md
     decision-log.md               (architectural decisions with rationale)
     build-status.md               (phase-based progress tracker)
-    projects/
-      CLAUDE-product-pipeline.proj.md  (project instructions for "Product Pipeline")
-      CLAUDE-launch-ops.proj.md        (project instructions for "Launch & Ops")
-    tasks/                          (task instructions — pasted into Claude Desktop scheduler)
-      {project}-{type}-{trigger}-{action}.task.md
     archive/                        (superseded docs — reference only)
 ```
 
@@ -583,12 +587,13 @@ The following skills are defined in the architecture (`02-business-domain-map.md
 | `revenue-ops` | `skills/product-ops/` | Low | Plugin 4 |
 | `ism-learning-engine` | `skills/product-ops/` | Low | Plugin 4 |
 
-**Build session instructions:** When writing a new SKILL.md:
+**Build session instructions:** Use `python tools/create-skill.py {package} {skill-name}` to scaffold a new skill. This creates the skill directory, a minimal SKILL.md with valid frontmatter, and a test directory under `tests/`. Then:
 1. Read `02-business-domain-map.md` for the skill's domain, modes, data produced/consumed.
 2. Read existing reference files in `skills/{package}/{name}/reference/` (if any) for domain knowledge.
 3. Follow §1 structure exactly: frontmatter, purpose, modes, input/output contracts, execution steps, trigger phrases.
 4. Ensure the file stays under 5 KB. Move detailed rubrics/thresholds to reference files or project context.
 5. Write the completed SKILL.md to `skills/{package}/{name}/SKILL.md`.
+6. Write eval test cases to `tests/{skill-name}/evals.json` (see skill-creator eval workflow).
 
 ---
 

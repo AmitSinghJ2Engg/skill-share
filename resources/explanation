@@ -1,0 +1,189 @@
+Explanation: tools/ Directory Scripts                                                                                                                                                                                                                              
+
+ This is a reference answer, not an implementation plan. The previous plan (Build-Time System Validation Suite) has already been fully implemented.
+
+ ---
+ 1. What each script does
+
+ build-plugin.py -- The Compiler
+
+ Think of this as the "compiler" for the skill-share repo. It takes raw SKILL.md source files and packages them into installable Claude plugins (.zip files).
+
+ What it does:
+ - Reads plugin-registry.json to know which skills belong in which plugin
+ - Validates each SKILL.md (has frontmatter with name, description; body under 5KB)
+ - Copies SKILL.md + supporting files (reference/, scripts/) into a plugin directory structure
+ - Normalizes line endings (LF) for cross-platform compatibility
+ - Checks total plugin size stays under 70KB
+ - Produces a two-stage output: intermediate build dir first, then .zip on --confirm
+ - Reports shared skills that appear in multiple plugins
+
+ Commands:
+ python tools/build-plugin.py --plugin product-discovery   # build one plugin
+ python tools/build-plugin.py --all --confirm              # build all, skip review
+ python tools/build-plugin.py --check product-discovery    # validate only
+ python tools/build-plugin.py --list-plugins               # show what's available
+
+ Requires: pip install pyyaml
+
+ ---
+ validate-system.py -- The Linter / System Checker
+
+ Think of this as a "linter" that checks the entire repo for cross-cutting problems that building one plugin at a time can't catch.
+
+ What it does -- 5 checks:
+ 1. I/O Contracts -- Skill A says it outputs ProductCandidate[] to Skill B, but does Skill B's mode table actually accept that type? Catches type mismatches.
+ 2. Cross-Plugin Dependencies -- Skill X in Plugin 1 references Skill Y in Plugin 2. Both must be installed or it breaks. Flags these.
+ 3. Task-Skill Dependencies -- Task files say "Invoke PD- product-discover BATCH mode". Does that skill+mode actually exist?
+ 4. Reference File Integrity -- SKILL.md says "see reference/scoring-bands.md". Does that file actually exist on disk?
+ 5. Context Budget -- Is the plugin approaching 70KB? Is project knowledge approaching 50KB?
+
+ Also does 3 detection tasks:
+ - Registry drift -- SKILL.md says version 2.2.0 but registry says 2.0.0
+ - Coverage -- Which skills have SKILL.md vs just a placeholder .gitkeep
+ - Marketplace sync -- Can regenerate .claude-plugin/marketplace.json from what's actually built
+
+ Commands:
+ python tools/validate-system.py                     # full validation + manifest
+ python tools/validate-system.py --check-only        # just validate, no files written
+ python tools/validate-system.py --manifest-only     # just generate manifest
+ python tools/validate-system.py --update-marketplace  # regenerate marketplace.json
+
+ Requires: Nothing extra (Python stdlib only)
+
+ ---
+ build-skill.py -- Individual Skill Validator
+
+ Validates a single SKILL.md for plugin readiness (frontmatter, size).
+
+ ---
+ plugin-registry.json -- The Configuration File
+
+ Not a script, but the central config that both scripts read. Maps each of the 6 plugins to its skill list:
+
+ ┌────────────────────┬────────────────┐
+ │       Plugin       │     Skills     │
+ ├────────────────────┼────────────────┤
+ │ product-discovery  │ KI, PD, PS, MI │
+ ├────────────────────┼────────────────┤
+ │ product-evaluation │ PE, MC, CO     │
+ ├────────────────────┼────────────────┤
+ │ product-sourcing   │ SP, SI, VO, MC │
+ ├────────────────────┼────────────────┤
+ │ product-testing    │ AO, MO, FO, CO │
+ ├────────────────────┼────────────────┤
+ │ product-launch     │ CW, CP, CO, FO │
+ ├────────────────────┼────────────────┤
+ │ product-ops        │ MO, AO, RO, LE │
+ └────────────────────┴────────────────┘
+
+ ---
+ 2. What gets created and where
+
+ build-plugin.py outputs
+
+ ┌────────────────────┬───────────────────────────┬──────────────────────────────────────────────────────────────────────────────────┐
+ │       Output       │         Location          │                                     Purpose                                      │
+ ├────────────────────┼───────────────────────────┼──────────────────────────────────────────────────────────────────────────────────┤
+ │ Intermediate build │ dist/build/{plugin-name}/ │ Reviewable directory structure before zipping. Committed to git for marketplace. │
+ ├────────────────────┼───────────────────────────┼──────────────────────────────────────────────────────────────────────────────────┤
+ │ Plugin zip         │ dist/{plugin-name}.zip    │ Upload to Claude Desktop. Only created with --confirm.                           │
+ └────────────────────┴───────────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
+
+ Directory structure of a built plugin:
+ dist/build/product-discovery/
+   .claude-plugin/
+     plugin.json              # manifest (name, description, version)
+   skills/
+     ikraft-keyword-intelligence/
+       SKILL.md
+       reference/
+         expansion-rules.md
+         keyword-schemas.md
+         learning-signals-spec.md
+     product-discover/
+       SKILL.md
+       reference/
+         source-protocols.md
+         scoring-bands.md
+         ...
+     product-screen/
+       SKILL.md
+       reference/
+         scoring-rubric-8dim.md
+         risk-filter-rules.md
+     product-market-intelligence/
+       SKILL.md
+
+ validate-system.py outputs
+
+ ┌────────────────────┬─────────────────────────────────┬────────────────────────────────────────────────────┐
+ │       Output       │            Location             │                      Purpose                       │
+ ├────────────────────┼─────────────────────────────────┼────────────────────────────────────────────────────┤
+ │ Console report     │ stdout                          │ Human-readable PASS/WARN/FAIL per check            │
+ ├────────────────────┼─────────────────────────────────┼────────────────────────────────────────────────────┤
+ │ Skill manifest     │ dist/skill-manifest.json        │ Machine-readable system map (not committed to git) │
+ ├────────────────────┼─────────────────────────────────┼────────────────────────────────────────────────────┤
+ │ Marketplace update │ .claude-plugin/marketplace.json │ Only with --update-marketplace flag                │
+ └────────────────────┴─────────────────────────────────┴────────────────────────────────────────────────────┘
+
+ dist/skill-manifest.json is not committed to git -- it's a generated snapshot that changes on every run.
+
+ ---
+ 3. How to use the output files
+
+ Plugin .zip files (dist/{name}.zip)
+
+ Upload to Claude Desktop:
+ 1. Build: python tools/build-plugin.py --plugin product-discovery --confirm
+ 2. Go to Claude Desktop > Settings > Plugins > Upload
+ 3. Select dist/product-discovery.zip
+ 4. Skills become available in conversations
+
+ Plugin build directories (dist/build/{name}/)
+
+ For marketplace install (anyone with the GitHub repo):
+ 1. They run: /plugin install product-discovery@AmitSinghJ2Engg/skill-share
+ 2. Claude reads .claude-plugin/marketplace.json which points to ./dist/build/product-discovery
+ 3. Skills are installed directly from the git repo
+
+ For local testing:
+ claude --plugin-dir dist/build/product-discovery
+
+ Skill manifest (dist/skill-manifest.json)
+
+ For Claude sessions that need system awareness:
+ - A skill or task can read this file to understand what skills exist, their modes, sizes, and dependencies
+ - Useful for the ism-skill-factory or ism-gap-auditor skills (future) that need to reason about the system
+
+ For you (Amit) to check system health:
+ - Open it to see budget percentages (e.g., product-discovery at 94% of 70KB limit)
+ - See which skills are missing SKILL.md
+ - See which skills aren't assigned to any plugin yet
+
+ Key sections:
+ - plugins.{name}.budget_pct -- how close each plugin is to the 70KB limit
+ - coverage.skills_placeholder_only -- skills that need SKILL.md written
+ - coverage.skills_on_disk_not_in_registry -- skills not assigned to any plugin
+ - validation.checks_failed -- quick health check number
+
+ Marketplace JSON (.claude-plugin/marketplace.json)
+
+ Purpose: Lets other users install your plugins from GitHub. Currently lists only product-discovery (the only built plugin). Run --update-marketplace after building more plugins to auto-add them.
+
+ ---
+ Summary: When to run what
+
+ ┌────────────────────────────────────────────┬───────────────────────────────────────────────────────────────────┐
+ │                 Situation                  │                              Command                              │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+ │ "I wrote a new SKILL.md, is it valid?"     │ python tools/build-plugin.py --check product-discovery            │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+ │ "Build a plugin for upload"                │ python tools/build-plugin.py --plugin product-discovery --confirm │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+ │ "Is anything broken across the system?"    │ python tools/validate-system.py                                   │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+ │ "Just give me the manifest, no validation" │ python tools/validate-system.py --manifest-only                   │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+ │ "I built a new plugin, update marketplace" │ python tools/validate-system.py --update-marketplace              │
+ └────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────┘

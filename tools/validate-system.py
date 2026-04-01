@@ -331,7 +331,7 @@ def discover_skills(repo_root):
 def discover_tasks(repo_root):
     """Find all task files. Returns dict of task_name -> parsed task."""
     tasks = {}
-    tasks_dir = os.path.join(repo_root, "docs", "tasks")
+    tasks_dir = os.path.join(repo_root, "tasks")
     if not os.path.isdir(tasks_dir):
         return tasks
 

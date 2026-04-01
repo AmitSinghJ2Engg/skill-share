@@ -23,8 +23,8 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 - [x] **1:** Write SKILL.md for `compliance-ops` (skills/product-evaluation/compliance-ops/) — 4.8 KB, 3 modes
 - [x] **1a:** Write SKILL.md for `fulfillment-ops` (skills/product-testing/fulfillment-ops/) — 4.4 KB, 2 modes
 - [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.ctx.json, financial-constants.ctx.json, gate-criteria.ctx.json, zone-rotation.ctx.json, brand-rules.ctx.md, testing-config.ctx.json, pipeline-config.ctx.json)
-- [x] **2a:** Create `docs/projects/CLAUDE-product-pipeline.proj.md` (project instructions for "Product Pipeline")
-- [x] **2b:** Create `docs/projects/CLAUDE-launch-ops.proj.md` (project instructions for "Launch & Ops")
+- [x] **2a:** Create `projects/CLAUDE-product-pipeline.proj.md` (project instructions for "Product Pipeline")
+- [x] **2b:** Create `projects/CLAUDE-launch-ops.proj.md` (project instructions for "Launch & Ops")
 
 ---
 
@@ -34,7 +34,7 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 
 - [x] CLAUDE-product-pipeline.proj.md project instructions written (also Phase 1 item 2a)
 - [x] CLAUDE-launch-ops.proj.md project instructions written (also Phase 1 item 2b)
-- [x] ism-daily-discovery task instructions written (docs/tasks/product-pipeline-scheduled-daily-discovery.task.md)
+- [x] ism-daily-discovery task instructions written (tasks/product-pipeline-scheduled-daily-discovery.task.md)
 - [ ] ism-stage2-intelligence task instructions written
 - [ ] ism-stage3-vendor-search task instructions written
 - [ ] ism-daily-learning task instructions written

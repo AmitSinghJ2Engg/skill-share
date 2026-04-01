@@ -9,12 +9,17 @@
   "plugins": [
     {
       "name": "product-discovery",
-      "description": "Domain 1 discovery - keyword intelligence, product discovery, screening, market intelligence.",
+      "description": "Domain 1 discovery stages -keyword intelligence, product discovery, screening, market intelligence.",
       "version": "1.0.0",
-      "author": {"name": "Ismokraft"},
+      "author": {
+        "name": "Ismokraft"
+      },
       "source": "./dist/build/product-discovery",
       "category": "productivity",
-      "keywords": ["product-research", "amazon", "ecommerce", "keyword-intelligence", "competitive-analysis"]
+      "keywords": [
+        "ismokraft",
+        "product discovery"
+      ]
     }
   ]
 }

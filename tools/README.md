@@ -1,10 +1,11 @@
-# tools -- Generic Build Scripts
+# tools -- Generic Build & Validation Scripts
 
 These scripts are generic -- not hardcoded to Ismokraft. They work with any plugin or skill directory.
 
 | Script | Purpose | Status |
 |---|---|---|
-| `build-plugin.py` | Packages skills into `.plugin` zip files | NEEDS REWRITE -- see below |
+| `build-plugin.py` | Packages skills into `.plugin` zip files | Operational (6-plugin architecture) |
+| `validate-system.py` | Cross-cutting validation + manifest generation | Operational |
 | `build-skill.py` | Validates and prepares a SKILL.md for plugin inclusion | Operational |
 | `plugin-registry.json` | Maps each plugin to its skill list and metadata | Created |
 
@@ -12,50 +13,46 @@ See `docs/03-implementation-standards.md` section 2 (Plugin Building Standards) 
 
 ---
 
-## build-plugin.py Rewrite Specification
+## build-plugin.py
 
-**Current state:** The script is hardcoded to the old single-plugin architecture (`ismokraft-product-ops`). It:
-- References a deleted README file (`product-system/packages/ismokraft-product-ops-README.md`)
-- Includes `product-ops-config` (removed from plan)
-- Builds one monolithic plugin instead of 6
-- Has no concept of the 6-plugin split
+Builds plugins from the skill-share repo. Reads plugin definitions from `plugin-registry.json`.
 
-**Running it now produces a broken plugin.**
+```
+python build-plugin.py --plugin <name>           # build one plugin
+python build-plugin.py --all                      # build all plugins
+python build-plugin.py --list name1,name2         # build specific plugins
+python build-plugin.py --check <name>             # validate without building
+python build-plugin.py --list-plugins             # show available plugins
+```
 
-### Required Changes
+Requires `pyyaml` (`pip install pyyaml`).
 
-1. **Plugin registry (`plugin-registry.json`):** Define all 6 plugins with their metadata and skill lists:
-   - `product-discovery` (Plugin 1a): KI, PD, PS, MI
-   - `product-evaluation` (Plugin 1b): PE, MC, CO
-   - `product-sourcing` (Plugin 2a): SP, SI, VO, MC
-   - `product-testing` (Plugin 2b): AO, MO, FO, CO
-   - `product-launch` (Plugin 3): CW, CP, CO, FO
-   - `product-ops` (Plugin 4): MO, AO, RO, LE
+---
 
-2. **Build modes:**
-   - `python build-plugin.py --plugin product-discovery` (build one)
-   - `python build-plugin.py --all` (build all)
-   - `python build-plugin.py --list product-discovery,product-evaluation` (build multiple)
+## validate-system.py
 
-3. **Skill location resolution:** All skills live at `skills/{skill-name}/SKILL.md`. No module mapping needed.
+Cross-cutting validation for the entire repo. Checks I/O contracts between skills, cross-plugin dependencies, task-skill references, reference file integrity, and context size budgets. Generates `dist/skill-manifest.json` as a machine-readable system map.
 
-4. **Intermediate build directory:** Assemble to `dist/build/{plugin-name}/` before zipping. This allows inspection. Zip only after `--confirm` flag or when using `--all`.
+```
+python validate-system.py                         # Full validation + generate manifest
+python validate-system.py --check-only            # Validation only, no file generation
+python validate-system.py --manifest-only         # Generate manifest, skip validation
+python validate-system.py --update-marketplace    # Regenerate .claude-plugin/marketplace.json
+python validate-system.py --fix-suggestions       # Include fix suggestions for failures
+```
 
-5. **Dependency reporting:** When building, report:
-   - Which shared skills are included (margin-calculator in 2 plugins, etc.)
-   - If a shared skill's version has changed since last build, warn about other plugins needing rebuild
+No external dependencies (stdlib only).
 
-6. **Validation:**
-   - SKILL.md frontmatter must have `name`, `description`, `version`
-   - Total uncompressed size must be under 70,000 bytes
-   - Skill name in frontmatter must match directory name
+### 5 Validation Checks
 
-7. **Shared skill detection:** Derived automatically from `plugin-registry.json` at build time. Any skill appearing in 2+ plugins is reported as shared. No separate file needed.
+1. **I/O Contract Validation** -- Parses mode tables, checks output types match downstream skill inputs.
+2. **Cross-Plugin Dependencies** -- Flags when a skill references another skill in a different plugin.
+3. **Task-Skill Dependencies** -- Verifies task files reference existing skills and modes.
+4. **Reference File Integrity** -- Checks that every `reference/` path in SKILL.md exists on disk.
+5. **Context Budget** -- Calculates plugin sizes vs 70KB limit and context sizes vs 50KB limit.
 
-### Migration Path
+### Generation Tasks
 
-The rewrite should be done during a Cowork build session. Steps:
-1. Create `plugin-registry.json`
-2. Rewrite `build-plugin.py` to read from registry
-3. Test with one plugin that has all skills ready (likely Plugin 1b: PE, MC, CO -- once CO is written)
-4. Validate output by installing in Claude Desktop
+- **Registry drift detection** -- Reports when SKILL.md frontmatter differs from plugin-registry.json.
+- **Coverage detection** -- Reports skills with/without SKILL.md, skills not in any plugin.
+- **Marketplace update** (`--update-marketplace`) -- Regenerates `.claude-plugin/marketplace.json` from registry for all built plugins.

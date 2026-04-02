@@ -2,12 +2,15 @@
 
 These scripts are generic -- not hardcoded to Ismokraft. They work with any plugin or skill directory.
 
-| Script | Purpose | Status |
-|---|---|---|
-| `build-plugin.py` | Packages skills into `.plugin` zip files | Operational (6-plugin architecture) |
-| `validate-system.py` | Cross-cutting validation + manifest generation | Operational |
-| `build-skill.py` | Validates and prepares a SKILL.md for plugin inclusion | Operational |
-| `plugin-registry.json` | Maps each plugin to its skill list and metadata | Created |
+| Script | Purpose |
+|---|---|
+| `build-plugin.py` | Packages skills into `.plugin` zip files |
+| `build-skill.py` | Validates and prepares a SKILL.md for plugin inclusion |
+| `build.py` | Unified pipeline: registry + validate + build all plugins |
+| `validate-system.py` | Cross-cutting validation + manifest generation |
+| `generate-registry.py` | Scans `skills/*/plugin.json` -> `plugin-registry.json` |
+| `create-skill.py` | Scaffolds new skill directory + eval test directory |
+| `plugin-registry.json` | Generated registry mapping plugins to skills (do not hand-edit) |
 
 See `docs/03-implementation-standards.md` section 2 (Plugin Building Standards) for the full build process.
 

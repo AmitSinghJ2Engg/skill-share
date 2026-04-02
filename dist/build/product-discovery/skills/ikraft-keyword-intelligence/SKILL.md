@@ -5,7 +5,7 @@ description: >
   3-layer keyword model into KeywordSet[]. SCAN: search velocity and emerging
   category signals into TrendSignal[].
 version: "2.0.0"
-lifecycle: active
+lifecycle: prototype
 ---
 
 # Keyword Intelligence
@@ -25,7 +25,7 @@ Generates structured, prioritised keywords for daily product discovery and scans
 
 Produce a prioritised keyword list for today's discovery run using 3 layers.
 
-1. **Load zone data** from project context (`zone-rotation.json`). Extract today's zone seed keywords (Layer 1: Strategic Anchors, max 5). These are stable, curated terms from the opportunity map. Confidence: HIGH.
+1. **Load zone data** from project context (`zone-rotation.ctx.json`). Extract today's zone seed keywords (Layer 1: Strategic Anchors, max 5). These are stable, curated terms from the opportunity map. Confidence: HIGH.
 2. **Expand via autocomplete** (Layer 2: Dynamic Expansion). For each Layer 1 seed, capture Amazon India + Google autocomplete suggestions (max 5 per seed). Filter out excluded categories (toys, medical, electronics, apparel, baby, kids, licensed IP). Each keyword must contain a material or product signal (wood, wooden, bamboo, etc.) or match an opportunity map category. Skip Layer 2 entirely if browser unavailable -- note `layer2_skipped: true`. Confidence: MEDIUM.
 3. **Generate intent variants** (Layer 3: Intent & Premium). Combine zone product types with occasion, emotion, persona, and purchase-intent modifiers. Generate 5-8 keywords. Prioritise modifiers that performed well in past learning signals; suppress modifiers with zero-yield across 3+ runs. Confidence: LOW.
 4. **Apply learning signals** (if `keyword-learning-signals.json` exists in project context): promote top-performing keywords, suppress zero-yield keywords (3+ consecutive runs), use high-score patterns for Layer 3 generation.

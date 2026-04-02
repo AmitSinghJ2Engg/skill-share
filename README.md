@@ -31,6 +31,13 @@ skill-share/
 ## Build Pipeline
 
 ```bash
+python make.py build                       # Cross-platform entry point: registry + validate + build all
+python make.py ci                          # CI mode: registry check + validation (no build)
+```
+
+Or run individual scripts directly:
+
+```bash
 python tools/generate-registry.py          # Scan plugin.json -> plugin-registry.json
 python tools/validate-system.py            # Cross-cutting validation + manifest
 python tools/build-plugin.py --plugin NAME # Build plugin to dist/build/

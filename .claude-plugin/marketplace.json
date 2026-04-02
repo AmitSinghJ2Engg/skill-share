@@ -20,6 +20,76 @@
         "ismokraft",
         "product discovery"
       ]
+    },
+    {
+      "name": "product-evaluation",
+      "description": "Domains 1 + 1.5 -deep evaluation, pre-test economics, compliance feasibility.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/product-evaluation",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "product evaluation"
+      ]
+    },
+    {
+      "name": "product-launch",
+      "description": "Domain 3 -listing copy, capital planning, compliance completion, bulk fulfillment.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/product-launch",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "product launch"
+      ]
+    },
+    {
+      "name": "product-ops",
+      "description": "Domain 4 -live monitoring, ad management, revenue ops, learning engine.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/product-ops",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "product ops"
+      ]
+    },
+    {
+      "name": "product-sourcing",
+      "description": "Domain 2 -product spec, supplier discovery, vendor evaluation, actual unit economics.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/product-sourcing",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "product sourcing"
+      ]
+    },
+    {
+      "name": "product-testing",
+      "description": "Domain 2.5 -test campaigns, monitoring, FBA dispatch, compliance initiation.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/product-testing",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "product testing"
+      ]
     }
   ]
 }

@@ -17,41 +17,41 @@ Transforms discovery data into scored, filtered, reported product opportunities.
 
 | Mode | Input | Output | Downstream |
 |---|---|---|---|
-| **SCORE** | `ProductCandidate[]` | `ScoredCandidate[]` -> CRM | REPORT |
-| **REPORT** | `ScoredCandidate[]` | `OpportunityReport` -> Slack | product-evaluate |
-| **BRIEF** | Single evaluated product | `LaunchBrief` -> CRM | vendor-ops, content-writer |
+| **SCORE** | `ProductCandidate[]` | `ScoredCandidate[]` | REPORT |
+| **REPORT** | `ScoredCandidate[]` | `OpportunityReport` | product-evaluate |
+| **BRIEF** | Single evaluated product | `LaunchBrief` | vendor-ops, content-writer |
 
 If user provides raw CrawlBatch: redirect to product-discover BATCH. Never accept raw crawl data directly.
 
 ## MODE: SCORE
 
-Score each ProductCandidate across 8 dimensions. Returns `ScoredCandidate[]`. Write scores to CRM.
+Score each ProductCandidate across 8 dimensions. Returns `ScoredCandidate[]`.
 
 Read `reference/scoring-rubric-8dim.md` for dimension tables, signal priorities, and scoring tiers. 8 dimensions at 12.5 points each, max 100. Bands: Strong 75-100, Promising 55-74, Weak 35-54, Reject 0-34.
 
-CRM update per candidate: `Opportunity_Score`, `Competition_Level`, `Search_Trend`.
+Returns per candidate: `Opportunity_Score`, `Competition_Level`, `Search_Trend`. CRM persistence handled by zoho-data-ops.
 
 **Output:** candidate_id, title, total_score, score_band, dimension_scores (8 values + sources), marketplaces_scored[]. Batch: scoring_run_id (`PS-S-{YYYYMMDD}-{NNN}`), scored_count, top_candidates.
 
 ## MODE: REPORT
 
-Apply risk filters, produce top-10 report with differentiation ideas, post to Slack.
+Apply risk filters, produce top-10 report with differentiation ideas.
 
 **Stage 1 -- Risk Filter:** Read `reference/risk-filter-rules.md`. 4 filters (Trademark, Seasonality, Certification, Fragility). Verdict = worst result. PASS / CONDITIONAL (flagged) / FAIL (excluded).
 
 **Stage 2 -- Top-10:** For top 10 PASS/CONDITIONAL (by score), per candidate: differentiation idea, wood spec, bundle opportunity, manufacturing difficulty, confidence level, marketplace opportunity.
 
-**Stage 3 -- Slack:** Post to `#product-discovery`: top 10 with scores, filter counts, marketplace coverage.
+Returns `OpportunityReport`. Slack posting handled by task orchestrator.
 
 **Output:** report_id (`PS-R-{YYYYMMDD}-{NNN}`), filter_summary, top_10 array, Markdown summary.
 
 ## MODE: BRIEF
 
-Produce a launch brief for a single evaluated product. Update CRM.
+Produce a launch brief for a single evaluated product.
 
 **Output:** product_title, target_sp_inr, target_cogs_max_inr, target_margin_pct, bigin_stage, marketplace_strategy. Handoffs: margin-calculator (verify margin), vendor-ops (DISCOVER), content-writer (LISTING).
 
-Brief ID: `PS-B-{YYYYMMDD}-{NNN}`. CRM: set `Launch_Priority`.
+Brief ID: `PS-B-{YYYYMMDD}-{NNN}`. CRM updates (e.g., `Launch_Priority`) handled by zoho-data-ops.
 
 ## Input Validation
 
@@ -74,8 +74,8 @@ Brief ID: `PS-B-{YYYYMMDD}-{NNN}`. CRM: set `Launch_Priority`.
 3. Margin Potential dimension is rough viability only. Full margin = margin-calculator.
 4. All ScoredCandidate outputs must trace to input data. Unscored dimensions marked N/A with reason.
 5. FAIL candidates in REPORT excluded but logged in rejection_log with reason.
-6. All score updates write to CRM `Product_Launches` records. No local file saves.
-7. Report summary goes to Slack `#product-discovery`.
+6. Returns scored/filtered data only. CRM writes handled by zoho-data-ops. No local file saves.
+7. Report summary returned to caller. Slack posting handled by task orchestrator.
 8. Data integrity rules from project context apply to all modes.
 
 ## Trigger Phrases

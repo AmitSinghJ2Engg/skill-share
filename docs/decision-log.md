@@ -148,3 +148,103 @@ Non-pipeline packages: `governance`, `platform`, `operations`, `founder`, `resea
 - https://code.claude.com/docs/en/plugins
 - https://code.claude.com/docs/en/skills
 - https://github.com/anthropics/claude-plugins-official
+
+---
+
+## DL-006: Skill Directory Reorganization — Business Capability Groups
+
+**Date:** 2026-04-03
+**Status:** Accepted
+**Context:** DL-004 organized skills by plugin name (product-discovery, product-evaluation, etc.). As the system grew, shared skills like compliance-ops (used by 4 plugins) and margin-calculator (used by 3 plugins) didn't belong in any single plugin's directory. The question: "where does ads-ops live?" had no good answer under the old system.
+
+**Options considered:**
+1. **Keep plugin = package** (DL-004) — shared skills stay in their "primary" plugin. Cross-include via `"from"`.
+2. **Business capability groups** — organize all skills by what they do (research, evaluation, finance, marketing, etc.). Plugins become pure include-lists that pull from capability packages.
+
+**Decision:** Option 2 — Business capability groups.
+
+**New structure:**
+```
+skills/research/        — keyword intelligence, product discovery, screening, market intelligence, supplier intelligence
+skills/evaluation/      — product evaluation, compliance ops, product spec
+skills/finance/         — margin calculator, capital planner, revenue ops
+skills/marketing/       — ads ops, content writer
+skills/sourcing/        — vendor ops
+skills/operations/      — fulfillment ops, product monitor, ecosystem ops, scrum master, skill factory, sop builder, skill commander
+skills/learning/        — learning engine
+skills/platform/        — zoho data ops, zoho developer, zoho solutions architect, automation designer
+skills/governance/      — skill governance, business authority, gap auditor, okr-kpi governance
+skills/core/            — skill creator
+skills/founder/         — ism founder
+```
+
+**Plugin directories** (product-discovery, product-evaluation, etc.) now contain only `plugin.json` with 100% include-based skill lists using `"from"` cross-package references.
+
+**Rationale:**
+- Matches how Amit thinks about the business: "research" skills, "finance" skills, not "product-evaluation plugin skills"
+- Eliminates the arbitrary "primary package" problem for shared skills
+- Plugin.json include lists make the domain-to-capability mapping explicit
+- Build system (generate-registry.py) already supports cross-package includes — no code changes needed
+
+**Supersedes:** DL-004 (Package = Plugin). Plugin directories remain for `plugin.json` definitions but no longer contain skill source code.
+
+**Consequences:**
+- 18 skills moved via git mv (preserves history)
+- All 6 plugin.json files rewritten as 100% include-based
+- Registry regeneration works immediately (tested)
+- `03-implementation-standards.md` needs update to reflect new structure
+
+---
+
+## DL-007: Context File Naming — testing-config.ctx.json
+
+**Date:** 2026-04-03
+**Status:** Accepted
+**Context:** The file `testing-config.ctx.json` was ambiguously named (could mean unit tests, QA, anything). Its content had redundancy between `test_modes` and `test_phases` sections (same data duplicated). Missing explicit success criteria for Gate 2 and platform specification.
+
+**Decision:** Rename to `ppc-test-campaign-config.ctx.json`. Restructure content:
+- Merge test_modes + test_phases into single `phases` object with all details per phase
+- Add `platform` field (amazon_india)
+- Add `success_criteria` section referencing Gate 2 thresholds
+- Keep NEEDS_CONFIRMATION flags for team review
+
+**Consequences:**
+- File renamed in context/product-pipeline/
+- All references in SKILL.md files and domain map updated
+- Content reduced from redundant to single-source
+
+---
+
+## DL-008: amazon-fee-table.md Location and Naming
+
+**Date:** 2026-04-03
+**Status:** Accepted
+**Context:** Amit added `context/product-pipeline/amazon-fee-table.md` with Amazon India 2026 fee tables. The file was missing the `.ctx.md` suffix per our naming convention. Question: should this be in context/ (project knowledge) or in margin-calculator's reference/ directory?
+
+**Decision:** Keep in context/ as `amazon-fee-table.ctx.md`. Fee tables are runtime config that changes with Amazon policy updates and is used by multiple skills (margin-calculator, ads-ops, campaign planning). It's not specific to one skill.
+
+**Consequences:**
+- Renamed from `.md` to `.ctx.md`
+- margin-calculator SKILL.md references it as project context (not local reference)
+- Hardcoded fee table removed from margin-calculator SKILL.md (was 30 lines of duplication)
+
+---
+
+## DL-009: Financial Model Reference Consolidation
+
+**Date:** 2026-04-03
+**Status:** Accepted
+**Context:** Two copies of financial model data existed: `context/product-pipeline/financial_model_reference.md` (new draft from Amit's spreadsheet, 19 KB) and `skills/product-evaluation/margin-calculator/reference/financial-model-reference.md` (detailed analysis, 19 KB). Redundancy and confusion about which is authoritative.
+
+**Decision:** Consolidate into `skills/finance/margin-calculator/reference/financial-model-reference.md` (new path after DL-006 reorg). Trim from 19 KB to ~4 KB. Delete the context/ copy. This is skill reference (case study analysis), not runtime config.
+
+**Trimming approach:**
+- Keep: formula chain summary, key defaults table, bid optimizer logic, 16-month projection summary
+- Keep: all 12 documented errors with corrections (valuable for accuracy)
+- Remove: cell-by-cell spreadsheet walkthrough, raw formula tables, detailed cross-sheet maps
+- Result: 91 lines, 4 KB (from 409 lines, 19 KB — 79% reduction)
+
+**Consequences:**
+- Single authoritative file in margin-calculator reference/
+- Context/ copy deleted (was untracked anyway)
+- financial-formulas.md remains the primary runtime formula reference (unchanged, 0.6 KB)

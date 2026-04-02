@@ -1,10 +1,12 @@
 {
   "name": "product-ops",
-  "description": "Domain 4 -live monitoring, ad management, revenue ops, learning engine.",
+  "description": "Domain 4 — live monitoring, ad management, revenue ops, learning engine.",
   "version": "1.0.0",
   "project": "Launch & Ops",
   "include": [
-    {"skill": "product-monitor", "from": "product-testing"},
-    {"skill": "ads-ops", "from": "product-testing"}
+    {"skill": "ism-learning-engine", "from": "learning"},
+    {"skill": "revenue-ops", "from": "finance"},
+    {"skill": "product-monitor", "from": "operations"},
+    {"skill": "ads-ops", "from": "marketing"}
   ]
 }

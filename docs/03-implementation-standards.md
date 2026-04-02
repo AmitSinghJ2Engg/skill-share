@@ -13,7 +13,9 @@
 ```markdown
 ---
 name: skill-name
-description: One-line description under 160 characters. Start with a verb.
+description: >
+  Up to 1024 characters. Include WHAT the skill does, WHEN to trigger it, and key trigger
+  phrases. This is always in context — the body loads only when triggered.
 version: "1.0.0"
 lifecycle: prototype
 ---
@@ -173,12 +175,12 @@ Each level is isolated and owns its own definition. Composition happens at the p
 
 ### Plugin Definition (plugin.json)
 
-Each plugin package has a `plugin.json` at its root (`skills/{package}/plugin.json`). Local skills are **auto-discovered** (any subdir with SKILL.md). Only cross-package skills need `include`.
+Plugin directories contain a `plugin.json` that lists all skills via `include` entries pointing to capability group packages (see DL-006). Skills are organized by business capability (research, evaluation, finance, marketing, etc.), not by plugin.
 
 ```json
 {
   "name": "plugin-name",
-  "description": "What this plugin provides. Under 160 characters.",
+  "description": "What this plugin provides. Up to 1024 characters.",
   "version": "1.0.0",
   "project": "Product Pipeline",
   "include": [
@@ -494,7 +496,7 @@ skill-share/
       gate-criteria.ctx.json
       zone-rotation.ctx.json
       brand-rules.ctx.md
-      testing-config.ctx.json
+      ppc-test-campaign-config.ctx.json
       pipeline-config.ctx.json
     launch-ops/
       listing-standards.json
@@ -549,7 +551,7 @@ skill-share/
 ```
 
 ### Rules
-- All skills live in `skills/{package}/{name}/` at the repo root. Each package maps to a plugin. Each skill has a `SKILL.md` and optional supporting files (reference/, scripts/, templates/). Shared skills have one primary package; other plugins reference them via `include` in `skills/{package}/plugin.json`.
+- All skills live in `skills/{capability}/{name}/` at the repo root. Capability groups: research, evaluation, finance, marketing, sourcing, operations, learning, platform, governance, core, founder (see DL-006). Each skill has a `SKILL.md` and optional supporting files (reference/, scripts/, templates/). Plugins pull skills from capability groups via `include` entries in `skills/{plugin}/plugin.json`.
 - Supporting files (reference/, scripts/) are packaged into the plugin alongside SKILL.md. They count toward the 70 KB plugin limit.
 - The plugin contains the complete skill directory (SKILL.md + supporting files) per skill.
 - The repo is the source of truth for skill source code. Plugins are built artifacts.
@@ -575,24 +577,23 @@ skill-share/
 
 ## 8. Skills Awaiting SKILL.md
 
-The following skills are defined in the architecture (`02-business-domain-map.md`) but do not yet have a SKILL.md file. They must be written during Cowork build sessions following the standards in §1. Each skill's SKILL.md goes in its module directory under `skills/{skill-name}/SKILL.md`.
+The following skills are defined in the architecture (`02-business-domain-map.md`) but do not yet have a SKILL.md file. They must be written during Cowork build sessions following the standards in §1.
 
-| Skill | Package / Directory | Priority | Needed For |
-|-------|-------------------|----------|------------|
-| `compliance-ops` | `skills/product-evaluation/` | High | Plugins 1b, 2b, 3 |
-| `fulfillment-ops` | `skills/product-testing/` | High | Plugins 2b, 3 |
-| `supplier-intelligence` | `skills/product-sourcing/` | Medium | Plugin 2a |
-| `ads-ops` | `skills/product-testing/` | Medium | Plugins 2b, 4 |
-| `capital-planner` | `skills/product-launch/` | Medium | Plugin 3 |
-| `revenue-ops` | `skills/product-ops/` | Low | Plugin 4 |
-| `ism-learning-engine` | `skills/product-ops/` | Low | Plugin 4 |
+| Skill | Capability Group | Priority | Needed For |
+|-------|-----------------|----------|------------|
+| `supplier-intelligence` | `skills/research/` | Medium | Plugin 2a |
+| `capital-planner` | `skills/finance/` | Medium | Plugin 3 |
+| `revenue-ops` | `skills/finance/` | Low | Plugin 4 |
+| `ism-learning-engine` | `skills/learning/` | Low | Plugin 4 |
 
-**Build session instructions:** Use `python tools/create-skill.py {package} {skill-name}` to scaffold a new skill. This creates the skill directory, a minimal SKILL.md with valid frontmatter, and a test directory under `tests/`. Then:
+Previously missing, now written: `compliance-ops` (evaluation/), `fulfillment-ops` (operations/), `ads-ops` (marketing/), `margin-calculator` (finance/).
+
+**Build session instructions:** Use `python tools/create-skill.py {capability} {skill-name}` to scaffold a new skill. This creates the skill directory, a minimal SKILL.md with valid frontmatter, and a test directory under `tests/`. Then:
 1. Read `02-business-domain-map.md` for the skill's domain, modes, data produced/consumed.
-2. Read existing reference files in `skills/{package}/{name}/reference/` (if any) for domain knowledge.
+2. Read existing reference files in `skills/{capability}/{name}/reference/` (if any) for domain knowledge.
 3. Follow §1 structure exactly: frontmatter, purpose, modes, input/output contracts, execution steps, trigger phrases.
 4. Ensure the file stays under 5 KB. Move detailed rubrics/thresholds to reference files or project context.
-5. Write the completed SKILL.md to `skills/{package}/{name}/SKILL.md`.
+5. Write the completed SKILL.md to `skills/{capability}/{name}/SKILL.md`.
 6. Write eval test cases to `tests/{skill-name}/evals.json` (see skill-creator eval workflow).
 
 ---

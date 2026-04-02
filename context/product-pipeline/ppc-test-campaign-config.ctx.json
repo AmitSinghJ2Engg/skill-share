@@ -1,0 +1,75 @@
+{
+  "_generated": "2026-04-02",
+  "_source": "docs/02-business-domain-map.md Domain 2.5 test execution framework",
+  "_note": "Values marked NEEDS_CONFIRMATION require team input before use in live campaigns.",
+
+  "platform": "amazon_india",
+
+  "phases": {
+    "phase_1_discovery": {
+      "goal": "Keyword discovery — which keywords Amazon associates with the product",
+      "campaign_type": "auto",
+      "bid_strategy": "dynamic bids - down only",
+      "default_bid_inr": 5,
+      "budget_daily_inr": 500,
+      "budget_note": "NEEDS_CONFIRMATION: suggested daily budget for auto campaigns",
+      "duration_days": 10,
+      "duration_note": "NEEDS_CONFIRMATION: 7-10 days typical, using 10 as default",
+      "qc_requirement": "WAIVED permitted (with human approval)",
+      "output": "Keyword list with impression, CTR, and search term data"
+    },
+    "phase_2_validation": {
+      "goal": "Bottom-line unit economics validation per keyword — actual CVR, ACoS, margin",
+      "campaign_type": "manual (exact + phrase match from Phase 1 keywords)",
+      "bid_strategy": "dynamic bids - up and down",
+      "default_bid_inr": 8,
+      "budget_daily_inr": 1000,
+      "budget_note": "NEEDS_CONFIRMATION: suggested daily budget for manual campaigns",
+      "duration_days": 14,
+      "duration_note": "NEEDS_CONFIRMATION: suggested duration for manual campaigns",
+      "qc_requirement": "PASS mandatory",
+      "output": "Keyword-level CVR, ACoS, CPC, margin validation data"
+    }
+  },
+
+  "data_quality_thresholds": {
+    "HIGH": {
+      "min_keywords_with_data": 5,
+      "min_impressions_per_keyword": 1000,
+      "description": "Sufficient data across enough keywords for confident margin decisions"
+    },
+    "MEDIUM": {
+      "min_keywords_with_data": 3,
+      "min_impressions_per_keyword": 500,
+      "description": "Directional signal present but some keywords lack volume"
+    },
+    "LOW": {
+      "min_keywords_with_data": 1,
+      "min_impressions_per_keyword": 100,
+      "description": "Insufficient data to draw conclusions"
+    },
+    "_note": "NEEDS_CONFIRMATION: these thresholds are initial estimates"
+  },
+
+  "extension_rules": {
+    "max_extension_days": 7,
+    "trigger": "Data quality is LOW after phase completes",
+    "requires_human_approval": true
+  },
+
+  "stopping_rules": {
+    "early_stop": false,
+    "note": "Tests always run their configured duration. No early auto-stop.",
+    "extension_requires_approval": true
+  },
+
+  "success_criteria": {
+    "gate_2_pass": {
+      "keyword_level_margin": "Net margin positive on >=3 keywords with sufficient volume",
+      "blended_acos": "Blended ACoS <= breakeven ACoS from margin-calculator",
+      "data_quality": "HIGH or MEDIUM (LOW requires extension or human override)",
+      "compliance_timeline": "ComplianceRecord.expectedCompletionDate <= ScaleDecision.launchTimeline"
+    },
+    "_note": "Detailed thresholds in gate-criteria.ctx.json"
+  }
+}

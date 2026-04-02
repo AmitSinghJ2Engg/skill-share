@@ -20,9 +20,9 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 ## Phase 1: Foundation
 
-- [x] **1:** Write SKILL.md for `compliance-ops` (skills/product-evaluation/compliance-ops/) — 4.8 KB, 3 modes
-- [x] **1a:** Write SKILL.md for `fulfillment-ops` (skills/product-testing/fulfillment-ops/) — 4.4 KB, 2 modes
-- [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.ctx.json, financial-constants.ctx.json, gate-criteria.ctx.json, zone-rotation.ctx.json, brand-rules.ctx.md, testing-config.ctx.json, pipeline-config.ctx.json)
+- [x] **1:** Write SKILL.md for `compliance-ops` (skills/evaluation/compliance-ops/) — 4.8 KB, 3 modes
+- [x] **1a:** Write SKILL.md for `fulfillment-ops` (skills/operations/fulfillment-ops/) — 4.4 KB, 2 modes
+- [x] **2:** Generate all 7 `context/product-pipeline/` files (crm-field-mappings.ctx.json, financial-constants.ctx.json, gate-criteria.ctx.json, zone-rotation.ctx.json, brand-rules.ctx.md, ppc-test-campaign-config.ctx.json, pipeline-config.ctx.json)
 - [x] **2a:** Create `projects/CLAUDE-product-pipeline.proj.md` (project instructions for "Product Pipeline")
 - [x] **2b:** Create `projects/CLAUDE-launch-ops.proj.md` (project instructions for "Launch & Ops")
 
@@ -35,6 +35,7 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 - [x] CLAUDE-product-pipeline.proj.md project instructions written (also Phase 1 item 2a)
 - [x] CLAUDE-launch-ops.proj.md project instructions written (also Phase 1 item 2b)
 - [x] ism-daily-discovery task instructions written (tasks/product-pipeline-scheduled-daily-discovery.task.md)
+- [x] ism-test-campaign task instructions written (tasks/product-pipeline-event-test-campaign.task.md)
 - [ ] ism-stage2-intelligence task instructions written
 - [ ] ism-stage3-vendor-search task instructions written
 - [ ] ism-daily-learning task instructions written
@@ -46,17 +47,31 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 
 ---
 
-## Phase 2: Plugins
+## Phase 2: Plugins + Skills
 
 - [x] **3:** Trim product-discover SKILL.md as reference example (target: under 5 KB)
 - [x] **3a:** Write missing SKILL.md files: ikraft-keyword-intelligence, product-market-intelligence
 - [ ] **3b:** Trim existing SKILL.md files: product-screen (done), product-evaluate, product-spec, product-monitor, vendor-ops, content-writer
-- [ ] **3c:** Write SKILL.md for margin-calculator
+- [x] **3c:** Refactor margin-calculator SKILL.md (14KB→7KB, 5 modes: ESTIMATE/ACTUAL/COMPARISON/CHANNEL/BREAKEVEN)
 - [x] **3d:** Build Plugin 1a "product-discovery" (KI, PD, PS, MI)
 - [ ] **3e:** Build Plugin 1b "product-evaluation" (PE, MC, CO)
-- [ ] **3f:** Write missing SKILL.md files: supplier-intelligence, ads-ops
+- [x] **3f:** Write ads-ops SKILL.md (6.3KB, 2 modes: TEST/LIVE)
 - [ ] **3g:** Build Plugin 2a "product-sourcing" (SP, SI, VO, MC)
 - [ ] **3h:** Build Plugin 2b "product-testing" (AO, MO, FO, CO)
+
+---
+
+## Directory Reorganization (DL-006, 2026-04-03)
+
+- [x] Reorganize skills/ from workflow packages to business capability groups (18 moves)
+- [x] Update all 6 plugin.json files to 100% include-based
+- [x] Rename testing-config.ctx.json → ppc-test-campaign-config.ctx.json (DL-007)
+- [x] Rename amazon-fee-table.md → amazon-fee-table.ctx.md (DL-008)
+- [x] Consolidate financial-model-reference.md (19KB→4KB, DL-009)
+- [x] Registry regeneration verified
+- [x] Decision log updated (DL-006 through DL-009)
+- [x] 03-implementation-standards.md updated (description limit, directory structure)
+- [x] 02-business-domain-map.md updated (artifact names, config file names)
 
 ---
 
@@ -67,8 +82,8 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 - [ ] **6a:** Build Positioning Workbench artifact
 - [ ] **6b:** Build Portfolio Dashboard artifact
 - [ ] **7:** Build Sourcing Workbench artifact
-- [ ] **7a:** Build Test Lab A artifact (Plan + Run)
-- [ ] **7b:** Build Test Lab B artifact (Analyze + Decide)
+- [ ] **7a:** Build Campaign Planner artifact (Plan + Run)
+- [ ] **7b:** Build Scale Decision Workbench artifact (Analyze + Decide)
 
 ---
 
@@ -98,3 +113,4 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 - [x] Test execution framework designed
 - [x] Portfolio Dashboard designed
 - [x] Build order restructured with verification gates
+- [x] Skills reorganized by business capability (DL-006)

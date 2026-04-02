@@ -178,20 +178,20 @@ Phase 1 (Data-buying): Run auto campaigns for 7-10 days. Goal is keyword discove
 Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. Larger budget. Goal is actual CVR and ACoS per keyword to validate bottom-line economics.
 
 **Test stopping and data quality:**
-- Tests always run their configured duration (`duration_days` in `testing-config.ctx.json`). No early auto-stop.
+- Tests always run their configured duration (`duration_days` in `ppc-test-campaign-config.ctx.json`). No early auto-stop.
 - After each phase completes, the analysis rates data quality as HIGH / MEDIUM / LOW based on volume collected in the given time:
   - HIGH: Sufficient data across enough keywords to make confident margin decisions
   - MEDIUM: Directional signal present but some keywords lack volume
   - LOW: Insufficient data to draw conclusions
-- If data quality is LOW, Test Lab B surfaces an `extend_recommended: true` flag with suggested extension period (`max_extension_days` from config).
+- If data quality is LOW, Scale Decision Workbench surfaces an `extend_recommended: true` flag with suggested extension period (`max_extension_days` from config).
 - Extension is always human-approved — never automatic.
 
 **Keyword-level bottom-line validation:**
 - Human exports PPC Search Term Report from Seller Central as CSV
-- Imports into Test Lab B artifact (via papaparse CSV import)
-- Test Lab B + real-time Claude analyzes at keyword level: at this keyword's actual CPC and CVR, does the product make margin?
+- Imports into Scale Decision Workbench artifact (via papaparse CSV import)
+- Scale Decision Workbench + real-time Claude analyzes at keyword level: at this keyword's actual CPC and CVR, does the product make margin?
 - The Gate 2 decision is NOT "did we get enough impressions" — it is "across all viable keywords, is there enough volume at viable unit economics for bulk economics to work?"
-- `testing-config.ctx.json` contains: `duration_days` per mode, `data_quality_thresholds` (volume benchmarks for HIGH/MEDIUM/LOW rating), `max_extension_days`
+- `ppc-test-campaign-config.ctx.json` contains: `duration_days` per mode, `data_quality_thresholds` (volume benchmarks for HIGH/MEDIUM/LOW rating), `max_extension_days`
 
 **Seller Central manual steps** (no MCP integration): creating the test listing, setting up FBA inbound shipment plan in Seller Central are done by team. Guided by the **Seller Central Operations artifact** (see "Launch & Ops" project). Fulfillment-ops creates the Zoho records; team does Seller Central manually. Note: Zoho Inventory is connected to Seller Central as a selling channel — order data flows automatically once live.
 
@@ -215,10 +215,10 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 - Domain 2 (SampleConfirmation, MarginRecord, PricingStrategy, ProductSpec, ConfirmedVendorRecord, ComplianceRecord)
 - Domain 1 (CostEstimate)
 - Domain 1.5 (USPStatement)
-- Project context (`testing-config.ctx.json`, `gate-criteria.ctx.json`, `financial-constants.ctx.json`)
+- Project context (`ppc-test-campaign-config.ctx.json`, `gate-criteria.ctx.json`, `financial-constants.ctx.json`)
 - CRM (Product_Launches record)
 
-**Stage exit checklists (enforced by Test Lab artifacts — disable advance until met):**
+**Stage exit checklists (enforced by Campaign Planner + Scale Decision Workbench artifacts — disable advance until met):**
 - Stage 5 (Paid Testing) exit: Title + 5 bullets + description complete. Main image + 6 lifestyle images ready. Backend keywords set. TestPlan approved.
 - Stage 6 (Scale Decision) exit: Keyword-level bottom-line validation complete. CostComparison generated. ComplianceTimelineCheck performed.
 
@@ -230,9 +230,9 @@ Phase 2 (Conversion testing): Run manual campaigns targeting Phase 1 keywords. L
 
 **Hands off to:** Domain 3 (ScaleDecision, CostingScenarios, TestResults, TestListingDraft, confirmed bulk specs). Gate 2 pass also triggers **Source to Pay pipeline record** in Bigin.
 
-**Artifacts:** Test Lab is split into two artifacts to stay within 2,000-line limit.
-- **Test Lab A** — Plan + Run (wizard/stepper: Mode Selection → Budget & Targeting → TestPlan Approval → Live Test Tracker with daily metrics)
-- **Test Lab B** — Analyze + Decide (tabs: Cost Comparison | CVR Analysis | Compliance Timeline | Costing Scenarios | Scale Decision). Uses real-time Claude API for scale decision analysis and scenario recommendations.
+**Artifacts:** Split into two artifacts to stay within 2,000-line limit.
+- **Campaign Planner** — Plan + Run (wizard/stepper: Mode Selection → Budget & Targeting → TestPlan Approval → Live Test Tracker with daily metrics)
+- **Scale Decision Workbench** — Analyze + Decide (tabs: Cost Comparison | Keyword Analysis | Compliance Timeline | Costing Scenarios | Gate 2 Decision). Uses real-time Claude API for scale decision analysis and scenario recommendations.
 - Both: left nav product list, header AI context panel
 
 ---
@@ -536,8 +536,8 @@ Two-tier vendor scoring to support supplier reuse across multiple products.
 | Gate 1 pass/fail | Domain 1 | Discovery Dashboard | Medium |
 | SelectedScenario (differentiation path) | Domain 1.5 | Positioning Workbench | High |
 | SampleConfirmation dispatch approval | Domain 2 | Sourcing Workbench | Medium |
-| TestPlan approval (before ad spend) | Domain 2.5 | Test Lab A | High |
-| ScaleDecision / bulk commit (Gate 2) | Domain 2.5 | Test Lab B | Critical |
+| TestPlan approval (before ad spend) | Domain 2.5 | Campaign Planner | High |
+| ScaleDecision / bulk commit (Gate 2) | Domain 2.5 | Scale Decision Workbench | Critical |
 | Amazon listing copy approval | Domain 3 | Launch Control | Medium |
 | Shopify listing copy approval | Domain 3 | Launch Control | Medium |
 | Gate 3 compliance sign-off | Domain 3 | Launch Control | High |
@@ -587,8 +587,8 @@ All other Claude outputs are AI-produced, human-visible, but do not block pipeli
 | Discovery Dashboard | Tabs | Multiple independent views, no required order |
 | Positioning Workbench | Wizard/stepper | Sequential — cannot build USP before selecting scenario |
 | Sourcing Workbench | Tabs | Multiple independent views |
-| Test Lab A (Plan + Run) | Wizard/stepper | Sequential — cannot run before planning |
-| Test Lab B (Analyze + Decide) | Tabs | Independent analysis views |
+| Campaign Planner (Plan + Run) | Wizard/stepper | Sequential — cannot run before planning |
+| Scale Decision Workbench (Analyze + Decide) | Tabs | Independent analysis views |
 | Launch Control | Tabs | Multiple independent views |
 | Operations Dashboard | Tabs | Multiple independent views |
 | Seller Central Operations | Checklist + tabs | Task tracking across two domains |
@@ -629,13 +629,13 @@ Artifacts that call the Anthropic API in real-time (API key configured in artifa
 | Artifact | What Claude generates in real-time |
 |---|---|
 | Positioning Workbench | DifferentiationScenario options from CompetitorProfile[], USP copy from SelectedScenario |
-| Test Lab B | Scale decision analysis, CostingScenario narrative, recommendation with reasoning |
+| Scale Decision Workbench | Scale decision analysis, CostingScenario narrative, recommendation with reasoning |
 
 All other artifacts display pre-computed skill output. They do not call Claude API.
 
 ### Artifact Size Management
 - Target: under 2,000 lines per artifact file
-- Test Lab is split into A (Plan + Run) and B (Analyze + Decide) specifically for this reason
+- Domain 2.5 is split into Campaign Planner (Plan + Run) and Scale Decision Workbench (Analyze + Decide) specifically for this reason
 - Complex tabs that exceed ~400 lines should be broken into sub-components within the same file
 - Use Tailwind CSS utilities only — no compiled CSS
 
@@ -769,7 +769,7 @@ Each checklist item has: step description, Confluence SOP link, completion check
 **"Product Pipeline"** (Claude.ai project)
 - Covers: Domain 1 + 1.5 + 2 + 2.5
 - Plugins: 4 plugins (1a product-discovery, 1b product-evaluation, 2a product-sourcing, 2b product-testing — all under 20 KB each)
-- Artifacts: 6 (Discovery Dashboard v1.0, Positioning Workbench v1.0, Sourcing Workbench v1.0, Test Lab A v1.0, Test Lab B v1.0, Portfolio Dashboard v1.0)
+- Artifacts: 6 (Discovery Dashboard v1.0, Positioning Workbench v1.0, Sourcing Workbench v1.0, Campaign Planner v1.0, Scale Decision Workbench v1.0, Portfolio Dashboard v1.0)
 - Project knowledge: context files listed below
 - Requires: CLAUDE.md per 03 §4 — defines project context, pipeline, integrations, artifact registry
 - CLAUDE.md template: `projects/CLAUDE-product-pipeline.proj.md` (to be created during build session)
@@ -798,7 +798,7 @@ All files are stored in Git at `skill-share/context/` and loaded into Claude.ai 
 | `gate-criteria.ctx.json` | JSON | Gate 1 thresholds (CBFA min, ACoS max, compliance rules), Gate 2 thresholds (CVR/CTR paths A+B), Gate 3 checklist | ~4 KB |
 | `zone-rotation.ctx.json` | JSON | Zone definitions, rotation schedule, marketplace rotation, scoring weights per zone | ~3 KB |
 | `brand-rules.ctx.md` | MD | Brand name, brand story, values, price floor rule, target customer profiles, positioning guardrails, tone of voice | ~3 KB |
-| `testing-config.ctx.json` | JSON | Default test budgets per mode, duration range, mode decision criteria, scaling thresholds, bid strategy defaults | ~3 KB |
+| `ppc-test-campaign-config.ctx.json` | JSON | Default test budgets per mode, duration range, mode decision criteria, scaling thresholds, bid strategy defaults | ~3 KB |
 | `pipeline-config.ctx.json` | JSON | Bigin pipeline IDs, Bigin stage IDs, Source to Pay pipeline ID, Slack channel IDs (fill when known), ISM Learnings module ID + fields, Vendors module ID, Confluence space key | ~2 KB |
 
 **Total `context/product-pipeline/`: ~26 KB**
@@ -927,8 +927,8 @@ Run in a Cowork session with workspace set to the repo. For each context file:
 | 6a | Build Positioning Workbench artifact | Differentiation + USP |
 | 6b | Build Portfolio Dashboard artifact | Strategic portfolio view |
 | 7 | Build Sourcing Workbench artifact | Vendor evaluation + dispatch approval |
-| 7a | Build Test Lab A artifact (Plan + Run) | Test campaign planning and live tracking |
-| 7b | Build Test Lab B artifact (Analyze + Decide) | Cost comparison + keyword-level validation + scale decision |
+| 7a | Build Campaign Planner artifact (Plan + Run) | Test campaign planning and live tracking |
+| 7b | Build Scale Decision Workbench artifact (Analyze + Decide) | Cost comparison + keyword-level validation + scale decision |
 
 ### Phase 4: Launch & Operations (when products go live)
 

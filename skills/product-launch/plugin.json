@@ -1,10 +1,12 @@
 {
   "name": "product-launch",
-  "description": "Domain 3 -listing copy, capital planning, compliance completion, bulk fulfillment.",
+  "description": "Domain 3 — listing copy, capital planning, compliance completion, bulk fulfillment.",
   "version": "1.0.0",
   "project": "Launch & Ops",
   "include": [
-    {"skill": "compliance-ops", "from": "product-evaluation"},
-    {"skill": "fulfillment-ops", "from": "product-testing"}
+    {"skill": "content-writer", "from": "marketing"},
+    {"skill": "capital-planner", "from": "finance"},
+    {"skill": "compliance-ops", "from": "evaluation"},
+    {"skill": "fulfillment-ops", "from": "operations"}
   ]
 }

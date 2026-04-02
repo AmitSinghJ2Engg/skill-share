@@ -1,9 +1,13 @@
 {
   "name": "product-sourcing",
-  "description": "Domain 2 -product spec, supplier discovery, vendor evaluation, actual unit economics.",
+  "description": "Domain 2 — product spec, supplier discovery, vendor evaluation, actual unit economics, compliance initiation.",
   "version": "1.0.0",
   "project": "Product Pipeline",
   "include": [
-    {"skill": "margin-calculator", "from": "product-evaluation"}
+    {"skill": "product-spec", "from": "evaluation"},
+    {"skill": "supplier-intelligence", "from": "research"},
+    {"skill": "vendor-ops", "from": "sourcing"},
+    {"skill": "margin-calculator", "from": "finance"},
+    {"skill": "compliance-ops", "from": "evaluation"}
   ]
 }

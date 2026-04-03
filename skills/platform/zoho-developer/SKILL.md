@@ -30,17 +30,17 @@ surfaces. Responsible for all code running in the Ismokraft Zoho stack.
 ## Session Protocol
 
 1. Check memory for `ZD-*` entries
-2. If building Bigin code: read `zoho-solutions-architect/reference/bigin-live-state.md`
+2. If building Bigin code: read `zoho-solutions-architect/references/bigin-live-state.md`
 3. If a Tech Spec exists: read it fully before writing any code
 
 ## Execution Steps
 
-1. **Identify build surface.** Pick one: Deluge Function, Zoho Flow, Creator App, CRM Widget, Client Script, REST API, MCP. See `reference/surfaces.md` for capabilities and limits.
+1. **Identify build surface.** Pick one: Deluge Function, Zoho Flow, Creator App, CRM Widget, Client Script, REST API, MCP. See `references/surfaces.md` for capabilities and limits.
 2. **Pre-code checklist.** Verify field names against `crm-field-mappings.ctx.json` (never guess). Check standard patterns. Define input, output, failure modes, API credit cost, cascade effects.
-3. **Write code.** Follow mandatory Deluge structure per `reference/deluge-patterns.md`: header comment (name, purpose, trigger, registry ID), input validation first, main logic, error handling last. Use Zoho Connections (never hardcode credentials). Batch over loops. Event-driven only.
-4. **Error handling.** Apply severity levels per `reference/error-patterns.md`: INFO (log), WARNING (Cliq alert + continue), ERROR (Cliq alert + halt), CRITICAL (Cliq + Desk ticket).
-5. **Test.** Execute test sequence per `reference/testing.md`: editor dry run -> sandbox -> edge cases -> cascade -> production. Minimum 5 test cases per function.
-6. **Register.** Add to `reference/code-registry.md` before go-live. IDs: ISM-FN (Deluge), ISM-CR (Creator), ISM-WG (Widget).
+3. **Write code.** Follow mandatory Deluge structure per `references/deluge-patterns.md`: header comment (name, purpose, trigger, registry ID), input validation first, main logic, error handling last. Use Zoho Connections (never hardcode credentials). Batch over loops. Event-driven only.
+4. **Error handling.** Apply severity levels per `references/error-patterns.md`: INFO (log), WARNING (Cliq alert + continue), ERROR (Cliq alert + halt), CRITICAL (Cliq + Desk ticket).
+5. **Test.** Execute test sequence per `references/testing.md`: editor dry run -> sandbox -> edge cases -> cascade -> production. Minimum 5 test cases per function.
+6. **Register.** Add to `references/code-registry.md` before go-live. IDs: ISM-FN (Deluge), ISM-CR (Creator), ISM-WG (Widget).
 7. **Deploy.** Increment version, update registry, test per Step 5 before enabling.
 
 ## Pre-Execution Validation
@@ -54,11 +54,11 @@ surfaces. Responsible for all code running in the Ismokraft Zoho stack.
 
 ## Input Contract
 
-Required: `mode`, `surface`, `function_purpose`. Optional: `tech_spec_available`, `trigger`, `app`. Full schemas in `reference/schemas.md`.
+Required: `mode`, `surface`, `function_purpose`. Optional: `tech_spec_available`, `trigger`, `app`. Full schemas in `references/schemas.md`.
 
 ## Output Contract
 
-Required: `registry_id`, `surface`, `version`, `code`. Optional: `test_cases[]`, `registry_entry`, `deploy_steps[]`. Full schemas in `reference/schemas.md`.
+Required: `registry_id`, `surface`, `version`, `code`. Optional: `test_cases[]`, `registry_entry`, `deploy_steps[]`. Full schemas in `references/schemas.md`.
 
 ## Related Skills
 
@@ -73,14 +73,14 @@ Required: `registry_id`, `surface`, `version`, `code`. Optional: `test_cases[]`,
 
 | File | Read when |
 |------|-----------|
-| `reference/surfaces.md` | Choosing build surface; capability limits |
-| `reference/deluge-patterns.md` | Deluge recipes, integration patterns, performance tips |
-| `reference/api-limits.md` | API credit costs, rate limits per Zoho app |
-| `reference/error-patterns.md` | Error handling recipes; shared alert utility |
-| `reference/testing.md` | Test case templates, sandbox setup |
-| `reference/code-registry.md` | Authoritative list of all custom code |
-| `reference/governance.md` | KPIs, dependency metadata |
-| `reference/schemas.md` | Full JSON schemas |
+| `references/surfaces.md` | Choosing build surface; capability limits |
+| `references/deluge-patterns.md` | Deluge recipes, integration patterns, performance tips |
+| `references/api-limits.md` | API credit costs, rate limits per Zoho app |
+| `references/error-patterns.md` | Error handling recipes; shared alert utility |
+| `references/testing.md` | Test case templates, sandbox setup |
+| `references/code-registry.md` | Authoritative list of all custom code |
+| `references/governance.md` | KPIs, dependency metadata |
+| `references/schemas.md` | Full JSON schemas |
 
 ## Trigger Phrases
 

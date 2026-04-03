@@ -91,7 +91,7 @@ def main():
 
     skill_dir = REPO_ROOT / "skills" / args.package / args.skill_name
     test_dir = REPO_ROOT / "tests" / args.skill_name
-    ref_dir = skill_dir / "reference"
+    ref_dir = skill_dir / "references"
     skill_md = skill_dir / "SKILL.md"
 
     # Check if skill already exists
@@ -146,7 +146,7 @@ def main():
 Next steps:
   1. Edit {skill_md.relative_to(REPO_ROOT)} -- fill in Purpose, Modes, Execution Steps
   2. Read docs/02-business-domain-map.md for domain context
-  3. Keep SKILL.md under 5 KB; move detail to reference/ files
+  3. Keep SKILL.md under 5 KB; move detail to references/ files
   4. Add eval test cases to {evals_path.relative_to(REPO_ROOT)}
   5. Run: python tools/generate-registry.py  (to pick up the new skill)
   6. Run: python tools/validate-system.py    (to validate the full system)

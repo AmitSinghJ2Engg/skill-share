@@ -49,7 +49,7 @@ Two-phase structured test per `ppc-test-campaign-config.ctx.json`:
 
 **After Phase 1 runs** (team executes in Seller Central):
 - Team exports Search Term Report CSV from Seller Central
-- Analyze report using 4-bucket framework (see `reference/ads-metrics.md` keyword action rules):
+- Analyze report using 4-bucket framework (see `references/ads-metrics.md` keyword action rules):
   - **Winners:** Orders >= 3, ACoS <= target → promote to manual exact
   - **Learners:** Orders >= 1, ACoS <= breakeven → hold, monitor
   - **Losers:** Orders = 0, Spend > threshold → negate
@@ -87,7 +87,7 @@ TestResults: {keywords[], blended_acos, blended_roas, data_quality, viable_keywo
 
 Ongoing optimization of active campaigns:
 
-1. **Health check** — classify each campaign/keyword using `reference/ads-metrics.md` thresholds:
+1. **Health check** — classify each campaign/keyword using `references/ads-metrics.md` thresholds:
    - ACoS vs target/breakeven, CTR health, CVR health, spend efficiency
 2. **Bid optimization** — recommend bid adjustments per keyword action rules
 3. **Budget scaling** — if blended ACoS <= target, recommend budget increase with guardrails
@@ -105,7 +105,7 @@ CampaignHealthReport: {campaigns[], blended_metrics, action_items[], budget_reco
 ## Session Protocol
 
 1. Read this SKILL.md
-2. Read `reference/ads-metrics.md` — metric formulas, health thresholds, keyword action rules
+2. Read `references/ads-metrics.md` — metric formulas, health thresholds, keyword action rules
 3. Read `ppc-test-campaign-config.ctx.json` (project context) — phase config, budgets, thresholds
 4. If analyzing data: request Search Term Report CSV or summary from user
 
@@ -137,7 +137,7 @@ CampaignHealthReport: {campaigns[], blended_metrics, action_items[], budget_reco
 
 | File | Purpose |
 |---|---|
-| `reference/ads-metrics.md` | Metric formulas, health thresholds, campaign taxonomy, keyword action rules |
-| `reference/schemas-and-steps.md` | Input/output schemas for TEST and LIVE modes |
+| `references/ads-metrics.md` | Metric formulas, health thresholds, campaign taxonomy, keyword action rules |
+| `references/schemas-and-steps.md` | Input/output schemas for TEST and LIVE modes |
 | `ppc-test-campaign-config.ctx.json` (project) | Phase durations, budgets, bid defaults, data quality thresholds |
 | `amazon-fee-table.ctx.md` (project) | Fee reference for margin context |

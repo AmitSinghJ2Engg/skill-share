@@ -51,7 +51,7 @@ No external dependencies (stdlib only).
 1. **I/O Contract Validation** -- Parses mode tables, checks output types match downstream skill inputs.
 2. **Cross-Plugin Dependencies** -- Flags when a skill references another skill in a different plugin.
 3. **Task-Skill Dependencies** -- Verifies task files reference existing skills and modes.
-4. **Reference File Integrity** -- Checks that every `reference/` path in SKILL.md exists on disk.
+4. **Reference File Integrity** -- Checks that every `references/` path in SKILL.md exists on disk.
 5. **Context Budget** -- Calculates plugin sizes vs 70KB limit and context sizes vs 50KB limit.
 
 ### Generation Tasks

@@ -17,14 +17,14 @@ Source to Pay pipeline: "Procure To Pay" (layout ID: 677677000002680495)
 
 | Prefix | Skill | Modes |
 |--------|-------|-------|
-| CW | content-writer | LISTING, A_PLUS, BRAND |
-| CP | capital-planner | FORECAST, ALLOCATE |
+| CW | content-writer | RESEARCH, WRITE, LISTING |
+| CP | capital-planner | *(no SKILL.md yet -- placeholder)* |
 | CO | compliance-ops | COMPLETION |
 | FO | fulfillment-ops | BULK |
-| MO | product-monitor | DAILY, WEEKLY, ALERT |
-| AO | ads-ops | SCALE, OPTIMIZE, REPORT |
-| RO | revenue-ops | MARGIN, PORTFOLIO, REORDER |
-| LE | ism-learning-engine | CAPTURE, SYNTHESIZE, APPLY |
+| MO | product-monitor | MONITOR, CLASSIFY, FEEDBACK |
+| AO | ads-ops | TEST, LIVE |
+| RO | revenue-ops | *(no SKILL.md yet -- placeholder)* |
+| LE | ism-learning-engine | *(no SKILL.md yet -- placeholder)* |
 
 ## Data Integrity Rules
 

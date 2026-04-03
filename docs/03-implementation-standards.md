@@ -14,8 +14,9 @@
 ---
 name: skill-name
 description: >
-  Up to 1024 characters. Include WHAT the skill does, WHEN to trigger it, and key trigger
-  phrases. This is always in context — the body loads only when triggered.
+  Up to 1024 characters total (first 250 visible in skill listing, rest truncated but still
+  used for triggering). Front-load purpose + primary trigger in first 250 chars. Include WHAT,
+  WHEN, and key trigger phrases. Be pushy. This is always in context — the body loads only when triggered.
 version: "1.0.0"
 lifecycle: prototype
 ---
@@ -57,7 +58,7 @@ When trimming an existing SKILL.md to meet the 5 KB target:
 
 1. **Keep:** Frontmatter, purpose, mode table, execution steps (5-10 per mode), input validation, halt conditions, rules, trigger phrases.
 2. **Move to project context:** Any business value (thresholds, CRM fields, rotation schedules, zone configs) — reference the JSON filename in the execution step.
-3. **Move to reference/:** Detailed methodology, scoring rubrics, protocol details, related skill maps — reference inline when the execution step needs it.
+3. **Move to references/:** Detailed methodology, scoring rubrics, protocol details, related skill maps — reference inline when the execution step needs it.
 4. **Remove:** Redundant pointers to project knowledge, verbose phase descriptions that can be compressed, execution log templates, metadata already in frontmatter.
 5. **Test:** Read only the trimmed SKILL.md + context file specs. Can you execute every mode? If any step is too vague, add specificity (not detail — specificity).
 
@@ -68,7 +69,7 @@ Each skill is a directory containing SKILL.md plus optional supporting files. Cl
 ```
 my-skill/
   SKILL.md              # Main instructions (required)
-  reference/            # Detailed methodology, rubrics, protocols
+  references/           # Detailed methodology, rubrics, protocols (plural, per Claude skill-creator convention)
     scoring-rubric.md
     source-protocols.md
   scripts/              # Executable logic (Python, shell)
@@ -81,7 +82,7 @@ my-skill/
 
 Reference supporting files from SKILL.md so Claude knows what they contain and when to load them:
 ```markdown
-For full scoring tiers, see [reference/scoring-rubric.md](reference/scoring-rubric.md).
+For full scoring tiers, see [references/scoring-rubric.md](references/scoring-rubric.md).
 ```
 
 Use `${CLAUDE_SKILL_DIR}` in bash commands to reference bundled scripts regardless of working directory.
@@ -93,7 +94,7 @@ Skills, project knowledge, and supporting files serve different purposes. See `d
 | Layer | What | Where | In Plugin? |
 |-------|------|-------|-----------|
 | **SKILL.md** | Instructions + navigation to supporting files | `skills/{package}/{skill}/SKILL.md` | Yes |
-| **Supporting files** | Methodology, rubrics, scripts, templates | `skills/{package}/{skill}/reference/`, `scripts/`, etc. | Yes (counts toward 70 KB) |
+| **Supporting files** | Methodology, rubrics, scripts, templates | `skills/{capability}/{skill}/references/`, `scripts/`, etc. | Yes (counts toward 70 KB) |
 | **Project Knowledge** | Runtime values: thresholds, CRM fields, gate criteria | `context/{project}/` -> deployed to Claude.ai | No (deployed separately) |
 
 - SKILL.md references supporting files inline when the execution step needs detailed methodology.
@@ -109,6 +110,14 @@ Use `scripts/` when a skill needs deterministic computation, file generation, or
 Examples: margin-calculator (financial formulas), compliance-ops (checklist PDF generation), ads-ops (bid calculation), codebase visualization.
 
 SKILL.md provides the orchestration instructions; scripts/ provides the executable logic. The skill's `allowed-tools` frontmatter should include `Bash(python *)` or similar to permit script execution.
+
+### Frontmatter: allowed-tools
+
+Skills with `scripts/` MUST declare `allowed-tools` in frontmatter to permit script execution without permission prompts. Example: `allowed-tools: ["Bash(python *)"]`. Only list tools the skill actually needs.
+
+### Frontmatter: disable-model-invocation
+
+Operational skills that perform writes to external systems (CRM, inventory, Slack) SHOULD use `disable-model-invocation: true` to prevent accidental auto-invocation. These skills should only be triggered deliberately by the user or by a task instruction.
 
 ### Interactive context gathering
 
@@ -149,7 +158,7 @@ Every skill has a 2-letter prefix code. This prefix appears at the start of the 
 
 **Zoho Platform (4):** ZA zoho-solutions-architect, ZD zoho-developer, ZO zoho-data-ops, AD automation-designer
 
-**Governance & System (7):** EO ecosystem-ops, SF ism-skill-factory, SG ikraft-skill-governance, AU ism-gap-auditor, SC skill-commander, SB ism-sop-builder, OG okr-kpi-governance
+**Governance & System (8):** EO ecosystem-ops, SF ism-skill-factory, IG ikraft-skill-auditor, AG ikraft-architecture-governance, AU ism-gap-auditor, SC skill-commander, SB ism-sop-builder, OG okr-kpi-governance
 
 **Founder & Ops (3):** IF ism-founder, SM ism-scrum-master, BA ism-business-authority
 

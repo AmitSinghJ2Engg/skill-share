@@ -19,14 +19,14 @@
 - Each SKILL.md body: **under 5 KB** (aim for 3 KB).
 - Each skill directory (SKILL.md + supporting files): keep total reasonable against 70 KB plugin limit.
 - Business logic, thresholds, formulas, picklists, environment-dependent config go in project context files, not SKILL.md.
-- SKILL.md contains: purpose, modes, I/O contracts, execution steps, trigger phrases. Detailed methodology goes in supporting files (reference/).
+- SKILL.md contains: purpose, modes, I/O contracts, execution steps, trigger phrases. Detailed methodology goes in supporting files (references/).
 
 ### SKILL.md Frontmatter (Claude official spec)
 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `name` | No | Display name. If omitted, uses directory name. Lowercase + hyphens, max 64 chars. |
-| `description` | Recommended | What the skill does and when to use it. Claude uses this to decide when to invoke. Max 250 chars shown. |
+| `description` | Recommended | What the skill does and when to use it. Claude uses this to decide when to invoke. Up to 1024 chars total; first 250 chars visible in skill listing (rest truncated). Front-load purpose + primary trigger in first 250. |
 | `disable-model-invocation` | No | `true` = user-only trigger (manual /skill-name). Default: false. |
 | `user-invocable` | No | `false` = model-only, hidden from / menu. Default: true. |
 | `allowed-tools` | No | Tools Claude can use without permission when skill is active. |
@@ -35,6 +35,9 @@
 | `context` | No | `fork` = run in isolated subagent context. |
 | `agent` | No | Subagent type when context: fork (Explore, Plan, general-purpose, or custom). |
 | `paths` | No | Glob patterns limiting when skill activates automatically. |
+| `argument-hint` | No | Autocomplete hint text shown when user starts typing skill arguments. |
+| `hooks` | No | Skill-scoped lifecycle hooks (on-load, on-complete, on-error). |
+| `shell` | No | Shell override for scripts (e.g., `powershell` for Windows). Default: bash. |
 
 Our custom fields (`version`, `lifecycle`) are ignored by Claude but kept for internal tracking.
 
@@ -43,9 +46,9 @@ String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]
 ### Plugin Structure
 - `.claude-plugin/plugin.json` manifest with `name`, `description`, `version`, optional `author`.
 - `skills/{skill-name}/SKILL.md` with YAML frontmatter.
-- `skills/{skill-name}/reference/`, `scripts/`, etc. -- supporting files packaged into plugin.
+- `skills/{skill-name}/references/`, `scripts/`, etc. -- supporting files packaged into plugin.
 - All content counts toward 70 KB limit.
-- Package as zip renamed to `.plugin` for Cowork upload.
+- Package as `.zip` file for upload. (Known bug #28337: Claude Desktop requires `.zip` not `.plugin`.)
 - Test locally with `claude --plugin-dir ./plugin-directory`.
 
 ### Marketplace Distribution
@@ -100,7 +103,7 @@ String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]
 - Each Cowork session runs in a fresh Linux VM.
 - Session filesystem resets between tasks.
 - Only the workspace folder (user-selected) persists on the user's computer.
-- <<files requiring versioning should also be copied to git directory in respective places. path - "C:\Users\amits\ClaudeMain\Claude-Cowork\Git-Skill-Share\skill-share" like skill files, task instructions, project instructions, project context, knowledge. So team members can pull and start using the system>>
+- <<files requiring versioning should also be copied to the git repo in respective places -- skill files, task instructions, project instructions, project context, knowledge. So team members can pull and start using the system>>
 
 ### MCP Connections Available
 - Zoho Bigin (pipeline lifecycle — read/write deals<</ Bigin Pipeline records>>, fields, notes)
@@ -151,10 +154,10 @@ String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]
 ## 5. Git Repository Constraints
 
 ### Location
-`C:\Users\amits\ClaudeMain\Claude-Cowork\Git-Skill-Share\skill-share`
+`{REPO_ROOT}` (local path configured per environment)
 
 ### Structure
-- `skills/` — all skill source files, organized by package (`skills/{package}/{name}/SKILL.md` + optional `reference/`). Each package aligns with a plugin.
+- `skills/` — all skill source files, organized by capability group (`skills/{capability}/{name}/SKILL.md` + optional `references/`). Plugin definitions (`plugin.json`) at package level.
 - `context/` — runtime config files deployed to Claude.ai project knowledge
 - `dist/` — built `.plugin` files (compiled artifacts)
 - `docs/` — architecture docs, standards, decisions
@@ -230,7 +233,7 @@ These are the authoritative Bigin API stage names. Other documents describe acti
 
 ## 9. Financial Constants
 
-**Transitional source.** These hardcoded values are the operating reality until `context/product-pipeline/financial-constants.ctx.json` is generated and deployed to Project Knowledge. Once that file exists, it is the **authoritative source** for all financial constants. Skills and artifacts must read from project context, never from this table.
+**Reference only.** The authoritative source for financial constants is `context/product-pipeline/financial-constants.ctx.json` (deployed to Project Knowledge). Skills and artifacts must read from project context, never from this table. This table is kept for quick reference during documentation review.
 
 | Constant | Value | Notes |
 |---|---|---|

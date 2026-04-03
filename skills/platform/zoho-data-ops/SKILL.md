@@ -7,6 +7,7 @@ description: >
   this skill persists it. Also trigger for: "write to CRM", "create record",
   "update Bigin stage", "search module", "sync Bigin to CRM", "dedup check".
   If a task or skill needs Zoho MCP I/O, trigger immediately. Prefix: ZO-
+disable-model-invocation: true
 version: "1.0.0"
 lifecycle: prototype
 ---
@@ -51,7 +52,7 @@ Supported apps: CRM (read/write), Bigin (read/write), Books (read-only), Invento
 3. Read source via READ mode, write to target via WRITE mode.
 4. Return count synced, any failures with record IDs.
 
-See `reference/write-patterns.md` for standard field mappings, dedup rules, and error handling recipes.
+See `references/write-patterns.md` for standard field mappings, dedup rules, and error handling recipes.
 
 ## Input Contract
 
@@ -87,7 +88,7 @@ Returns: `status` (success/partial/failed), `record_ids[]`, `operation`, `errors
 
 | File | Read when |
 |------|-----------|
-| `reference/write-patterns.md` | Standard dedup, error handling, field mappings, sync patterns |
+| `references/write-patterns.md` | Standard dedup, error handling, field mappings, sync patterns |
 
 ## Trigger Phrases
 

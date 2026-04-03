@@ -1,0 +1,10 @@
+{
+  "name": "governance-architecture",
+  "description": "Architecture compliance and ecosystem health — 7-Law enforcement, pattern synthesis, gap detection and routing.",
+  "version": "1.0.0",
+  "project": "System Ops",
+  "include": [
+    {"skill": "ikraft-architecture-governance", "from": "governance"},
+    {"skill": "ism-gap-auditor", "from": "governance"}
+  ]
+}

@@ -948,8 +948,8 @@ Run in a Cowork session with workspace set to the repo. For each context file:
 ### Zoho Platform (3 skills)
 `zoho-solutions-architect`, `zoho-developer`, `automation-designer`
 
-### Governance & System (7 skills)
-`ecosystem-ops`, `ism-skill-factory`, `ikraft-skill-governance`, `ism-gap-auditor`, `skill-commander`, `ism-sop-builder`, `okr-kpi-governance`
+### Governance & System (8 skills)
+`ecosystem-ops`, `ism-skill-factory`, `ikraft-skill-auditor`, `ikraft-architecture-governance`, `ism-gap-auditor`, `skill-commander`, `ism-sop-builder`, `okr-kpi-governance`
 
 ### Founder & Operations (3 skills)
 `ism-founder`, `ism-scrum-master`, `ism-business-authority`

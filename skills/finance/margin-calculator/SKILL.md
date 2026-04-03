@@ -54,7 +54,7 @@ If COGS is estimated, label: `"cogs_confidence": "ESTIMATED"`. If from vendor qu
 **Trigger:** "calculate margin", "unit economics", "what's the margin", "is this profitable"
 **Prefix:** MC-A-
 
-Core unit economics using confirmed inputs. Formula chain from `reference/financial-formulas.md`:
+Core unit economics using confirmed inputs. Formula chain from `references/financial-formulas.md`:
 
 ```
 SP → Net SP (SP × (1 - discount%))
@@ -68,7 +68,7 @@ SP → Net SP (SP × (1 - discount%))
 
 **Fee lookup:**
 - Amazon: see `amazon-fee-table.ctx.md` (project context) for 2026 referral fees, closing fees, weight handling, FBA pick & pack, GST
-- Shopify: see `reference/channel-fee-models.md` §1-2
+- Shopify: see `references/channel-fee-models.md` §1-2
 
 **Output:** MarginRecord with verdict (PASS / MARGINAL / FAIL).
 
@@ -114,7 +114,7 @@ Compares up to three data points:
 **Prefix:** MC-C-
 
 Run ACTUAL mode twice: once with Amazon fees, once with Shopify fees. Same product, same COGS, same SP.
-See `reference/channel-fee-models.md` §4 for ChannelComparisonRecord output schema.
+See `references/channel-fee-models.md` §4 for ChannelComparisonRecord output schema.
 
 If shopify_plan not provided → default to Basic (2% platform fee) and declare assumption.
 
@@ -125,7 +125,7 @@ If shopify_plan not provided → default to Basic (2% platform fee) and declare 
 **Trigger:** "break-even units", "how many units to break even", "break-even revenue"
 **Prefix:** MC-B-
 
-See `reference/channel-fee-models.md` §6. Requires cpu_inr (from ACTUAL mode output).
+See `references/channel-fee-models.md` §6. Requires cpu_inr (from ACTUAL mode output).
 Optional: fixed_costs_monthly_inr, cpa_inr. If fixed costs not provided → product-level break-even only.
 
 ---
@@ -133,8 +133,8 @@ Optional: fixed_costs_monthly_inr, cpa_inr. If fixed costs not provided → prod
 ## Session Protocol
 
 1. Read this SKILL.md
-2. Read `reference/financial-formulas.md` — complete formula chain
-3. Read `reference/channel-fee-models.md` — Shopify fees, returns, channel comparison, pricing, break-even
+2. Read `references/financial-formulas.md` — complete formula chain
+3. Read `references/channel-fee-models.md` — Shopify fees, returns, channel comparison, pricing, break-even
 4. For Amazon fees: reference `amazon-fee-table.ctx.md` (project context)
 
 ---
@@ -165,7 +165,7 @@ Optional: fixed_costs_monthly_inr, cpa_inr. If fixed costs not provided → prod
 
 ## Input/Output Schemas
 
-See `reference/schemas-and-steps.md` for full JSON schemas.
+See `references/schemas-and-steps.md` for full JSON schemas.
 
 ---
 
@@ -186,7 +186,7 @@ See `reference/schemas-and-steps.md` for full JSON schemas.
 
 | File | Read when |
 |---|---|
-| `reference/financial-formulas.md` | Session start — complete formula chain |
-| `reference/channel-fee-models.md` | Shopify fees, returns model, channel comparison, pricing, break-even |
-| `reference/schemas-and-steps.md` | Input/output JSON schemas |
+| `references/financial-formulas.md` | Session start — complete formula chain |
+| `references/channel-fee-models.md` | Shopify fees, returns model, channel comparison, pricing, break-even |
+| `references/schemas-and-steps.md` | Input/output JSON schemas |
 | `amazon-fee-table.ctx.md` (project) | Amazon India 2026 fee tables |

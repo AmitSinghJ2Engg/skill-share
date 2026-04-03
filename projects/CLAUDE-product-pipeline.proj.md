@@ -22,14 +22,14 @@ CRM module: Product_Launches (141 fields)
 | PS | product-screen | SCORE, REPORT, BRIEF |
 | MI | product-market-intelligence | PROFILE, GAPS, TRENDS |
 | PE | product-evaluate | DEEP-EVAL, GATE-CHECK, IDEATE |
-| MC | margin-calculator | ESTIMATE, ACTUAL, COMPARISON |
-| CO | compliance-ops | FEASIBILITY, INITIATION |
-| SP | product-spec | SPEC, BOM, BRIEF |
-| SI | supplier-intelligence | SEARCH, RANK |
+| MC | margin-calculator | ESTIMATE, ACTUAL, COMPARISON, CHANNEL, BREAKEVEN |
+| CO | compliance-ops | FEASIBILITY, INITIATION, COMPLETION |
+| SP | product-spec | SPEC, BRIEF, PRD |
+| SI | supplier-intelligence | *(no SKILL.md yet -- placeholder)* |
 | VO | vendor-ops | DISCOVER, SCORE, RFQ |
-| AO | ads-ops | SETUP, MONITOR, OPTIMIZE |
-| MO | product-monitor | DAILY, WEEKLY, ALERT |
-| FO | fulfillment-ops | SAMPLE |
+| AO | ads-ops | TEST, LIVE |
+| MO | product-monitor | MONITOR, CLASSIFY, FEEDBACK |
+| FO | fulfillment-ops | SAMPLE, BULK |
 
 ## Data Integrity Rules
 

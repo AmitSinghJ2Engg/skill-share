@@ -72,7 +72,7 @@ The skill reads `ppc-test-campaign-config.ctx.json` for budget, bid, and duratio
 
 Team creates the auto campaign in Seller Central per the TestPlan. During the campaign:
 
-Invoke **PM- product-monitor TEST mode** periodically to track:
+Invoke **PM- product-monitor MONITOR mode** periodically to track:
 - BSR movement, review velocity, return rate
 - Basic listing health (suppression, buybox status)
 

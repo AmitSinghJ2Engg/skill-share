@@ -248,3 +248,37 @@ skills/founder/         — ism founder
 - Single authoritative file in margin-calculator reference/
 - Context/ copy deleted (was untracked anyway)
 - financial-formulas.md remains the primary runtime formula reference (unchanged, 0.6 KB)
+
+---
+
+## DL-010: System Audit and Normalization
+
+**Date:** 2026-04-03
+**Status:** Accepted
+**Context:** Full system audit against official Claude skill/plugin spec and The Complete Guide to Building Skills for Claude (PDF). Compared all 21 skills, 6 plugins, and 4 governance skills against official guidance and project docs. Found: 9 spec mismatches, 8 high-risk inconsistencies, 5 oversized SKILL.md files, 12 skills with hardcoded business values, inconsistent directory naming, and 4 governance skills (680KB total) built before current standards.
+
+**Key decisions:**
+
+1. **Directory naming: `references/` (plural)** — Adopt Claude official skill-creator convention. Rename all 14 skills using `reference/` (singular) to `references/` (plural). Update docs and build scripts.
+
+2. **Description strategy: 250 visible + 1024 max** — Front-load core purpose in first 250 chars (visible in skill listing). Use chars 251-1024 for additional trigger phrases. Enforce via build validation: warn >250 visible, error >1024 total.
+
+3. **Governance split into 3 plugins** — ikraft-skill-governance (408KB, 4 modes) split into:
+   - `ikraft-skill-auditor` (AUDIT + REGISTRY modes) -> `governance-audit` plugin
+   - `ikraft-architecture-governance` (ARCHITECTURE + SYNTHESIZE modes) -> `governance-architecture` plugin (with ism-gap-auditor)
+   - `ism-business-authority` + `okr-kpi-governance` -> `governance-business` plugin
+
+4. **Shared governance files to project context** — 8 files moved from individual skill `references/` to `context/system-ops/`: skill-registry, context-registry, workflow-contracts, dependency-graph, resolutions, skill-change-log, go-fearless, financial-formulas. These are ecosystem-wide resources, not skill-specific.
+
+5. **Frontmatter compliance** — Add `allowed-tools` to script-using skills, `disable-model-invocation: true` to operational write skills. Document `argument-hint`, `hooks`, `shell` fields.
+
+6. **Enforcement via skill-creator + build validation** — Update skill-creator to check description length, directory naming, hardcoded values, allowed-tools. Add description length validation to `make.py validate`.
+
+**Consequences:**
+- All SKILL.md files target <=5KB with no embedded business values
+- Project instructions match actual skill modes
+- Supporting file directory standardized as `references/` (plural)
+- Custom frontmatter fields documented as "Ismokraft internal convention"
+- Broken cross-skill references replaced with context file references
+- 3 new governance plugins under 70KB each
+- Stale files cleaned: data-integrity-rules.md (duplicate), market-intelligence-research (orphan), resources/explanation (covered by tools/README.md)

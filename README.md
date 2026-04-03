@@ -6,12 +6,12 @@ Multi-plugin skill repository for Ismokraft's AI-assisted business operations. S
 
 ```
 skill-share/
-  skills/             # Skill source (organized by package) -- THE source code
-    {package}/
-      plugin.json     # Plugin definition (auto-discovered by build)
+  plugins.yaml        # Central plugin definitions (all 9 plugins)
+  skills/             # Skill source (organized by capability) -- THE source code
+    {capability}/
       {skill-name}/
         SKILL.md      # Skill instructions (required)
-        reference/    # Supporting files (methodology, rubrics, protocols)
+        references/   # Supporting files (methodology, rubrics, protocols)
         scripts/      # Executable logic (Python, shell)
   context/            # Runtime config (deployed to Claude.ai project knowledge)
     product-pipeline/ # .ctx.json and .ctx.md files
@@ -38,7 +38,7 @@ python make.py ci                          # CI mode: registry check + validatio
 Or run individual scripts directly:
 
 ```bash
-python tools/generate-registry.py          # Scan plugin.json -> plugin-registry.json
+python tools/generate-registry.py          # Read plugins.yaml -> plugin-registry.json
 python tools/validate-system.py            # Cross-cutting validation + manifest
 python tools/build-plugin.py --plugin NAME # Build plugin to dist/build/
 python tools/build.py --all                # Unified: registry + validate + build all
@@ -54,8 +54,27 @@ This scaffolds the skill directory + eval test directory, then validates structu
 
 ## Installation
 
+**Step 1: Add the marketplace (once per machine)**
 ```
-/plugin install product-discovery@AmitSinghJ2Engg/skill-share
+/plugin marketplace add AmitSinghJ2Engg/skill-share
+```
+
+**Step 2: Install plugins**
+```
+/plugin install product-discovery@skill-share
+/plugin install product-evaluation@skill-share
+/plugin install product-sourcing@skill-share
+/plugin install product-testing@skill-share
+/plugin install product-launch@skill-share
+/plugin install product-ops@skill-share
+/plugin install governance-audit@skill-share
+/plugin install governance-architecture@skill-share
+/plugin install governance-business@skill-share
+```
+
+**Step 3: Reload**
+```
+/reload-plugins
 ```
 
 Or upload `dist/{plugin-name}.zip` to Claude Desktop.

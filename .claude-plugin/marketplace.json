@@ -8,8 +8,50 @@
   },
   "plugins": [
     {
+      "name": "governance-architecture",
+      "description": "Architecture compliance and ecosystem health -- 7-Law enforcement, pattern synthesis, gap detection and routing.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/governance-architecture",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "governance architecture"
+      ]
+    },
+    {
+      "name": "governance-audit",
+      "description": "Skill standards compliance -- audit 20 standards (S1-S20), 46+ violation codes, maturity lifecycle, resolution registry.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/governance-audit",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "governance audit"
+      ]
+    },
+    {
+      "name": "governance-business",
+      "description": "Business decisions and performance measurement -- strategic alignment, GO FEARLESS quality, OKR/KPI governance.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/governance-business",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "governance business"
+      ]
+    },
+    {
       "name": "product-discovery",
-      "description": "Domain 1 discovery stages -keyword intelligence, product discovery, screening, market intelligence.",
+      "description": "Domain 1 discovery stages -- keyword intelligence, product discovery, screening, market intelligence.",
       "version": "1.0.0",
       "author": {
         "name": "Ismokraft"
@@ -23,7 +65,7 @@
     },
     {
       "name": "product-evaluation",
-      "description": "Domains 1 + 1.5 -deep evaluation, pre-test economics, compliance feasibility.",
+      "description": "Domains 1 + 1.5 -- deep evaluation, pre-test economics, compliance feasibility, competitive positioning.",
       "version": "1.0.0",
       "author": {
         "name": "Ismokraft"
@@ -37,7 +79,7 @@
     },
     {
       "name": "product-launch",
-      "description": "Domain 3 -listing copy, capital planning, compliance completion, bulk fulfillment.",
+      "description": "Domain 3 -- listing copy, capital planning, compliance completion, bulk fulfillment.",
       "version": "1.0.0",
       "author": {
         "name": "Ismokraft"
@@ -51,7 +93,7 @@
     },
     {
       "name": "product-ops",
-      "description": "Domain 4 -live monitoring, ad management, revenue ops, learning engine.",
+      "description": "Domain 4 -- live monitoring, ad management, revenue ops, learning engine.",
       "version": "1.0.0",
       "author": {
         "name": "Ismokraft"
@@ -65,7 +107,7 @@
     },
     {
       "name": "product-sourcing",
-      "description": "Domain 2 -product spec, supplier discovery, vendor evaluation, actual unit economics.",
+      "description": "Domain 2 -- product spec, supplier discovery, vendor evaluation, actual unit economics, compliance initiation.",
       "version": "1.0.0",
       "author": {
         "name": "Ismokraft"
@@ -79,7 +121,7 @@
     },
     {
       "name": "product-testing",
-      "description": "Domain 2.5 -test campaigns, monitoring, FBA dispatch, compliance initiation.",
+      "description": "Domain 2.5 -- test campaigns, monitoring, FBA dispatch, compliance tracking.",
       "version": "1.0.0",
       "author": {
         "name": "Ismokraft"

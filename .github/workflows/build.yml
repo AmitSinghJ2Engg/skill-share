@@ -6,6 +6,7 @@ on:
     paths:
       - 'skills/**'
       - 'tools/**'
+      - 'plugins.yaml'
       - '.github/workflows/build.yml'
   workflow_dispatch:
     inputs:

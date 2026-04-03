@@ -1046,6 +1046,8 @@ def main():
 
     # Exit code
     fails = sum(1 for r in all_results if r["severity"] == "FAIL")
+    if args.manifest_only:
+        sys.exit(0)  # manifest written; validation pass/fail handled by --check-only
     sys.exit(1 if fails > 0 else 0)
 
 

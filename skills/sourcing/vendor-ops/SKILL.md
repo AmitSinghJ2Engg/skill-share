@@ -38,7 +38,7 @@ Three-mode vendor qualification: find, score, contact.
 1. Read this SKILL.md
 2. Read `context/system-ops/resolutions.ctx.md` — filter by domain `vendor-ops`, `cross-skill` — apply active entries
 3. Check memory for `VO-*` entries — apply active entries
-4. Read `references/vendor-evaluation-model.md` — for SCORE mode 3-tier model
+4. Read `vendor-evaluation-model.ctx.md` (project context) — for SCORE mode 3-tier model
 5. Read `references/vendor-comms-scoring.md` — for dropship comms scoring
 
 ---
@@ -65,7 +65,7 @@ Skip supplier-intelligence when: you already have a named supplier, re-evaluatin
 
 | Vendor Type | Model | Reference |
 |---|---|---|
-| Factory / Private Label | 3-Tier (screen → quote → sample) | `references/vendor-evaluation-model.md` |
+| Factory / Private Label | 3-Tier (screen → quote → sample) | `vendor-evaluation-model.ctx.md` (project) |
 | Dropship / RTS | Communication scoring (8 categories, 22 questions) | `references/vendor-comms-scoring.md` |
 
 **Grade scale:** A (85-100) proceed | B (70-84) proceed with note | C (55-69) negotiate | D (40-54) last resort | F (<40) reject.
@@ -92,51 +92,6 @@ See `references/rfq-templates.md` for RFQ document template and `references/sche
 2. **Tier 1 is binary.** All 5 pass or skip the vendor.
 3. **Don't mix models.** Factory → 3-tier. Dropship → comms scoring.
 4. **Always state the tier.** A Tier 2 score means no sample received yet.
-
----
-
-## Governance Contract
-
-```yaml
-skill_name: vendor-ops
-version: "1.2.0"
-owner: Ismokraft
-domain: supply
-maturity_level: L2_operational
-systems_accessed:
-  - Zoho CRM Contacts (read + write via zoho-data-ops)
-write_permissions:
-  - Zoho CRM Contacts: Vendor_Score, Vendor_Grade — via zoho-data-ops WRITE mode
-measurable_kpis:
-  - KPI-SKILL-VO-01: Vendor Qualification Rate (target >70%)
-  - KPI-SKILL-VO-02: Score Accuracy (target >80%)
-```
-
----
-
-## Reference Files
-
-| File | Read when |
-|---|---|
-| `references/vendor-evaluation-model.md` | SCORE mode — 3-tier model, weights, thresholds |
-| `references/vendor-comms-scoring.md` | SCORE mode (dropship) — communication scoring |
-| `references/rfq-templates.md` | RFQ mode — document templates |
-| `references/sourcing-intelligence.md` | DISCOVER mode — platform search rules |
-| `references/vendor-tracker-extras.md` | All modes — active vendor context |
-| `references/schemas-and-steps.md` | I/O schemas, VendorScoreRecord, RFQRecord |
-| `references/learnings.md` | Session start — active VO- learnings |
-
----
-
-## Related Skills
-
-| Skill | Relationship |
-|---|---|
-| `supplier-intelligence` | Upstream — DISCOVER delegates here |
-| `product-spec` | Upstream — SupplierBrief triggers DISCOVER/RFQ |
-| `zoho-data-ops` | Write gate — CRM Vendor_Score, Vendor_Grade |
-| `margin-calculator` | Peer — margin informs COGS target |
-| `ism-business-authority` | Consulted by — vendor evaluation criteria |
 
 ---
 

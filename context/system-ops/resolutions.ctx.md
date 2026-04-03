@@ -27,14 +27,7 @@
 
 ---
 
-## Pending Reconstruction
-
-RR-001 through RR-007 content lost during skill absorption. Sources to recover from:
-- Zoho CRM ISM_Learnings module (if persisted)
-- Operator memory
-- Past conversation transcripts
-
-Until recovered, skills referencing these IDs will find no match — which is safe (no false positives), but means solved problems may re-surface (false negatives).
+<!-- RR-001 through RR-007: content lost during skill absorption. Recoverable from CRM ISM_Learnings if needed. -->
 
 ---
 

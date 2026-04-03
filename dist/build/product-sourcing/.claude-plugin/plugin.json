@@ -1,6 +1,6 @@
 {
   "name": "product-sourcing",
-  "description": "Domain 2 -product spec, supplier discovery, vendor evaluation, actual unit economics.",
+  "description": "Domain 2 -- product spec, supplier discovery, vendor evaluation, actual unit economics, compliance initiation.",
   "version": "1.0.0",
   "author": {
     "name": "Ismokraft"

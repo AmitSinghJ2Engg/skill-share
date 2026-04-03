@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-generate-registry.py -- Generate tools/plugin-registry.json from skills/*/plugin.json.
+generate-registry.py -- Generate tools/plugin-registry.json from plugins.yaml.
 
-Scans each plugin package for its plugin.json definition, auto-discovers local
-skills (subdirs with SKILL.md), merges cross-package includes, and outputs
-the central registry used by build-plugin.py and validate-system.py.
+Reads the central plugins.yaml, resolves skill metadata from SKILL.md
+frontmatter, validates descriptions, and outputs the registry used by
+build-plugin.py and validate-system.py.
 
 Usage:
     python tools/generate-registry.py              # Generate registry
     python tools/generate-registry.py --dry-run    # Print to stdout, don't write
-    python tools/generate-registry.py --check      # Validate plugin.json files only
+    python tools/generate-registry.py --check      # Validate plugins.yaml only
 
 No external dependencies (regex YAML parser, no PyYAML).
 """
@@ -21,7 +21,14 @@ import re
 import sys
 
 
-# ── YAML frontmatter parsing (shared with validate-system.py) ────────────
+# ── Constants ───────────────────────────────────────────────────────
+
+MAX_DESCRIPTION_CHARS = 1024
+SKILL_SIZE_WARN_BYTES = 5120  # 5 KB
+EXEMPT_SKILLS = {"skill-creator"}  # Anthropic-provided, exempt from size checks
+
+
+# ── YAML frontmatter parsing (shared with validate-system.py) ──────
 
 def parse_frontmatter(content):
     """Parse YAML frontmatter from --- delimited block. Returns dict or None."""
@@ -107,10 +114,123 @@ def read_skill_meta(skill_md_path):
     return {"name": meta["name"], "prefix": prefix}
 
 
+# ── plugins.yaml parser (simple, no PyYAML) ────────────────────────
+
+def parse_plugins_yaml(yaml_path):
+    """Parse plugins.yaml into a dict of plugin definitions.
+
+    Returns: {plugin_name: {description, version, project, skills: [{skill, from}]}}
+    """
+    with open(yaml_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    plugins = {}
+    current_plugin = None
+    current_field = None
+    current_skill = {}
+
+    for line in lines:
+        stripped = line.rstrip()
+
+        # Skip empty lines and comments
+        if not stripped or stripped.lstrip().startswith("#"):
+            continue
+
+        # Top-level "plugins:" header
+        if stripped == "plugins:":
+            continue
+
+        # Plugin name (2-space indent, ends with colon)
+        m = re.match(r'^  (\S[\w-]+):$', stripped)
+        if m:
+            # Flush previous skill entry
+            if current_skill and current_plugin:
+                plugins[current_plugin]["skills"].append(dict(current_skill))
+                current_skill = {}
+
+            current_plugin = m.group(1)
+            plugins[current_plugin] = {
+                "description": "",
+                "version": "",
+                "project": "",
+                "skills": [],
+            }
+            current_field = None
+            continue
+
+        if not current_plugin:
+            continue
+
+        # Plugin field (4-space indent)
+        fm = re.match(r'^    (\w[\w-]*):\s*(.*)', stripped)
+        if fm:
+            key = fm.group(1)
+            val = fm.group(2).strip().strip('"').strip("'")
+
+            if key == "skills":
+                current_field = "skills"
+                continue
+
+            plugins[current_plugin][key] = val
+            current_field = key
+            continue
+
+        # Skill list entry: "- skill: xxx" (6-space indent)
+        sm = re.match(r'^      - skill:\s*(.+)', stripped)
+        if sm:
+            # Flush previous skill
+            if current_skill:
+                plugins[current_plugin]["skills"].append(dict(current_skill))
+            current_skill = {"skill": sm.group(1).strip()}
+            continue
+
+        # Skill field continuation: "from: xxx" (8-space indent)
+        fm2 = re.match(r'^        from:\s*(.+)', stripped)
+        if fm2:
+            current_skill["from"] = fm2.group(1).strip()
+            continue
+
+    # Flush last skill
+    if current_skill and current_plugin:
+        plugins[current_plugin]["skills"].append(dict(current_skill))
+
+    return plugins
+
+
+# ── Validation helpers ──────────────────────────────────────────────
+
+def validate_description(plugin_name, description, warnings):
+    """Validate description length and content."""
+    if len(description) > MAX_DESCRIPTION_CHARS:
+        warnings.append(f"{plugin_name}: description exceeds {MAX_DESCRIPTION_CHARS} chars ({len(description)})")
+
+
+def check_skill_size(skill_md_path, skill_name, warnings):
+    """Warn if SKILL.md exceeds size target."""
+    if skill_name in EXEMPT_SKILLS:
+        return
+    try:
+        size = os.path.getsize(skill_md_path)
+        if size > SKILL_SIZE_WARN_BYTES:
+            warnings.append(f"{skill_name}: SKILL.md is {size} bytes (target: {SKILL_SIZE_WARN_BYTES})")
+    except OSError:
+        pass
+
+
+def check_reference_dirs(skill_dir, skill_name, warnings):
+    """Warn if singular reference/ exists alongside references/."""
+    singular = os.path.join(skill_dir, "reference")
+    plural = os.path.join(skill_dir, "references")
+    if os.path.isdir(singular) and os.path.isdir(plural):
+        warnings.append(f"{skill_name}: both reference/ and references/ exist (remove singular)")
+
+
+# ── Main ────────────────────────────────────────────────────────────
+
 def main():
-    parser = argparse.ArgumentParser(description="Generate plugin-registry.json from skills/*/plugin.json")
+    parser = argparse.ArgumentParser(description="Generate plugin-registry.json from plugins.yaml")
     parser.add_argument("--dry-run", action="store_true", help="Print to stdout, don't write")
-    parser.add_argument("--check", action="store_true", help="Validate plugin.json files only")
+    parser.add_argument("--check", action="store_true", help="Validate plugins.yaml only")
     parser.add_argument("--repo", "-r", default=None, help="Path to repo root (default: parent of tools/)")
     args = parser.parse_args()
 
@@ -121,94 +241,70 @@ def main():
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     skills_root = os.path.join(repo_root, "skills")
+    yaml_path = os.path.join(repo_root, "plugins.yaml")
+
     if not os.path.isdir(skills_root):
         print(f"ERROR: skills/ directory not found at {skills_root}")
         sys.exit(1)
 
+    if not os.path.isfile(yaml_path):
+        print(f"ERROR: plugins.yaml not found at {yaml_path}")
+        sys.exit(1)
+
     errors = []
+    warnings = []
     registry = {
-        "_comment": "GENERATED by generate-registry.py from skills/*/plugin.json. Do not edit.",
+        "_comment": "GENERATED by generate-registry.py from plugins.yaml. Do not edit.",
         "plugins": {},
     }
 
-    # Find all plugin.json files
-    plugin_files = []
-    for package in sorted(os.listdir(skills_root)):
-        pj_path = os.path.join(skills_root, package, "plugin.json")
-        if os.path.isfile(pj_path):
-            plugin_files.append((package, pj_path))
+    # Parse plugins.yaml
+    plugins = parse_plugins_yaml(yaml_path)
 
-    if not plugin_files:
-        print("ERROR: No plugin.json files found in skills/*/")
+    if not plugins:
+        print("ERROR: No plugins found in plugins.yaml")
         sys.exit(1)
 
-    print(f"Found {len(plugin_files)} plugin definition(s)")
+    print(f"Found {len(plugins)} plugin definition(s) in plugins.yaml")
 
-    for package, pj_path in plugin_files:
-        with open(pj_path, "r", encoding="utf-8") as f:
-            try:
-                pj = json.load(f)
-            except json.JSONDecodeError as e:
-                errors.append(f"{pj_path}: invalid JSON: {e}")
-                continue
-
+    for plugin_name, pdef in sorted(plugins.items()):
         # Validate required fields
-        missing = [field for field in ("name", "description", "version") if not pj.get(field)]
+        missing = [f for f in ("description", "version") if not pdef.get(f)]
         if missing:
-            errors.append(f"{pj_path}: missing required fields: {', '.join(missing)}")
+            errors.append(f"{plugin_name}: missing required fields: {', '.join(missing)}")
             continue
 
-        plugin_name = pj["name"]
-        pkg_dir = os.path.join(skills_root, package)
+        validate_description(plugin_name, pdef["description"], warnings)
 
-        # Auto-discover local skills: subdirs with SKILL.md
+        # Resolve skills
         skill_entries = []
         seen_names = set()
 
-        for subdir in sorted(os.listdir(pkg_dir)):
-            subdir_path = os.path.join(pkg_dir, subdir)
-            skill_md = os.path.join(subdir_path, "SKILL.md")
-            if not os.path.isdir(subdir_path) or not os.path.isfile(skill_md):
-                continue
-
-            meta = read_skill_meta(skill_md)
-            if meta is None:
-                errors.append(f"{skill_md}: could not parse frontmatter")
-                continue
-
-            if meta["name"] in seen_names:
-                errors.append(f"{plugin_name}: duplicate skill name '{meta['name']}' (local)")
-                continue
-            seen_names.add(meta["name"])
-
-            skill_entries.append({
-                "name": meta["name"],
-                "package": package,
-                "prefix": meta["prefix"],
-            })
-
-        # Merge cross-package includes
-        for inc in pj.get("include", []):
+        for inc in pdef.get("skills", []):
             skill_dir_name = inc.get("skill", "")
             from_pkg = inc.get("from", "")
             if not skill_dir_name or not from_pkg:
-                errors.append(f"{pj_path}: include entry missing 'skill' or 'from'")
+                errors.append(f"{plugin_name}: skill entry missing 'skill' or 'from'")
                 continue
 
-            skill_md = os.path.join(skills_root, from_pkg, skill_dir_name, "SKILL.md")
+            skill_dir = os.path.join(skills_root, from_pkg, skill_dir_name)
+            skill_md = os.path.join(skill_dir, "SKILL.md")
             if not os.path.isfile(skill_md):
-                print(f"  WARN: {plugin_name}: include '{skill_dir_name}' from '{from_pkg}' -> SKILL.md not found (placeholder, skipped)")
+                print(f"  WARN: {plugin_name}: skill '{skill_dir_name}' from '{from_pkg}' -> SKILL.md not found (placeholder, skipped)")
                 continue
 
             meta = read_skill_meta(skill_md)
             if meta is None:
-                errors.append(f"{skill_md}: could not parse frontmatter (included by {plugin_name})")
+                errors.append(f"{skill_md}: could not parse frontmatter (in {plugin_name})")
                 continue
 
             if meta["name"] in seen_names:
-                errors.append(f"{plugin_name}: duplicate skill name '{meta['name']}' (local + include)")
+                errors.append(f"{plugin_name}: duplicate skill name '{meta['name']}'")
                 continue
             seen_names.add(meta["name"])
+
+            check_skill_size(skill_md, meta["name"], warnings)
+            check_reference_dirs(skill_dir, meta["name"], warnings)
 
             skill_entries.append({
                 "name": meta["name"],
@@ -217,34 +313,32 @@ def main():
             })
 
         plugin_entry = {
-            "description": pj["description"],
-            "version": pj["version"],
+            "description": pdef["description"],
+            "version": pdef["version"],
         }
-        if pj.get("project"):
-            plugin_entry["project"] = pj["project"]
+        if pdef.get("project"):
+            plugin_entry["project"] = pdef["project"]
         plugin_entry["skills"] = skill_entries
 
         registry["plugins"][plugin_name] = plugin_entry
+        print(f"  {plugin_name}: {len(skill_entries)} skills")
 
-        skill_count = len(skill_entries)
-        local_count = sum(1 for s in skill_entries if s["package"] == package)
-        inc_count = skill_count - local_count
-        inc_str = f" + {inc_count} included" if inc_count else ""
-        print(f"  {plugin_name}: {local_count} local{inc_str} = {skill_count} skills")
+    # Report warnings
+    if warnings:
+        print(f"\nWARNINGS ({len(warnings)}):")
+        for w in warnings:
+            print(f"  WARN: {w}")
 
     # Report errors
     if errors:
         print(f"\nERRORS ({len(errors)}):")
         for e in errors:
             print(f"  {e}")
-        if args.check:
-            sys.exit(1)
-        # In generate mode, abort on errors too
         print("\nAborting: fix errors above before generating registry.")
         sys.exit(1)
 
     if args.check:
-        print("\nAll plugin.json files valid.")
+        print("\nplugins.yaml is valid.")
         sys.exit(0)
 
     # Output
@@ -258,7 +352,6 @@ def main():
         with open(out_path, "w", encoding="utf-8", newline="\n") as f:
             f.write(output)
         print(f"\nRegistry written: {out_path}")
-        # Count total skills
         total = sum(len(p["skills"]) for p in registry["plugins"].values())
         print(f"Total: {len(registry['plugins'])} plugins, {total} skill entries")
 

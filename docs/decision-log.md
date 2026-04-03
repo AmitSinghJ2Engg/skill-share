@@ -282,3 +282,36 @@ skills/founder/         — ism founder
 - Broken cross-skill references replaced with context file references
 - 3 new governance plugins under 70KB each
 - Stale files cleaned: data-integrity-rules.md (duplicate), market-intelligence-research (orphan), resources/explanation (covered by tools/README.md)
+
+---
+
+## DL-011: Plugin Centralization, Content Trimming & Context Cleanup (2026-04-03)
+
+**Status:** Implemented
+**Trigger:** Audit review identified plugin architecture overhead, build failures, stale content, and content bloat.
+
+**Decisions:**
+
+1. **Central `plugins.yaml` replaces 9 scattered `plugin.json` files** — Single source of truth at repo root. `generate-registry.py` reads from `plugins.yaml` instead of scanning `skills/*/plugin.json`. 9 plugin-only directories deleted from `skills/`. No plugin-creator skill needed — YAML is simple enough to edit by hand.
+
+2. **Plugin composition changes** — `product-evaluate` removed from `product-discovery` plugin (already in `product-evaluation`). `margin-calculator` removed from `product-discovery` (available in `product-evaluation` and `product-sourcing`). Users install multiple plugins for cross-domain coverage.
+
+3. **Reference content trimming** — 3 oversized skills trimmed to fit 70KB plugin limit:
+   - `product-evaluate`: Deleted legacy spreadsheet dump (26.9KB `product-evaluation-toolkit-reference.md`). Trimmed Bigin implementation details from `product-evaluation-model.md`.
+   - `vendor-ops`: Moved `vendor-evaluation-model.md` and `vendor-tracker-extras.md` to `context/product-pipeline/` (shared project knowledge). Deleted `changelog.md` and `learnings.md`.
+   - `margin-calculator`: Trimmed SKILL.md from 7.1KB to 4.9KB. Deleted legacy `financial-model-reference.md`.
+
+4. **5 stale context files deleted** from `context/system-ops/`: `context-registry.ctx.md` (100% stale), `skill-registry.ctx.md` (superseded by `plugin-registry.json`), `skill-change-log.ctx.md` (historical only), `workflow-contracts.ctx.md` (60% stale), `dependency-graph.ctx.md` (80% stale). 3 files kept: `resolutions.ctx.md` (trimmed), `go-fearless.ctx.md`, `financial-formulas.ctx.md`.
+
+5. **10 stale `reference/` (singular) directories deleted** — All contained only `.gitkeep`. The correct `references/` (plural) directory already existed alongside each.
+
+6. **Build validation enhanced** — `generate-registry.py` now warns on SKILL.md > 5KB, description > 1024 chars, and coexisting `reference/` + `references/` directories.
+
+7. **Ismokraft standards codified** — `skills/core/skill-creator/references/ismokraft-standards.md` created as a project-specific addendum to the Anthropic skill-creator skill. Covers description format, size targets, directory conventions, and three-layer architecture.
+
+**Consequences:**
+- All 9 plugins build successfully (all under 70KB)
+- `skills/` contains only capability directories (no plugin-only dirs)
+- 22.7KB of stale context removed
+- ~60KB of reference bloat removed
+- Build pipeline: `plugins.yaml` → `generate-registry.py` → `plugin-registry.json` → `build-plugin.py`

@@ -4,6 +4,7 @@ description: >
   FO- Manages FBA inbound fulfillment. SAMPLE: creates inventory package and
   FNSKU guide for test unit. BULK: creates inventory package and inbound
   checklist for production order.
+disable-model-invocation: true
 version: "1.0.0"
 lifecycle: prototype
 ---

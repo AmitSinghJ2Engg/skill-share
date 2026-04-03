@@ -27,7 +27,7 @@ If user provides raw CrawlBatch: redirect to product-discover BATCH. Never accep
 
 Score each ProductCandidate across 8 dimensions. Returns `ScoredCandidate[]`.
 
-Read `reference/scoring-rubric-8dim.md` for dimension tables, signal priorities, and scoring tiers. 8 dimensions at 12.5 points each, max 100. Bands: Strong 75-100, Promising 55-74, Weak 35-54, Reject 0-34.
+Read `references/scoring-rubric-8dim.md` for dimension tables, signal priorities, and scoring tiers. 8 dimensions at 12.5 points each, max 100. Bands: Strong 75-100, Promising 55-74, Weak 35-54, Reject 0-34.
 
 Returns per candidate: `Opportunity_Score`, `Competition_Level`, `Search_Trend`. CRM persistence handled by zoho-data-ops.
 
@@ -37,7 +37,7 @@ Returns per candidate: `Opportunity_Score`, `Competition_Level`, `Search_Trend`.
 
 Apply risk filters, produce top-10 report with differentiation ideas.
 
-**Stage 1 -- Risk Filter:** Read `reference/risk-filter-rules.md`. 4 filters (Trademark, Seasonality, Certification, Fragility). Verdict = worst result. PASS / CONDITIONAL (flagged) / FAIL (excluded).
+**Stage 1 -- Risk Filter:** Read `references/risk-filter-rules.md`. 4 filters (Trademark, Seasonality, Certification, Fragility). Verdict = worst result. PASS / CONDITIONAL (flagged) / FAIL (excluded).
 
 **Stage 2 -- Top-10:** For top 10 PASS/CONDITIONAL (by score), per candidate: differentiation idea, wood spec, bundle opportunity, manufacturing difficulty, confidence level, marketplace opportunity.
 

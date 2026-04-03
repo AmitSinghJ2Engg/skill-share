@@ -1,0 +1,126 @@
+# plugins.yaml -- Central plugin definitions
+# Source of truth for all plugin builds. Read by generate-registry.py.
+# Skills are organized by capability in skills/{capability}/{name}/
+# Plugins pull skills from any capability group via include lists.
+
+plugins:
+
+  # ── Product Pipeline ──────────────────────────────────────────────
+
+  product-discovery:
+    description: "Domain 1 discovery stages -- keyword intelligence, product discovery, screening, market intelligence."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: ikraft-keyword-intelligence
+        from: research
+      - skill: product-discover
+        from: research
+      - skill: product-screen
+        from: research
+      - skill: product-market-intelligence
+        from: research
+
+  product-evaluation:
+    description: "Domains 1 + 1.5 -- deep evaluation, pre-test economics, compliance feasibility, competitive positioning."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: product-evaluate
+        from: evaluation
+      - skill: compliance-ops
+        from: evaluation
+      - skill: margin-calculator
+        from: finance
+      - skill: product-market-intelligence
+        from: research
+
+  product-sourcing:
+    description: "Domain 2 -- product spec, supplier discovery, vendor evaluation, actual unit economics, compliance initiation."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: product-spec
+        from: evaluation
+      - skill: supplier-intelligence
+        from: research
+      - skill: vendor-ops
+        from: sourcing
+      - skill: margin-calculator
+        from: finance
+      - skill: compliance-ops
+        from: evaluation
+
+  product-testing:
+    description: "Domain 2.5 -- test campaigns, monitoring, FBA dispatch, compliance tracking."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: ads-ops
+        from: marketing
+      - skill: fulfillment-ops
+        from: operations
+      - skill: product-monitor
+        from: operations
+      - skill: compliance-ops
+        from: evaluation
+
+  # ── Launch & Ops ──────────────────────────────────────────────────
+
+  product-launch:
+    description: "Domain 3 -- listing copy, capital planning, compliance completion, bulk fulfillment."
+    version: "1.0.0"
+    project: "Launch & Ops"
+    skills:
+      - skill: content-writer
+        from: marketing
+      - skill: capital-planner
+        from: finance
+      - skill: compliance-ops
+        from: evaluation
+      - skill: fulfillment-ops
+        from: operations
+
+  product-ops:
+    description: "Domain 4 -- live monitoring, ad management, revenue ops, learning engine."
+    version: "1.0.0"
+    project: "Launch & Ops"
+    skills:
+      - skill: ism-learning-engine
+        from: learning
+      - skill: revenue-ops
+        from: finance
+      - skill: product-monitor
+        from: operations
+      - skill: ads-ops
+        from: marketing
+
+  # ── System Ops (Governance) ───────────────────────────────────────
+
+  governance-audit:
+    description: "Skill standards compliance -- audit 20 standards (S1-S20), 46+ violation codes, maturity lifecycle, resolution registry."
+    version: "1.0.0"
+    project: "System Ops"
+    skills:
+      - skill: ikraft-skill-auditor
+        from: governance
+
+  governance-architecture:
+    description: "Architecture compliance and ecosystem health -- 7-Law enforcement, pattern synthesis, gap detection and routing."
+    version: "1.0.0"
+    project: "System Ops"
+    skills:
+      - skill: ikraft-architecture-governance
+        from: governance
+      - skill: ism-gap-auditor
+        from: governance
+
+  governance-business:
+    description: "Business decisions and performance measurement -- strategic alignment, GO FEARLESS quality, OKR/KPI governance."
+    version: "1.0.0"
+    project: "System Ops"
+    skills:
+      - skill: ism-business-authority
+        from: governance
+      - skill: okr-kpi-governance
+        from: governance

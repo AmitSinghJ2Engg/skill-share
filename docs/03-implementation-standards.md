@@ -182,23 +182,22 @@ Project -> Tasks -> Plugins -> Skills
 
 Each level is isolated and owns its own definition. Composition happens at the parent level — skills don't know about plugins, plugins don't know about other plugins. The central registry (`tools/plugin-registry.json`) is a **generated build artifact**, not a source file.
 
-### Plugin Definition (plugin.json)
+### Plugin Definition (plugins.yaml)
 
-Plugin directories contain a `plugin.json` that lists all skills via `include` entries pointing to capability group packages (see DL-006). Skills are organized by business capability (research, evaluation, finance, marketing, etc.), not by plugin.
+All plugin definitions live in a single `plugins.yaml` at the repo root (see DL-011). Skills are organized by business capability (research, evaluation, finance, marketing, etc.), not by plugin.
 
-```json
-{
-  "name": "plugin-name",
-  "description": "What this plugin provides. Up to 1024 characters.",
-  "version": "1.0.0",
-  "project": "Product Pipeline",
-  "include": [
-    {"skill": "skill-dir-name", "from": "source-package-name"}
-  ]
-}
+```yaml
+plugins:
+  plugin-name:
+    description: "What this plugin provides. Up to 1024 characters."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: skill-dir-name
+        from: capability-group
 ```
 
-`project` and `include` are optional. Omit `include` when all skills are local.
+Each skill entry specifies the skill directory name and the capability group it lives in.
 
 ### Built Plugin Layout
 
@@ -263,9 +262,9 @@ One plugin serves multiple business tasks. Example: product-discovery plugin con
 - "Related Skills" sections in SKILL.md are informational only — they do not drive the build.
 
 ### Build Process
-1. **Define** the plugin: create `skills/{package}/plugin.json` with name, description, version, and cross-package includes.
-2. Local skills are auto-discovered. Only cross-package skills need explicit `include` entries.
-3. **Generate registry:** `python tools/generate-registry.py` scans all `plugin.json` files and produces `tools/plugin-registry.json`.
+1. **Define** the plugin: add an entry to `plugins.yaml` with name, description, version, and skill includes.
+2. Each skill entry specifies the capability group and skill directory name.
+3. **Generate registry:** `python tools/generate-registry.py` reads `plugins.yaml` and produces `tools/plugin-registry.json`.
 4. **Validate:** `python tools/validate-system.py --check-only` checks I/O contracts, references, budgets.
 5. **Build:** `python tools/build-plugin.py --plugin <name>` assembles to `dist/build/{plugin-name}/`.
 6. **Review** the intermediate build directory.
@@ -285,13 +284,13 @@ When building a specific plugin, the script reports which shared skills are incl
 
 | Script | Purpose |
 |--------|---------|
-| `tools/generate-registry.py` | Scans `skills/*/plugin.json` -> generates `tools/plugin-registry.json` |
+| `tools/generate-registry.py` | Reads `plugins.yaml` -> generates `tools/plugin-registry.json` |
 | `tools/build-plugin.py` | Builds one or all plugins from the registry |
 | `tools/validate-system.py` | Cross-cutting validation, manifest + marketplace generation |
 | `tools/build.py` | Unified entry point that chains all the above |
 | `tools/build-skill.py` | Packages a single skill folder into a .skill zip (standalone) |
 
-`plugin-registry.json` is generated — do not edit it manually. To add/change skills in a plugin, edit `skills/{package}/plugin.json` and re-run `generate-registry.py`.
+`plugin-registry.json` is generated — do not edit it manually. To add/change skills in a plugin, edit `plugins.yaml` and re-run `generate-registry.py`.
 
 ---
 
@@ -534,7 +533,7 @@ skill-share/
     source-to-pay-tracker-v1.0.jsx
   tools/                          (build scripts + generated registry)
     build.py                      (unified build entry point)
-    generate-registry.py          (generates plugin-registry.json from plugin.json files)
+    generate-registry.py          (generates plugin-registry.json from plugins.yaml)
     build-plugin.py               (builds plugins from registry)
     build-skill.py                (packages single skill)
     validate-system.py            (cross-cutting validation + manifest)
@@ -560,7 +559,7 @@ skill-share/
 ```
 
 ### Rules
-- All skills live in `skills/{capability}/{name}/` at the repo root. Capability groups: research, evaluation, finance, marketing, sourcing, operations, learning, platform, governance, core, founder (see DL-006). Each skill has a `SKILL.md` and optional supporting files (reference/, scripts/, templates/). Plugins pull skills from capability groups via `include` entries in `skills/{plugin}/plugin.json`.
+- All skills live in `skills/{capability}/{name}/` at the repo root. Capability groups: research, evaluation, finance, marketing, sourcing, operations, learning, platform, governance, core, founder (see DL-006). Each skill has a `SKILL.md` and optional supporting files (references/, scripts/, templates/). Plugins are defined in `plugins.yaml` and pull skills from any capability group (see DL-011).
 - Supporting files (reference/, scripts/) are packaged into the plugin alongside SKILL.md. They count toward the 70 KB plugin limit.
 - The plugin contains the complete skill directory (SKILL.md + supporting files) per skill.
 - The repo is the source of truth for skill source code. Plugins are built artifacts.

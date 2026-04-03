@@ -47,21 +47,80 @@ const TABS = [
   { id: 'gate2', label: 'Gate 2 Decision' },
 ];
 
-const DEFAULT_SCENARIOS = [
-  { moq: 50, cogs: 650, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 30 },
-  { moq: 100, cogs: 600, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 60 },
-  { moq: 250, cogs: 540, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 120 },
-  { moq: 500, cogs: 490, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 200 },
-  { moq: 1000, cogs: 440, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 350 },
-];
+/* ------------------------------------------------------------------ */
+/* Storage-backed configuration                                        */
+/* ------------------------------------------------------------------ */
 
-const DEFAULT_COMPLIANCE_ITEMS = [
-  { id: 1, name: 'BIS Certification (ISI Mark)', status: 'pending' },
-  { id: 2, name: 'FSSAI License (if food contact)', status: 'pending' },
-  { id: 3, name: 'Legal Metrology Declaration', status: 'pending' },
-  { id: 4, name: 'Product Liability Insurance', status: 'pending' },
-  { id: 5, name: 'GST Registration Verification', status: 'pending' },
-];
+function storageGet(key) {
+  try {
+    if (window.storage && typeof window.storage.getItem === 'function') {
+      var v = window.storage.getItem(key);
+      return v ? JSON.parse(v) : null;
+    }
+  } catch (e) { /* sandbox */ }
+  return null;
+}
+
+function storageSet(key, val) {
+  try {
+    if (window.storage && typeof window.storage.setItem === 'function') {
+      window.storage.setItem(key, JSON.stringify(val));
+    }
+  } catch (e) { /* sandbox */ }
+}
+
+function loadConfig() {
+  var saved = storageGet('ism:config:scale-decision');
+  var fallback = {
+    scenarios: [
+      { moq: 50, cogs: 650, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 30 },
+      { moq: 100, cogs: 600, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 60 },
+      { moq: 250, cogs: 540, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 120 },
+      { moq: 500, cogs: 490, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 200 },
+      { moq: 1000, cogs: 440, sp: 1499, fees: 300, fixedCosts: 25000, monthlyUnits: 350 },
+    ],
+    compliance_items: [
+      { id: 1, name: 'BIS Certification (ISI Mark)', status: 'pending' },
+      { id: 2, name: 'FSSAI License (if food contact)', status: 'pending' },
+      { id: 3, name: 'Legal Metrology Declaration', status: 'pending' },
+      { id: 4, name: 'Product Liability Insurance', status: 'pending' },
+      { id: 5, name: 'GST Registration Verification', status: 'pending' },
+    ],
+    fee_deduction: 300,
+    keyword_thresholds: {
+      winner_min_orders: 3,
+      loser_min_spend: 100,
+    },
+    data_quality: {
+      min_impressions: 100,
+      high_vol_impressions: 1000,
+      high_vol_count: 5,
+      medium_count: 3,
+    },
+    target_acos: 40,
+  };
+  if (!saved) return fallback;
+  return {
+    scenarios: saved.scenarios || fallback.scenarios,
+    compliance_items: saved.compliance_items || fallback.compliance_items,
+    fee_deduction: saved.fee_deduction !== undefined ? saved.fee_deduction : fallback.fee_deduction,
+    keyword_thresholds: saved.keyword_thresholds || fallback.keyword_thresholds,
+    data_quality: saved.data_quality || fallback.data_quality,
+    target_acos: saved.target_acos !== undefined ? saved.target_acos : fallback.target_acos,
+  };
+}
+
+var _cfg = loadConfig();
+
+var DEFAULT_SCENARIOS = _cfg.scenarios;
+
+var DEFAULT_COMPLIANCE_ITEMS = _cfg.compliance_items;
+
+var FEE_DEDUCTION = _cfg.fee_deduction;
+
+var KW_THRESHOLDS = _cfg.keyword_thresholds;
+
+var DQ_THRESHOLDS = _cfg.data_quality;
 
 /* ------------------------------------------------------------------ */
 /* Utility helpers                                                     */
@@ -370,7 +429,7 @@ function CostComparisonTab({ costData, setCostData }) {
   }, [estMarginPct, actMarginPct]);
 
   const acosVerdict = React.useMemo(() => {
-    const estBE = est.sp && est.cogs ? (((est.sp - est.cogs - 300) / est.sp) * 100) : null;
+    const estBE = est.sp && est.cogs ? (((est.sp - est.cogs - FEE_DEDUCTION) / est.sp) * 100) : null;
     const testAcos = parseFloat(test.acos);
     if (estBE === null || isNaN(testAcos)) return null;
     if (testAcos <= estBE) return { text: `Test ACoS (${fmtPct(testAcos)}) within breakeven (${fmtPct(estBE)})`, color: COLORS.success };
@@ -602,10 +661,10 @@ function KeywordAnalysisTab({ keywordData, setKeywordData, targetAcos }) {
   };
 
   const classify = (row) => {
-    const tgt = parseFloat(targetAcos) || 40;
-    if (row.orders >= 3 && row.acos <= tgt && row.acos !== Infinity) return 'Winner';
+    const tgt = parseFloat(targetAcos) || _cfg.target_acos;
+    if (row.orders >= KW_THRESHOLDS.winner_min_orders && row.acos <= tgt && row.acos !== Infinity) return 'Winner';
     if (row.orders >= 1) return 'Learner';
-    if (row.orders === 0 && row.spend > 100) return 'Loser';
+    if (row.orders === 0 && row.spend > KW_THRESHOLDS.loser_min_spend) return 'Loser';
     return 'No Data';
   };
 
@@ -800,7 +859,7 @@ function KeywordAnalysisTab({ keywordData, setKeywordData, targetAcos }) {
                 React.createElement('td', { style: { ...tdStyle, textAlign: 'right' } }, fmtINR(row.revenue)),
                 React.createElement(
                   'td',
-                  { style: { ...tdStyle, textAlign: 'right', color: row.acos === Infinity ? COLORS.danger : row.acos <= (parseFloat(targetAcos) || 40) ? COLORS.success : COLORS.danger, fontWeight: 600 } },
+                  { style: { ...tdStyle, textAlign: 'right', color: row.acos === Infinity ? COLORS.danger : row.acos <= (parseFloat(targetAcos) || _cfg.target_acos) ? COLORS.success : COLORS.danger, fontWeight: 600 } },
                   row.acos === Infinity ? 'INF' : fmtPct(row.acos)
                 ),
                 React.createElement('td', { style: { ...tdStyle, textAlign: 'right' } }, fmtPct(row.cvr)),
@@ -1315,10 +1374,10 @@ function Gate2DecisionTab({
   };
 
   /* Auto-derive criteria from other tabs */
-  const tgt = parseFloat(targetAcos) || 40;
+  const tgt = parseFloat(targetAcos) || _cfg.target_acos;
 
   const winnerCount = React.useMemo(() => {
-    return keywordData.filter((r) => r.orders >= 3 && r.acos <= tgt && r.acos !== Infinity).length;
+    return keywordData.filter((r) => r.orders >= KW_THRESHOLDS.winner_min_orders && r.acos <= tgt && r.acos !== Infinity).length;
   }, [keywordData, tgt]);
 
   const blendedAcos = React.useMemo(() => {
@@ -1332,15 +1391,15 @@ function Gate2DecisionTab({
     const sp = parseFloat(costData.actual.sp) || parseFloat(costData.estimate.sp) || 0;
     const cogs = parseFloat(costData.actual.cogs) || parseFloat(costData.estimate.cogs) || 0;
     if (sp === 0) return null;
-    return ((sp - cogs - 300) / sp) * 100;
+    return ((sp - cogs - FEE_DEDUCTION) / sp) * 100;
   }, [costData]);
 
   const dataQuality = React.useMemo(() => {
     if (keywordData.length === 0) return null;
-    const kwWithData = keywordData.filter((r) => r.impressions >= 100).length;
-    const kwHighVol = keywordData.filter((r) => r.impressions >= 1000).length;
-    if (kwHighVol >= 5) return 'HIGH';
-    if (kwWithData >= 3) return 'MEDIUM';
+    const kwWithData = keywordData.filter((r) => r.impressions >= DQ_THRESHOLDS.min_impressions).length;
+    const kwHighVol = keywordData.filter((r) => r.impressions >= DQ_THRESHOLDS.high_vol_impressions).length;
+    if (kwHighVol >= DQ_THRESHOLDS.high_vol_count) return 'HIGH';
+    if (kwWithData >= DQ_THRESHOLDS.medium_count) return 'MEDIUM';
     return 'LOW';
   }, [keywordData]);
 
@@ -1358,8 +1417,8 @@ function Gate2DecisionTab({
   const criteria = [
     {
       key: 'keywords',
-      label: 'Keyword-level margin positive on >= 3 keywords',
-      auto: keywordData.length > 0 ? (winnerCount >= 3 ? 'pass' : 'fail') : null,
+      label: `Keyword-level margin positive on >= ${KW_THRESHOLDS.winner_min_orders} keywords`,
+      auto: keywordData.length > 0 ? (winnerCount >= KW_THRESHOLDS.winner_min_orders ? 'pass' : 'fail') : null,
       detail: keywordData.length > 0 ? `${winnerCount} winning keywords found` : 'No keyword data imported',
     },
     {
@@ -1743,43 +1802,180 @@ function Gate2DecisionTab({
 }
 
 /* ================================================================== */
+/* Toast Component                                                     */
+/* ================================================================== */
+
+function Toast({ message, type, onDismiss }) {
+  if (!message) return null;
+  const bg = type === 'error' ? COLORS.dangerLight : type === 'warning' ? COLORS.warningLight : COLORS.successLight;
+  const color = type === 'error' ? COLORS.danger : type === 'warning' ? COLORS.warning : COLORS.success;
+  return React.createElement('div', {
+    style: {
+      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+      padding: '12px 20px', borderRadius: 8, background: bg,
+      border: '1px solid ' + color, color: color, fontSize: 13,
+      fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      display: 'flex', alignItems: 'center', gap: 10, maxWidth: 400,
+    },
+  },
+    React.createElement('span', null, message),
+    React.createElement('button', {
+      style: { background: 'none', border: 'none', color: color, cursor: 'pointer', fontSize: 16, fontWeight: 700 },
+      onClick: onDismiss,
+    }, '\u00D7')
+  );
+}
+
+/* ================================================================== */
 /* Main Component                                                      */
 /* ================================================================== */
 
+var STATE_KEY = 'ism:scale-decision-workbench:state';
+
 function ScaleDecisionWorkbench() {
-  const [activeTab, setActiveTab] = React.useState('cost');
-  const [productName, setProductName] = React.useState('');
-  const [targetAcos, setTargetAcos] = React.useState(40);
+  /* Toast state */
+  const [toast, setToast] = React.useState({ message: '', type: 'success' });
+  function showToast(msg, type) {
+    setToast({ message: msg, type: type || 'success' });
+    setTimeout(() => setToast({ message: '', type: 'success' }), 4000);
+  }
+
+  /* Restore persisted state */
+  const savedState = React.useMemo(() => storageGet(STATE_KEY), []);
+
+  const [activeTab, setActiveTab] = React.useState((savedState && savedState.activeTab) || 'cost');
+  const [productName, setProductName] = React.useState((savedState && savedState.productName) || '');
+  const [targetAcos, setTargetAcos] = React.useState((savedState && savedState.targetAcos) || _cfg.target_acos);
 
   /* Tab 1 state */
-  const [costData, setCostData] = React.useState({
-    estimate: { sp: '', cogs: '', margin: '' },
-    actual: { sp: '', cogs: '', vendor: '', margin: '' },
-    test: { acos: '', roas: '', cpc: '', cvr: '', orders: '' },
-  });
+  const [costData, setCostData] = React.useState(
+    (savedState && savedState.costData) || {
+      estimate: { sp: '', cogs: '', margin: '' },
+      actual: { sp: '', cogs: '', vendor: '', margin: '' },
+      test: { acos: '', roas: '', cpc: '', cvr: '', orders: '' },
+    }
+  );
 
   /* Tab 2 state */
-  const [keywordData, setKeywordData] = React.useState([]);
+  const [keywordData, setKeywordData] = React.useState(
+    (savedState && savedState.keywordData) || []
+  );
 
   /* Tab 3 state */
-  const [complianceData, setComplianceData] = React.useState({
-    expectedCompletion: '',
-    proposedLaunch: '',
-    items: DEFAULT_COMPLIANCE_ITEMS.map((it) => ({ ...it })),
-  });
+  const [complianceData, setComplianceData] = React.useState(
+    (savedState && savedState.complianceData) || {
+      expectedCompletion: '',
+      proposedLaunch: '',
+      items: DEFAULT_COMPLIANCE_ITEMS.map((it) => ({ ...it })),
+    }
+  );
 
   /* Tab 4 state */
   const [scenarios, setScenarios] = React.useState(
-    DEFAULT_SCENARIOS.map((s) => ({ ...s }))
+    (savedState && savedState.scenarios) || DEFAULT_SCENARIOS.map((s) => ({ ...s }))
   );
 
   /* Tab 5 state */
-  const [gate2State, setGate2State] = React.useState({
-    manualOverrides: { keywords: 'unset', acos: 'unset', dataQuality: 'unset', compliance: 'unset' },
-    scaleDecision: { quantity: '', targetLandedCost: '', maxMOQ: '', launchTimeline: '' },
-    killDecision: { reason: '' },
-    recordedDecision: null,
-  });
+  const [gate2State, setGate2State] = React.useState(
+    (savedState && savedState.gate2State) || {
+      manualOverrides: { keywords: 'unset', acos: 'unset', dataQuality: 'unset', compliance: 'unset' },
+      scaleDecision: { quantity: '', targetLandedCost: '', maxMOQ: '', launchTimeline: '' },
+      killDecision: { reason: '' },
+      recordedDecision: null,
+    }
+  );
+
+  /* Persist state on change */
+  React.useEffect(() => {
+    storageSet(STATE_KEY, {
+      activeTab, productName, targetAcos, costData,
+      keywordData, complianceData, scenarios, gate2State,
+    });
+  }, [activeTab, productName, targetAcos, costData, keywordData, complianceData, scenarios, gate2State]);
+
+  /* ---- Export / Import / Slack handlers ---- */
+  function buildExportPayload() {
+    return {
+      type: 'ScaleDecision',
+      version: '1.1',
+      timestamp: new Date().toISOString(),
+      product: productName,
+      targetAcos: targetAcos,
+      costData: costData,
+      keywordCount: keywordData.length,
+      complianceData: complianceData,
+      scenarios: scenarios,
+      gate2State: gate2State,
+    };
+  }
+
+  function handleExport() {
+    var payload = buildExportPayload();
+    var json = JSON.stringify(payload, null, 2);
+    try {
+      navigator.clipboard.writeText(json).then(() => {
+        showToast('ScaleDecision JSON copied to clipboard', 'success');
+      });
+    } catch (e) {
+      var ta = document.createElement('textarea');
+      ta.value = json;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('ScaleDecision JSON copied to clipboard', 'success');
+    }
+  }
+
+  function handleImport() {
+    var input = prompt('Paste ScaleDecision JSON:');
+    if (!input) return;
+    try {
+      var data = JSON.parse(input);
+      if (data.productName || data.product) setProductName(data.productName || data.product);
+      if (data.targetAcos) setTargetAcos(data.targetAcos);
+      if (data.costData) setCostData(data.costData);
+      if (data.complianceData) setComplianceData(data.complianceData);
+      if (data.scenarios) setScenarios(data.scenarios);
+      if (data.gate2State) setGate2State(data.gate2State);
+      showToast('ScaleDecision imported successfully', 'success');
+    } catch (e) {
+      showToast('Invalid JSON format', 'error');
+    }
+  }
+
+  function handleSendToSlack() {
+    var payload = buildExportPayload();
+    var decision = gate2State.recordedDecision;
+    var slackPayload = {
+      action: 'send_to_slack',
+      channel: '#ism-launch-alerts',
+      format: 'mrkdwn',
+      content: {
+        title: 'Scale Decision Workbench | ' + (productName || 'Unknown Product'),
+        decision_type: decision ? decision.type : 'PENDING',
+        verdict: decision ? decision.verdict : 'NOT RECORDED',
+        target_acos: targetAcos + '%',
+        keyword_count: keywordData.length,
+        winner_count: keywordData.filter(
+          (r) => r.orders >= KW_THRESHOLDS.winner_min_orders && r.acos <= (parseFloat(targetAcos) || _cfg.target_acos) && r.acos !== Infinity
+        ).length,
+      },
+      full_payload: payload,
+    };
+    var json = JSON.stringify(slackPayload, null, 2);
+    try {
+      navigator.clipboard.writeText(json);
+    } catch (e) {
+      var ta = document.createElement('textarea');
+      ta.value = json;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast('Slack payload copied -- paste to Claude for slack-messaging skill', 'success');
+  }
 
   /* Render tab content */
   const tabContent = React.useMemo(() => {
@@ -1948,7 +2144,7 @@ function ScaleDecisionWorkbench() {
               { style: { fontSize: 12, color: COLORS.success, fontWeight: 600 } },
               'Winners: ',
               keywordData.filter(
-                (r) => r.orders >= 3 && r.acos <= (parseFloat(targetAcos) || 40) && r.acos !== Infinity
+                (r) => r.orders >= KW_THRESHOLDS.winner_min_orders && r.acos <= (parseFloat(targetAcos) || _cfg.target_acos) && r.acos !== Infinity
               ).length
             ),
           (!costData.actual.sp && !costData.test.acos && keywordData.length === 0) &&
@@ -2092,10 +2288,47 @@ function ScaleDecisionWorkbench() {
         React.createElement(
           'div',
           { style: { flex: 1, overflow: 'auto', padding: 20 } },
-          tabContent
+          tabContent,
+
+          /* Action Buttons */
+          React.createElement(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 8,
+                marginTop: 20,
+                paddingTop: 16,
+                borderTop: `1px solid ${COLORS.gray200}`,
+              },
+            },
+            React.createElement('button', {
+              style: { ...btnPrimary, background: COLORS.gray500, fontSize: 12, padding: '6px 14px' },
+              onClick: handleExport,
+              title: 'Export workbench data as JSON to clipboard',
+            }, 'Export JSON'),
+            React.createElement('button', {
+              style: { ...btnPrimary, background: COLORS.gray500, fontSize: 12, padding: '6px 14px' },
+              onClick: handleImport,
+              title: 'Import workbench data from JSON',
+            }, 'Import JSON'),
+            React.createElement('button', {
+              style: { ...btnPrimary, background: COLORS.gray700, fontSize: 12, padding: '6px 14px' },
+              onClick: handleSendToSlack,
+              title: 'Copy Slack-formatted payload for slack-messaging skill',
+            }, 'Send to Slack')
+          )
         )
       )
-    )
+    ),
+
+    /* Toast Notification */
+    React.createElement(Toast, {
+      message: toast.message,
+      type: toast.type,
+      onDismiss: () => setToast({ message: '', type: 'success' }),
+    })
   );
 }
 

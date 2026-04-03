@@ -11,8 +11,8 @@ JSX artifact files for Claude.ai conversations. One file per artifact, versioned
 | `discovery-dashboard-v1.0.jsx` | Product Pipeline | Domain 1 | Not built |
 | `positioning-workbench-v1.0.jsx` | Product Pipeline | Domain 1.5 | Not built |
 | `sourcing-workbench-v1.0.jsx` | Product Pipeline | Domain 2 | Not built |
-| `test-lab-a-v1.0.jsx` | Product Pipeline | Domain 2.5 (Plan + Run) | Not built |
-| `test-lab-b-v1.0.jsx` | Product Pipeline | Domain 2.5 (Analyze + Decide) | Not built |
+| `campaign-planner-v1.0.artifact.jsx` | Product Pipeline | Domain 2.5 (Plan + Run) | Built |
+| `scale-decision-workbench-v1.0.artifact.jsx` | Product Pipeline | Domain 2.5 (Analyze + Decide) | Built |
 | `portfolio-dashboard-v1.0.jsx` | Product Pipeline | Cross-domain (strategic) | Not built |
 | `launch-control-v1.0.jsx` | Launch & Ops | Domain 3 | Not built |
 | `ops-dashboard-v1.0.jsx` | Launch & Ops | Domain 4 | Not built |

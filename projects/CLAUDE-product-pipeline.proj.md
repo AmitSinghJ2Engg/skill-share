@@ -30,6 +30,7 @@ CRM module: Product_Launches (141 fields)
 | AO | ads-ops | TEST, LIVE |
 | MO | product-monitor | MONITOR, CLASSIFY, FEEDBACK |
 | FO | fulfillment-ops | SAMPLE, BULK |
+| SM | slack-messaging | *(auto-trigger on Slack compose)* |
 
 ## Data Integrity Rules
 
@@ -38,7 +39,7 @@ CRM module: Product_Launches (141 fields)
 3. Confidence levels are mandatory. HIGH (verified), MEDIUM (single source), LOW (estimated).
 4. Zoho CRM is the single source of truth. Write to Product_Launches records, not local files.
 5. All score updates go to Zoho CRM. No local score storage.
-6. Slack notifications for alerts go to #ism-launch-alerts, reports to #ism-launch-reports.
+6. Slack notifications for alerts go to #ism-launch-alerts, reports to #ism-launch-reports. All Slack messages must route through `slack-messaging` skill for mrkdwn formatting.
 7. Confluence pages link from CRM records (field_confluence_url pattern).
 
 ## Key Financial Constants

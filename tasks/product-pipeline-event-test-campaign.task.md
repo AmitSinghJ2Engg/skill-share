@@ -153,7 +153,7 @@ Present all evidence for the human to make the commit/don't-commit decision:
 
 **If PASS:** Output ScaleDecision with quantity, target landed cost, max MOQ, launch timeline. This triggers Domain 3 (bulk order initiation + Source to Pay pipeline).
 
-**If FAIL:** Output kill/park recommendation with full rationale. Log to CRM and Slack.
+**If FAIL:** Output kill/park recommendation with full rationale. Log to CRM. Post kill/park alert to Slack via `slack-messaging` skill.
 
 ## Outputs
 
@@ -166,7 +166,9 @@ Present all evidence for the human to make the commit/don't-commit decision:
 | ComplianceTimelineCheck | CRM Product_Launches | After Step 8 |
 | ScaleDecision | CRM Product_Launches | After Gate 2 |
 | Gate 2 result | CRM stage advance | On pass |
-| Slack alerts | #ism-launch-alerts | On gate decisions |
+| Slack alerts (via `slack-messaging` skill) | #ism-launch-alerts | On gate decisions |
+| ISM_ExecutionLogs record | CRM ISM_ExecutionLogs | Always |
+| ISM_Learnings record | CRM ISM_Learnings | On Gate 2 decision |
 
 ## Error Handling
 
@@ -178,6 +180,47 @@ Present all evidence for the human to make the commit/don't-commit decision:
 | Compliance BLOCK | Cannot pass Gate 2; present options (wait, accept risk, abort) |
 | Skill invocation fails | Log error, present partial results, ask for manual input |
 
+### Step 10: Write execution log
+
+Write to **ISM_ExecutionLogs** CRM module:
+
+```
+Skill_Name: "test-campaign"
+Execution_Date: now
+Status: "SUCCESS" | "PARTIAL" | "FAILED"
+Input_Fingerprint: "product={product_name},asin={asin},phases_completed={1|2|both}"
+Output_Summary: "gate2_verdict={PASS|FAIL|CONDITIONAL},winners={count},blended_acos={pct},scale_qty={qty_or_na}"
+Systems_Modified: "Product_Launches,ISM_Learnings"
+Slack_Tag: "#ism-launch-alerts"
+```
+
+### Step 11: Write learning signal
+
+Write to **ISM_Learnings** CRM module:
+
+```
+Skill_Name: "test-campaign"
+Target_Type: "gate2_decision"
+Target_Name: product name
+Description: JSON summary of:
+  - gate2_verdict: PASS/FAIL/CONDITIONAL
+  - winning_keywords_count: N
+  - blended_acos_vs_breakeven: actual vs threshold
+  - data_quality: HIGH/MEDIUM/LOW
+  - compliance_status: PASS/WARNING/BLOCK
+  - scale_quantity: N (if PASS)
+  - kill_reason: text (if FAIL)
+Severity: "info"
+Status: "new"
+Timestamp: now
+```
+
+### Step 12: Post Slack summary
+
+**Route through `slack-messaging` skill** for correct mrkdwn formatting.
+
+Post Gate 2 decision summary to **#ism-launch-alerts** with: product name, verdict, key metrics, and next action.
+
 ## Constraints
 
 - This task is an **orchestrator**. Skills do the calculations.
@@ -185,3 +228,4 @@ Present all evidence for the human to make the commit/don't-commit decision:
 - **Never auto-pass Gate 2.** Human always decides.
 - **Never estimate test results.** Analyze actual data only.
 - All CRM writes go through `zoho-data-ops` skill.
+- All Slack messages go through `slack-messaging` skill for mrkdwn formatting.

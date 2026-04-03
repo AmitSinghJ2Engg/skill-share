@@ -1,5 +1,5 @@
 /**
- * Campaign Planner v1.0 -- Ismokraft Product Testing System
+ * Campaign Planner v1.1 -- Ismokraft Product Testing System
  * Domain 2.5 "Plan + Run" PPC Test Campaign Planner for Amazon India
  *
  * Single-file React JSX artifact for Claude.ai.
@@ -11,14 +11,13 @@
  *   3. TestPlan Review & Approval -- summary card, human gate
  *   4. Live Test Tracker -- daily metrics input, running totals, data quality
  *
- * Configuration defaults match ppc-test-campaign-config.ctx.json:
- *   Phase 1: auto campaign, dynamic-down-only, INR 5 bid, INR 500/day, 10 days
- *   Phase 2: manual exact, dynamic-up-and-down, INR 8 bid, INR 1000/day, 14 days
- *   Data quality: HIGH=5kw x 1000imp, MEDIUM=3kw x 500imp, LOW=1kw x 100imp
+ * Business config is loaded from window.storage (ism:config:ppc key),
+ * seeded by ppc-test-campaign-config.ctx.json via project context.
+ * Fallback defaults are used when no stored config exists.
  */
 
 /* ================================================================== */
-/* Constants & Configuration                                           */
+/* Constants (UI only) & Storage Helpers                                */
 /* ================================================================== */
 
 const COLORS = {
@@ -44,18 +43,38 @@ const COLORS = {
   w:    '#ffffff',
 };
 
-/** Phase configuration -- values from ppc-test-campaign-config.ctx.json */
-const PHASES = {
+/** Storage helpers for window.storage (Claude.ai sandbox) */
+function storageGet(key) {
+  try { return window.storage ? window.storage.get(key) : null; } catch(e) { return null; }
+}
+function storageSet(key, value) {
+  try { if (window.storage) window.storage.set(key, typeof value === 'string' ? value : JSON.stringify(value)); } catch(e) {}
+}
+
+/** Load business config from storage, falling back to defaults.
+ *  Config is seeded by project context (ppc-test-campaign-config.ctx.json). */
+function loadConfig() {
+  var stored = storageGet('ism:config:ppc');
+  if (stored) {
+    try { return JSON.parse(stored); } catch(e) {}
+  }
+  return null;
+}
+var _cfg = loadConfig();
+
+/** Phase configuration -- defaults match ppc-test-campaign-config.ctx.json.
+ *  Override by storing JSON at ism:config:ppc with keys: phases.phase_1_discovery.*, phases.phase_2_validation.* */
+var PHASES = {
   phase_1_discovery: {
     label: 'Phase 1: Data-Buying (Keyword Discovery)',
     short: 'Data-Buying',
     goal: 'Keyword discovery -- which keywords Amazon associates with the product',
     type: 'auto',
     suffix: 'SP_Auto',
-    bid: 'dynamic-down-only',
-    defaultBid: 5,
-    daily: 500,
-    days: 10,
+    bid: (_cfg && _cfg.phases && _cfg.phases.phase_1_discovery && _cfg.phases.phase_1_discovery.bid) || 'dynamic-down-only',
+    defaultBid: (_cfg && _cfg.phases && _cfg.phases.phase_1_discovery && _cfg.phases.phase_1_discovery.defaultBid) || 5,
+    daily: (_cfg && _cfg.phases && _cfg.phases.phase_1_discovery && _cfg.phases.phase_1_discovery.daily) || 500,
+    days: (_cfg && _cfg.phases && _cfg.phases.phase_1_discovery && _cfg.phases.phase_1_discovery.days) || 10,
     qc: 'WAIVED permitted (with human approval)',
     dur: '7-10 days',
     desc: 'Run an automatic Sponsored Products campaign so Amazon reveals which search '
@@ -68,10 +87,10 @@ const PHASES = {
     goal: 'Bottom-line unit economics validation per keyword -- actual CVR, ACoS, margin',
     type: 'manual (exact match)',
     suffix: 'SP_Manual_Exact',
-    bid: 'dynamic-up-and-down',
-    defaultBid: 8,
-    daily: 1000,
-    days: 14,
+    bid: (_cfg && _cfg.phases && _cfg.phases.phase_2_validation && _cfg.phases.phase_2_validation.bid) || 'dynamic-up-and-down',
+    defaultBid: (_cfg && _cfg.phases && _cfg.phases.phase_2_validation && _cfg.phases.phase_2_validation.defaultBid) || 8,
+    daily: (_cfg && _cfg.phases && _cfg.phases.phase_2_validation && _cfg.phases.phase_2_validation.daily) || 1000,
+    days: (_cfg && _cfg.phases && _cfg.phases.phase_2_validation && _cfg.phases.phase_2_validation.days) || 14,
     qc: 'PASS mandatory',
     dur: '10-14 days',
     desc: 'Run manual exact-match campaigns targeting winner keywords from Phase 1. '
@@ -80,14 +99,27 @@ const PHASES = {
   },
 };
 
-/** Data quality thresholds -- from ppc-test-campaign-config.ctx.json */
-const DQ_THRESHOLDS = {
-  HIGH:   { kw: 5, imp: 1000, c: COLORS.ok,   bg: COLORS.okL,
+/** Data quality thresholds -- from ism:config:ppc or ppc-test-campaign-config.ctx.json */
+var _dq = (_cfg && _cfg.data_quality) || {};
+var DQ_THRESHOLDS = {
+  HIGH:   { kw: (_dq.HIGH && _dq.HIGH.kw) || 5, imp: (_dq.HIGH && _dq.HIGH.imp) || 1000, c: COLORS.ok,   bg: COLORS.okL,
             desc: 'Sufficient data across enough keywords for confident margin decisions' },
-  MEDIUM: { kw: 3, imp: 500,  c: COLORS.warn, bg: COLORS.warnL,
+  MEDIUM: { kw: (_dq.MEDIUM && _dq.MEDIUM.kw) || 3, imp: (_dq.MEDIUM && _dq.MEDIUM.imp) || 500,  c: COLORS.warn, bg: COLORS.warnL,
             desc: 'Directional signal present but some keywords lack volume' },
-  LOW:    { kw: 1, imp: 100,  c: COLORS.err,  bg: COLORS.errL,
+  LOW:    { kw: (_dq.LOW && _dq.LOW.kw) || 1, imp: (_dq.LOW && _dq.LOW.imp) || 100,  c: COLORS.err,  bg: COLORS.errL,
             desc: 'Insufficient data to draw conclusions' },
+};
+
+/** Metric color thresholds -- from ism:config:ppc or financial-constants.ctx.json */
+var _mt = (_cfg && _cfg.metric_thresholds) || {};
+var METRIC_THRESHOLDS = {
+  acos_warn: (_mt && _mt.acos_warn) || 20,
+  acos_danger: (_mt && _mt.acos_danger) || 30,
+  roas_ok: (_mt && _mt.roas_ok) || 3,
+  roas_warn: (_mt && _mt.roas_warn) || 2,
+  ctr_ok: (_mt && _mt.ctr_ok) || 0.5,
+  cvr_ok: (_mt && _mt.cvr_ok) || 5,
+  cvr_warn: (_mt && _mt.cvr_warn) || 2,
 };
 
 /** Bid strategy options for Amazon Sponsored Products */
@@ -882,22 +914,22 @@ function StepTracker({ cfg, mode, prodName, daily, onDaily, status, onStatus }) 
         h(MetricCard, {
           label: 'Blended ACoS',
           value: pct(tot.acos),
-          color: tot.acos > 30 ? C.err : tot.acos > 20 ? C.warn : C.ok,
+          color: tot.acos > METRIC_THRESHOLDS.acos_danger ? C.err : tot.acos > METRIC_THRESHOLDS.acos_warn ? C.warn : C.ok,
         }),
         h(MetricCard, {
           label: 'ROAS',
           value: tot.roas ? tot.roas.toFixed(2) + 'x' : '--',
-          color: tot.roas >= 3 ? C.ok : tot.roas >= 2 ? C.warn : C.err,
+          color: tot.roas >= METRIC_THRESHOLDS.roas_ok ? C.ok : tot.roas >= METRIC_THRESHOLDS.roas_warn ? C.warn : C.err,
         }),
         h(MetricCard, {
           label: 'CTR',
           value: pct(tot.ctr),
-          color: tot.ctr >= 0.5 ? C.ok : C.warn,
+          color: tot.ctr >= METRIC_THRESHOLDS.ctr_ok ? C.ok : C.warn,
         }),
         h(MetricCard, {
           label: 'CVR',
           value: pct(tot.cvr),
-          color: tot.cvr >= 5 ? C.ok : tot.cvr >= 2 ? C.warn : C.err,
+          color: tot.cvr >= METRIC_THRESHOLDS.cvr_ok ? C.ok : tot.cvr >= METRIC_THRESHOLDS.cvr_warn ? C.warn : C.err,
         }),
         h(MetricCard, {
           label: 'CPC',
@@ -1094,7 +1126,36 @@ function StepTracker({ cfg, mode, prodName, daily, onDaily, status, onStatus }) 
 /* Main App Component                                                  */
 /* ================================================================== */
 
+/** Toast notification component */
+function Toast({ message, type, onDismiss }) {
+  if (!message) return null;
+  var bg = type === 'error' ? C.errL : type === 'warning' ? C.warnL : C.okL;
+  var color = type === 'error' ? C.err : type === 'warning' ? C.warn : C.ok;
+  return h('div', {
+    style: {
+      position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
+      padding: '12px 20px', borderRadius: 8, background: bg,
+      border: '1px solid ' + color, color: color, fontSize: 13,
+      fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      display: 'flex', alignItems: 'center', gap: 10, maxWidth: 400,
+    },
+  },
+    h('span', null, message),
+    h('button', {
+      style: { background: 'none', border: 'none', color: color, cursor: 'pointer', fontSize: 16, fontWeight: 700 },
+      onClick: onDismiss,
+    }, '\u00D7')
+  );
+}
+
 function CampaignPlanner() {
+  // Toast state
+  var [toast, setToast] = React.useState({ message: '', type: 'success' });
+  function showToast(message, type) {
+    setToast({ message: message, type: type || 'success' });
+    setTimeout(function() { setToast({ message: '', type: 'success' }); }, 4000);
+  }
+
   // Product list state
   var [products, setProducts] = React.useState([{ name: '' }]);
   var [pidx, setPidx] = React.useState(0);
@@ -1117,6 +1178,129 @@ function CampaignPlanner() {
 
   // Daily tracker data
   var [daily, setDaily] = React.useState([]);
+
+  // Persist state to window.storage on changes
+  React.useEffect(function() {
+    var stateKey = 'ism:campaign-planner:state';
+    storageSet(stateKey, { products: products, pidx: pidx, step: step, mode: mode, approved: approved, status: status, cfg: cfg, daily: daily });
+  }, [products, pidx, step, mode, approved, status, cfg, daily]);
+
+  // Restore state from window.storage on mount
+  React.useEffect(function() {
+    var stateKey = 'ism:campaign-planner:state';
+    var saved = storageGet(stateKey);
+    if (saved) {
+      try {
+        var s = JSON.parse(saved);
+        if (s.products) setProducts(s.products);
+        if (s.pidx !== undefined) setPidx(s.pidx);
+        if (s.step !== undefined) setStep(s.step);
+        if (s.mode !== undefined) setMode(s.mode);
+        if (s.approved !== undefined) setApproved(s.approved);
+        if (s.status !== undefined) setStatus(s.status);
+        if (s.cfg) setCfg(s.cfg);
+        if (s.daily) setDaily(s.daily);
+      } catch(e) {}
+    }
+  }, []);
+
+  /** Build exportable TestPlan JSON payload */
+  function buildExportPayload() {
+    var prod = products[pidx] || { name: '' };
+    var ph = mode ? PHASES[mode] : null;
+    return {
+      type: 'TestPlan',
+      version: '1.1',
+      timestamp: new Date().toISOString(),
+      product: prod.name,
+      phase: mode,
+      config: cfg,
+      daily: daily,
+      status: status,
+      approved: approved,
+    };
+  }
+
+  /** Copy JSON payload to clipboard */
+  function handleExport() {
+    var payload = buildExportPayload();
+    var json = JSON.stringify(payload, null, 2);
+    try {
+      navigator.clipboard.writeText(json).then(function() {
+        showToast('TestPlan JSON copied to clipboard', 'success');
+      });
+    } catch(e) {
+      // Fallback for sandbox
+      var ta = document.createElement('textarea');
+      ta.value = json;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('TestPlan JSON copied to clipboard', 'success');
+    }
+  }
+
+  /** Import JSON from clipboard */
+  function handleImport() {
+    var input = prompt('Paste TestPlan JSON:');
+    if (!input) return;
+    try {
+      var data = JSON.parse(input);
+      if (data.config) setCfg(data.config);
+      if (data.daily) setDaily(data.daily);
+      if (data.phase) setMode(data.phase);
+      if (data.status) setStatus(data.status);
+      if (data.approved !== undefined) setApproved(data.approved);
+      if (data.product) {
+        setProducts(function(p) {
+          var u = p.slice();
+          u[pidx] = { name: data.product };
+          return u;
+        });
+      }
+      showToast('TestPlan imported successfully', 'success');
+    } catch(e) {
+      showToast('Invalid JSON format', 'error');
+    }
+  }
+
+  /** Build Slack-formatted message for the slack-messaging skill */
+  function handleSendToSlack() {
+    var prod = products[pidx] || { name: '' };
+    var ph = mode ? PHASES[mode] : null;
+    var payload = buildExportPayload();
+    // Generate mrkdwn-ready content for slack-messaging skill
+    var slackPayload = {
+      action: 'send_to_slack',
+      channel: '#ism-launch-alerts',
+      format: 'mrkdwn',
+      content: {
+        title: 'Campaign Planner | ' + (prod.name || 'Unknown Product'),
+        phase: ph ? ph.label : 'Not selected',
+        status: status,
+        config: cfg,
+        daily_summary: {
+          days_tracked: daily.filter(function(d) { return d.impressions || d.clicks; }).length,
+          total_spend: daily.reduce(function(s, d) { return s + (d.spend || 0); }, 0),
+          total_orders: daily.reduce(function(s, d) { return s + (d.orders || 0); }, 0),
+        },
+      },
+      full_payload: payload,
+    };
+    var json = JSON.stringify(slackPayload, null, 2);
+    try {
+      navigator.clipboard.writeText(json);
+    } catch(e) {
+      var ta = document.createElement('textarea');
+      ta.value = json;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showToast('Slack payload copied -- paste to Claude for slack-messaging skill', 'success');
+  }
 
   var prod = products[pidx] || { name: '' };
 
@@ -1379,6 +1563,8 @@ function CampaignPlanner() {
             marginTop: 24,
             paddingTop: 20,
             borderTop: '1px solid ' + C.g200,
+            flexWrap: 'wrap',
+            gap: 8,
           },
         },
           // Back button
@@ -1388,6 +1574,26 @@ function CampaignPlanner() {
               onClick: function() { setStep(step - 1); },
             }, 'Back')
           ),
+
+          // Action buttons (Export / Import / Slack)
+          h('div', { style: { display: 'flex', gap: 8, alignItems: 'center' } },
+            h('button', {
+              style: { ...S.btnOut, fontSize: 12, padding: '6px 12px' },
+              onClick: handleExport,
+              title: 'Export test plan JSON to clipboard',
+            }, 'Export JSON'),
+            h('button', {
+              style: { ...S.btnOut, fontSize: 12, padding: '6px 12px' },
+              onClick: handleImport,
+              title: 'Import test plan from JSON',
+            }, 'Import JSON'),
+            h('button', {
+              style: { ...S.btn(C.g700, C.w), fontSize: 12, padding: '6px 12px' },
+              onClick: handleSendToSlack,
+              title: 'Copy Slack-formatted payload for slack-messaging skill',
+            }, 'Send to Slack')
+          ),
+
           // Step indicator + Next button
           h('div', { style: { display: 'flex', gap: 12, alignItems: 'center' } },
             h('span', { style: { fontSize: 12, color: C.g400 } },
@@ -1404,7 +1610,14 @@ function CampaignPlanner() {
           )
         )
       )
-    )
+    ),
+
+    // ---- Toast Notification ----
+    h(Toast, {
+      message: toast.message,
+      type: toast.type,
+      onDismiss: function() { setToast({ message: '', type: 'success' }); },
+    })
   );
 }
 

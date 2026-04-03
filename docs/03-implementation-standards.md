@@ -168,7 +168,7 @@ Every skill has a 2-letter prefix code. This prefix appears at the start of the 
 
 **File Format (4):** DX docx, XL xlsx, PT pptx, PF pdf
 
-**Utility (5):** MB mcp-builder, MG mcp-guide, IC internal-comms, GC slack-gif-creator, WT webapp-testing
+**Utility (6):** MB mcp-builder, MG mcp-guide, IC internal-comms, GC slack-gif-creator, WT webapp-testing, SM slack-messaging
 
 ---
 

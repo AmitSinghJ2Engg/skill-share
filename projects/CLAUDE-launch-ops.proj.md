@@ -25,6 +25,7 @@ Source to Pay pipeline: "Procure To Pay" (layout ID: 677677000002680495)
 | AO | ads-ops | TEST, LIVE |
 | RO | revenue-ops | *(no SKILL.md yet -- placeholder)* |
 | LE | ism-learning-engine | *(no SKILL.md yet -- placeholder)* |
+| SM | slack-messaging | *(auto-trigger on Slack compose)* |
 
 ## Data Integrity Rules
 

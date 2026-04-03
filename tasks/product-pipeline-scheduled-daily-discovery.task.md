@@ -117,8 +117,13 @@ Slack_Tag: "#ism-launch-reports"
 
 ### Step 8: Post Slack summary
 
-Post to **#ism-launch-reports**:
+**Route through `slack-messaging` skill** for correct mrkdwn formatting before posting.
 
+Compose the following summary and pass it to the `slack-messaging` skill, which formats it in Slack mrkdwn and posts via `slack_send_message`:
+
+Target channel: **#ism-launch-reports**
+
+Content to include:
 ```
 ISM Daily Discovery | {date} | Zone {id}: {zone_name}
 Marketplaces: {list}
@@ -132,7 +137,7 @@ Anomalies: {any filter flags, low-yield warnings, or "none"}
 Next zone: Zone {id} ({name})
 ```
 
-If status is FAILED or PARTIAL, also post to **#ism-launch-alerts** with the error details.
+If status is FAILED or PARTIAL, also post to **#ism-launch-alerts** with the error details (also via `slack-messaging` skill).
 
 This step runs regardless of candidate count. Even a zero-yield run posts a summary.
 

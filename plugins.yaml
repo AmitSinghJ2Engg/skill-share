@@ -53,7 +53,7 @@ plugins:
 
   product-testing:
     description: "Domain 2.5 -- test campaigns, monitoring, FBA dispatch, compliance tracking."
-    version: "1.0.0"
+    version: "1.1.0"
     project: "Product Pipeline"
     skills:
       - skill: ads-ops
@@ -64,6 +64,8 @@ plugins:
         from: operations
       - skill: compliance-ops
         from: evaluation
+      - skill: slack-messaging
+        from: platform
 
   # ── Launch & Ops ──────────────────────────────────────────────────
 
@@ -83,7 +85,7 @@ plugins:
 
   product-ops:
     description: "Domain 4 -- live monitoring, ad management, revenue ops, learning engine."
-    version: "1.0.0"
+    version: "1.1.0"
     project: "Launch & Ops"
     skills:
       - skill: ism-learning-engine
@@ -94,6 +96,8 @@ plugins:
         from: operations
       - skill: ads-ops
         from: marketing
+      - skill: slack-messaging
+        from: platform
 
   # ── System Ops (Governance) ───────────────────────────────────────
 
@@ -107,13 +111,15 @@ plugins:
 
   governance-architecture:
     description: "Architecture compliance and ecosystem health -- 7-Law enforcement, pattern synthesis, gap detection and routing."
-    version: "1.0.0"
+    version: "1.1.0"
     project: "System Ops"
     skills:
       - skill: ikraft-architecture-governance
         from: governance
       - skill: ism-gap-auditor
         from: governance
+      - skill: slack-messaging
+        from: platform
 
   governance-business:
     description: "Business decisions and performance measurement -- strategic alignment, GO FEARLESS quality, OKR/KPI governance."

@@ -49,6 +49,17 @@ Move shared models and large reference data to `context/` to keep plugin size un
 Skills are organized by business capability, not by plugin:
 research, evaluation, finance, marketing, sourcing, operations, learning, platform, governance, core, founder.
 
+## Slack Messaging Rule
+
+All Slack output in the Ismokraft system MUST route through the `slack-messaging` skill (prefix SM-). This applies to:
+- Automated task summaries and alerts
+- Gate decision notifications
+- Kill/park alerts
+- Artifact "Send to Slack" payloads
+- Any manual Slack compose
+
+Skills and tasks that produce Slack output must include a step: "Format message using `slack-messaging` skill before posting." Never call `slack_send_message` directly without first applying mrkdwn formatting via this skill.
+
 ## Plugin Definitions
 
 Plugins are defined in `plugins.yaml` (repo root). Skills can appear in multiple plugins.

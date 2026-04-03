@@ -315,3 +315,42 @@ skills/founder/         — ism founder
 - 22.7KB of stale context removed
 - ~60KB of reference bloat removed
 - Build pipeline: `plugins.yaml` → `generate-registry.py` → `plugin-registry.json` → `build-plugin.py`
+
+---
+
+## DL-012: System Audit Phase 2 — Artifact Refactoring, Slack Routing, Telemetry, System Ops Project
+
+**Date:** 2026-04-04
+**Status:** Implemented
+**Trigger:** Full hierarchy audit (Project -> Tasks -> Plugins -> Skills) identified: business logic hardcoded in artifacts, orphaned slack-messaging skill, missing telemetry in tasks, no System Ops project instruction.
+
+**Decisions:**
+
+1. **Artifact config layer via `window.storage`** — Both JSX artifacts (`campaign-planner-v1.0`, `scale-decision-workbench-v1.0`) refactored to read business thresholds from `window.storage` keys (`ism:config:ppc`, `ism:config:scale-decision`) with fallback defaults. No hardcoded business values in UI logic. Config keys: phase parameters, DQ thresholds, fee deduction, keyword classification thresholds, costing scenarios, compliance items.
+
+2. **Artifact state persistence** — Both artifacts now save/restore full state via `window.storage` (`ism:campaign-planner:state`, `ism:scale-decision-workbench:state`). State survives page refreshes within a Claude conversation.
+
+3. **Export / Import / Send to Slack in artifacts** — Both artifacts gain 3 action buttons:
+   - **Export JSON**: copies full state payload to clipboard
+   - **Import JSON**: prompts for JSON paste, restores state
+   - **Send to Slack**: builds mrkdwn-ready payload with `action: 'send_to_slack'` for the `slack-messaging` skill. User pastes to Claude, which routes through SM skill for formatting.
+
+4. **Slack-messaging skill connected system-wide** — The `slack-messaging` skill (prefix SM, `skills/platform/slack-messaging/`) was orphaned (not in any plugin, not referenced in projects/tasks). Now:
+   - Added to 3 plugins: `product-testing`, `product-ops`, `governance-architecture`
+   - Added to both project instructions (Product Pipeline, Launch & Ops)
+   - Both tasks updated to route Slack output through SM skill
+   - `ismokraft-standards.md` codifies the rule: "All Slack output MUST route through slack-messaging skill"
+   - SM description enhanced to 1024-char trigger description
+
+5. **Task telemetry pattern** — `product-pipeline-event-test-campaign.task.md` updated with Steps 10-12 matching the daily-discovery telemetry pattern: ISM_ExecutionLogs record, ISM_Learnings record, Slack summary via slack-messaging.
+
+6. **System Ops project created** — `projects/CLAUDE-system-ops.proj.md` defines the governance/architecture/tooling project covering: skill lifecycle, plugin builds, architecture governance, business authority, Zoho platform, and Slack formatting.
+
+7. **Toast notifications** — Both artifacts gain a reusable `Toast` component for user feedback on export/import/slack actions. Auto-dismiss after 4 seconds.
+
+**Consequences:**
+- Business logic fully separated from artifact UI. Context files or `window.storage` config can override thresholds without editing JSX.
+- All 9 plugins still build successfully under 70KB.
+- Slack routing is now a codified, enforceable standard across the entire system.
+- System Ops project provides a home for governance and tooling skills that didn't fit Product Pipeline or Launch & Ops.
+- Artifacts are clipboard-bridge enabled: Export/Import for data portability, Send to Slack for team notifications.

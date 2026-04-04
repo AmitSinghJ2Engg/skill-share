@@ -25,6 +25,33 @@ tasks/
 - Tasks are orchestrators — they invoke skills by mode, they do not implement skill logic.
 - All CRM writes go through `zoho-data-ops`. All Slack messages go through `slack-messaging`.
 
+## config.yaml Fields
+
+### working_directories
+
+Describes the directories the task reads from and writes to, with human-readable descriptions:
+
+```yaml
+working_directories:
+  context:
+    path: "context/product-pipeline/"
+    description: "Runtime business config — thresholds, CRM field mappings, gate criteria"
+  output:
+    path: "context/pending-updates/"
+    description: "Staged outputs for human review before git commit"
+```
+
+### runtime_paths
+
+Resolves skill locations across development, standalone deployment, and plugin invocation:
+
+```yaml
+runtime_paths:
+  dev: "skills/{capability}/{skill}/"          # During development (repo-relative)
+  deployed: "~/.claude/skills/{skill}/"        # Claude runtime (standalone install)
+  plugin: "{plugin-name}:{skill-name}"         # Plugin invocation syntax
+```
+
 ## Task Types
 
 | Type | Trigger | Example |

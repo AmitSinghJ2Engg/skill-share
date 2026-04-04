@@ -1,0 +1,8 @@
+name: "ISM Portfolio"
+type: chat
+module: portfolio
+domains: [cross-domain]
+artifact: portfolio-dashboard-v1.0.artifact.tsx
+context_sources:
+  - context/product-pipeline/
+cowork_projects: []

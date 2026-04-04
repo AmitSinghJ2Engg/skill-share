@@ -1,0 +1,18 @@
+name: "Product Evaluation Runner"
+type: cowork
+chat_project: ism-product-research
+plugins:
+  - product-evaluation
+skills_available:
+  - product-evaluate
+  - margin-calculator
+  - compliance-ops
+  - zoho-data-ops
+  - slack-messaging
+mcp_connections:
+  - zoho-crm
+  - zoho-bigin
+  - slack
+  - confluence
+working_directory: "C:/Users/amits/ClaudeMain/Claude-Cowork/Git-Skill-Share/skill-share"
+tasks: []

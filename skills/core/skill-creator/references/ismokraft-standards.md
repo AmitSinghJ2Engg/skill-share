@@ -3,6 +3,19 @@
 Project-specific conventions that supplement the general skill-writing guide.
 Apply these when creating or modifying skills for the Ismokraft system.
 
+## Architecture Reference
+
+For deeper context on system constraints, business domains, and implementation
+standards, consult these repo docs before authoring skills:
+
+- `docs/01-system-constraints.md` — platform limits (plugin 70KB, artifact sandbox, MCP list)
+- `docs/02-business-domain-map.md` — domain definitions, skill-to-domain mapping, CRM architecture
+- `docs/03-implementation-standards.md` — build standards for skills, plugins, artifacts, projects, tasks
+- `docs/decision-log.md` — architectural decisions with rationale (DL-001 through DL-015)
+
+These files live in the repo root and are NOT bundled into the skill-creator plugin.
+Read them from the working directory when authoring or auditing skills.
+
 ## SKILL.md Structure
 
 - **Size target:** <=5KB. Move detailed schemas, step sequences, and scoring rubrics to `references/`.

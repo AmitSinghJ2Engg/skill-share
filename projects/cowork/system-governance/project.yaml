@@ -1,0 +1,22 @@
+name: "System Governance"
+type: cowork
+chat_project: null
+plugins:
+  - governance-audit
+  - governance-architecture
+  - governance-business
+skills_available:
+  - skill-creator
+  - ikraft-skill-auditor
+  - ikraft-architecture-governance
+  - ism-gap-auditor
+  - ism-business-authority
+  - okr-kpi-governance
+  - zoho-data-ops
+  - slack-messaging
+mcp_connections:
+  - zoho-crm
+  - slack
+  - confluence
+working_directory: "C:/Users/amits/ClaudeMain/Claude-Cowork/Git-Skill-Share/skill-share"
+tasks: []

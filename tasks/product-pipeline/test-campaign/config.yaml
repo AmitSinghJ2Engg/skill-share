@@ -19,11 +19,20 @@ skills_invoked:
     prefix: PM
 
 working_directories:
-  context: "context/product-pipeline/"
-  output: "context/pending-updates/"
+  context:
+    path: "context/product-pipeline/"
+    description: "Runtime business config — thresholds, CRM field mappings, gate criteria, zone rotation"
+  output:
+    path: "context/pending-updates/"
+    description: "Staged outputs for human review before git commit"
 
 runtime_context:
   - "ppc-test-campaign-config.ctx.json"
   - "gate-criteria.ctx.json"
   - "financial-constants.ctx.json"
   - "amazon-fee-table.ctx.md"
+
+runtime_paths:
+  dev: "skills/{capability}/{skill}/"
+  deployed: "~/.claude/skills/{skill}/"
+  plugin: "{plugin-name}:{skill-name}"

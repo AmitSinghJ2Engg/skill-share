@@ -1,0 +1,9 @@
+name: "ISM Market Testing"
+type: chat
+module: market-testing
+domains: [D2.5]
+artifact: market-testing-v1.0.artifact.tsx
+context_sources:
+  - context/product-pipeline/
+cowork_projects:
+  - test-campaign

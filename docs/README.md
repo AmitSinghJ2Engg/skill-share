@@ -15,27 +15,43 @@
 
 | File | What |
 |------|------|
-| [decision-log.md](decision-log.md) | Architectural decisions with rationale (DL-001 through DL-005) |
+| [decision-log.md](decision-log.md) | Architectural decisions with rationale (DL-001 through DL-015) |
 | [build-status.md](build-status.md) | Phase-based progress tracker (Phase 0-4 + Claude Desktop Setup) |
 
-## Project Instructions (for Claude.ai Desktop / Cowork)
+## Project Definitions (DL-015)
 
-Moved to top-level `projects/` directory.
+Moved to `projects/chat/` and `projects/cowork/`. See `03-implementation-standards.md` section 4 for hierarchy.
 
-| File | Project | Domains |
-|------|---------|---------|
-| [../projects/CLAUDE-product-pipeline.proj.md](../projects/CLAUDE-product-pipeline.proj.md) | Product Pipeline | D1-D2.5 (discovery through testing) |
-| [../projects/CLAUDE-launch-ops.proj.md](../projects/CLAUDE-launch-ops.proj.md) | Launch & Ops | D3-D4 (launch through live operations) |
+**Chat Projects (claude.ai — 7 modules):**
 
-## Task Instructions (for Claude Desktop scheduler)
+| Directory | Module | Domains |
+|-----------|--------|---------|
+| `projects/chat/ism-product-research/` | Product Research | D1, D1.5 |
+| `projects/chat/ism-sourcing/` | Sourcing | D2 |
+| `projects/chat/ism-market-testing/` | Market Testing | D2.5 |
+| `projects/chat/ism-portfolio/` | Portfolio | Cross-domain |
+| `projects/chat/ism-launch-control/` | Launch Control | D3 |
+| `projects/chat/ism-live-ops/` | Live Ops | D4 |
+| `projects/chat/ism-procurement/` | Procurement | S2P |
 
-Moved to top-level `tasks/` directory. Naming: `{project}-{type}-{trigger}-{action}.task.md`
+**Cowork Projects (Claude Desktop — 5 execution contexts):**
 
-| File | Schedule | Skills |
-|------|----------|--------|
-| [../tasks/product-pipeline-scheduled-daily-discovery.task.md](../tasks/product-pipeline-scheduled-daily-discovery.task.md) | Daily 7 AM IST | KI, PD, PS |
+| Directory | Chat Parent |
+|-----------|-------------|
+| `projects/cowork/daily-discovery/` | ism-product-research |
+| `projects/cowork/product-evaluation/` | ism-product-research |
+| `projects/cowork/test-campaign/` | ism-market-testing |
+| `projects/cowork/system-governance/` | (none) |
+| `projects/cowork/skill-development/` | (none) |
 
-Pending: stage2-intelligence, stage3-vendor-search, daily-learning (see build-status.md)
+## Task Bundles (for Claude Desktop scheduler)
+
+Moved to `tasks/{workflow}/{task-name}/` bundle format.
+
+| Task | Workflow | Type |
+|------|----------|------|
+| `tasks/product-pipeline/daily-discovery/` | product-pipeline | scheduled |
+| `tasks/product-pipeline/test-campaign/` | product-pipeline | event |
 
 ## Archive (superseded, keep for reference)
 

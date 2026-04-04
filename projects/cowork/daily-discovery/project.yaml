@@ -1,0 +1,20 @@
+name: "Daily Discovery Runner"
+type: cowork
+chat_project: ism-product-research
+plugins:
+  - product-discovery
+  - product-evaluation
+skills_available:
+  - ikraft-keyword-intelligence
+  - product-discover
+  - product-screen
+  - zoho-data-ops
+  - slack-messaging
+mcp_connections:
+  - zoho-crm
+  - zoho-bigin
+  - slack
+  - confluence
+working_directory: "C:/Users/amits/ClaudeMain/Claude-Cowork/Git-Skill-Share/skill-share"
+tasks:
+  - daily-discovery

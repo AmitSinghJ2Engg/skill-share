@@ -1,0 +1,8 @@
+name: "ISM Launch Control"
+type: chat
+module: launch-control
+domains: [D3]
+artifact: launch-control-v1.0.artifact.tsx
+context_sources:
+  - context/product-pipeline/
+cowork_projects: []

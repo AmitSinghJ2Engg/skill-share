@@ -1,23 +1,28 @@
 # Artifacts
 
-JSX artifact files for Claude.ai conversations. One file per artifact, versioned.
+TSX artifact files for Claude.ai conversations. One file per artifact, versioned.
 
-**Naming convention:** `{domain}-{function}-v{MAJOR}.{MINOR}.jsx`
+**Naming convention:** `{name}-v{MAJOR}.{MINOR}.artifact.tsx`
 
-**Artifacts to be built (see docs/02-business-domain-map.md -> Artifact Architecture Standards):**
+**7-module grouping (see DL-015):**
 
-| File | Project | Domain | Status |
-|---|---|---|---|
-| `discovery-dashboard-v1.0.jsx` | Product Pipeline | Domain 1 | Not built |
-| `positioning-workbench-v1.0.jsx` | Product Pipeline | Domain 1.5 | Not built |
-| `sourcing-workbench-v1.0.jsx` | Product Pipeline | Domain 2 | Not built |
-| `campaign-planner-v1.0.artifact.jsx` | Product Pipeline | Domain 2.5 (Plan + Run) | Built |
-| `scale-decision-workbench-v1.0.artifact.jsx` | Product Pipeline | Domain 2.5 (Analyze + Decide) | Built |
-| `portfolio-dashboard-v1.0.jsx` | Product Pipeline | Cross-domain (strategic) | Not built |
-| `launch-control-v1.0.jsx` | Launch & Ops | Domain 3 | Not built |
-| `ops-dashboard-v1.0.jsx` | Launch & Ops | Domain 4 | Not built |
-| `seller-central-ops-v1.0.jsx` | Launch & Ops | Domain 2.5 + 3 (manual ops) | Not built |
-| `source-to-pay-tracker-v1.0.jsx` | Launch & Ops | Source to Pay pipeline | Not built |
+| Module | Chat Project | Artifact | Domains | Status |
+|--------|-------------|----------|---------|--------|
+| Product Research | ism-product-research | product-research-v1.0.artifact.tsx | D1, D1.5 | Not built |
+| Sourcing | ism-sourcing | sourcing-workbench-v1.0.artifact.tsx | D2 | Not built |
+| Market Testing | ism-market-testing | market-testing-v1.0.artifact.tsx | D2.5 | Partial (campaign-planner + scale-decision built, merge pending) |
+| Portfolio | ism-portfolio | portfolio-dashboard-v1.0.artifact.tsx | Cross-domain | Not built |
+| Launch Control | ism-launch-control | launch-control-v1.0.artifact.tsx | D3 | Not built |
+| Live Ops | ism-live-ops | ops-dashboard-v1.0.artifact.tsx | D4 | Not built |
+| Procurement | ism-procurement | source-to-pay-v1.0.artifact.tsx | S2P | Not built |
 
-Build artifacts manually or using `skill-creator` in "System Ops" project.
+**Existing artifacts (pre-merge, to be consolidated into Market Testing module):**
+
+| File | Domain | Status |
+|------|--------|--------|
+| `campaign-planner-v1.0.artifact.tsx` | D2.5 (Plan + Run) | Built |
+| `scale-decision-workbench-v1.0.artifact.tsx` | D2.5 (Analyze + Decide) | Built |
+
+Build artifacts using the artifact prompt in the corresponding Chat project directory.
 See `docs/03-implementation-standards.md` section 3 for artifact standards.
+See `projects/chat/artifact-prompt-template.md` for the shared artifact generation template.

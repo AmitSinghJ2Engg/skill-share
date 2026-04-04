@@ -1,0 +1,15 @@
+name: "Skill Development"
+type: cowork
+chat_project: null
+plugins:
+  - governance-audit
+skills_available:
+  - skill-creator
+  - ikraft-skill-auditor
+  - zoho-data-ops
+  - slack-messaging
+mcp_connections:
+  - zoho-crm
+  - slack
+working_directory: "C:/Users/amits/ClaudeMain/Claude-Cowork/Git-Skill-Share/skill-share"
+tasks: []

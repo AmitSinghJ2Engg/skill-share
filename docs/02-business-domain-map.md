@@ -772,15 +772,15 @@ Each checklist item has: step description, Confluence SOP link, completion check
 - Artifacts: 6 (Discovery Dashboard v1.0, Positioning Workbench v1.0, Sourcing Workbench v1.0, Campaign Planner v1.0, Scale Decision Workbench v1.0, Portfolio Dashboard v1.0)
 - Project knowledge: context files listed below
 - Requires: CLAUDE.md per 03 §4 — defines project context, pipeline, integrations, artifact registry
-- CLAUDE.md template: `projects/CLAUDE-product-pipeline.proj.md` (to be created during build session)
+- Chat projects: `projects/chat/ism-product-research/`, `projects/chat/ism-sourcing/`, `projects/chat/ism-market-testing/`, `projects/chat/ism-portfolio/`
+- Cowork projects: `projects/cowork/daily-discovery/`, `projects/cowork/product-evaluation/`, `projects/cowork/test-campaign/`
 
-**"Launch & Ops"** (Claude.ai project)
+**"Launch & Ops"** (Claude.ai projects — DL-015 split)
 - Covers: Domain 3 + 4 + Source to Pay tracking
+- Chat projects: `projects/chat/ism-launch-control/` (D3), `projects/chat/ism-live-ops/` (D4), `projects/chat/ism-procurement/` (S2P)
 - Plugins: 2 plugins (3 product-launch, 4 product-ops)
-- Artifacts: 4 (Launch Control v1.0, Operations Dashboard v1.0, Source to Pay Tracker v1.0, Seller Central Operations v1.0)
+- Artifacts: 3 TSX (launch-control, ops-dashboard, source-to-pay)
 - Project knowledge: context files listed below
-- Requires: CLAUDE.md per 03 §4
-- CLAUDE.md template: `projects/CLAUDE-launch-ops.proj.md` (to be created during build session)
 
 **"System Ops"** (Claude.ai project)
 - System-level skills, governance, Zoho platform. Amit only. Not shared.

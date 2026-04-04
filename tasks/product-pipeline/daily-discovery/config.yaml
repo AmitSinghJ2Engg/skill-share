@@ -22,10 +22,19 @@ skills_invoked:
     prefix: PS
 
 working_directories:
-  context: "context/product-pipeline/"
-  output: "context/pending-updates/"
+  context:
+    path: "context/product-pipeline/"
+    description: "Runtime business config — thresholds, CRM field mappings, gate criteria, zone rotation"
+  output:
+    path: "context/pending-updates/"
+    description: "Staged outputs for human review before git commit"
 
 runtime_context:
   - "zone-rotation.ctx.json"
   - "crm-field-mappings.ctx.json"
   - "financial-constants.ctx.json"
+
+runtime_paths:
+  dev: "skills/{capability}/{skill}/"
+  deployed: "~/.claude/skills/{skill}/"
+  plugin: "{plugin-name}:{skill-name}"

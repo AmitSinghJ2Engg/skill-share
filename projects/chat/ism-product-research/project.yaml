@@ -1,0 +1,10 @@
+name: "ISM Product Research"
+type: chat
+module: product-research
+domains: [D1, D1.5]
+artifact: product-research-v1.0.artifact.tsx
+context_sources:
+  - context/product-pipeline/
+cowork_projects:
+  - daily-discovery
+  - product-evaluation

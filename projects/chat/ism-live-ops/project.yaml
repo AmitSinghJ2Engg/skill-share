@@ -1,0 +1,8 @@
+name: "ISM Live Ops"
+type: chat
+module: live-ops
+domains: [D4]
+artifact: ops-dashboard-v1.0.artifact.tsx
+context_sources:
+  - context/product-pipeline/
+cowork_projects: []

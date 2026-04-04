@@ -84,7 +84,7 @@ String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]
 - Never rely on file download as the primary export path.
 
 ### Size and Performance
-- Artifacts are single JSX files. No multi-file bundling.
+- Artifacts are single TSX files (TypeScript). No multi-file bundling.
 - Keep under 2,000 lines per artifact for maintainability. <<Divide views depending upon business logical operational flow.>>
 - Use Tailwind CSS core utilities only (no compiler available).
 - Available libraries: React 18, recharts, lucide-react, shadcn/ui, d3, lodash, papaparse, sheetjs.
@@ -161,7 +161,7 @@ String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]
 - `context/` — runtime config files deployed to Claude.ai project knowledge
 - `dist/` — built `.plugin` files (compiled artifacts)
 - `docs/` — architecture docs, standards, decisions
-- `artifacts/` — built JSX artifact files
+- `artifacts/` — built TSX artifact files
 - `tools/` — build scripts and plugin registry
 
 ### Workflow
@@ -189,7 +189,7 @@ String substitutions available in SKILL.md content: `$ARGUMENTS`, `$ARGUMENTS[N]
 |---|---|---|
 | **Skills** (SKILL.md) | Purpose, modes, input/output contracts, trigger phrases, execution steps | Business thresholds, formulas, CRM field names, picklists |
 | **Plugins** (.plugin) | Bundled skills for a domain. Manifest metadata. | Reference data, knowledge files, large context |
-| **Artifacts** (.jsx) | UI components, user interactions, display logic, Anthropic API calls | Business rules, scoring weights, gate criteria (pull from storage/context) |
+| **Artifacts** (.tsx) | UI components, user interactions, display logic, Anthropic API calls | Business rules, scoring weights, gate criteria (pull from storage/context) |
 | **Project Context** | Business rules, thresholds, CRM mappings, financial constants, brand rules | Code, UI templates, conversation state |
 | **CRM** (Zoho) | Persistent product/vendor records, pipeline state, evaluation scores | UI logic, skill execution state |
 | **Git Repo** | Source of truth for skill/plugin source code, build scripts, architecture docs | Runtime data, CRM records, session artifacts |

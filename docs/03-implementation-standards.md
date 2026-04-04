@@ -293,27 +293,29 @@ When building a specific plugin, the script reports which shared skills are incl
 ## 3. Artifact Standards
 
 ### File Format
-- Single `.jsx` file.
+- Single `.tsx` file (TypeScript).
 - React 18 functional components with hooks.
 - Tailwind CSS core utilities for styling.
-- No TypeScript. No external imports beyond: recharts, lucide-react, shadcn/ui, d3, lodash, papaparse, sheetjs. Artifacts using real-time AI analysis (Positioning Workbench and Test Lab B only) may additionally import the Anthropic API client.
+- No external imports beyond: recharts, lucide-react, shadcn/ui, d3, lodash, papaparse, sheetjs. Artifacts using real-time AI analysis may additionally import the Anthropic API client.
 
 ### Structure Template
 
-```jsx
+```tsx
 // {Artifact Name} v{MAJOR}.{MINOR}
 // Ismokraft — {Domain}
 // Last updated: {date}
 
 import { useState, useEffect, useCallback } from "react"
 
-// ── Constants ────────────────────────────────────
-// Only UI constants (colors, labels). No business thresholds.
+// -- Types (TypeScript interfaces for state and data) --
 
-// ── Storage Helpers ──────────────────────────────
-// Standard storageLoad/storageSave/storageDelete pattern.
+// -- Constants (UI only: colors, labels) --
 
-// ── Main App ─────────────────────────────────────
+// -- Storage Helpers (storageLoad/storageSave/storageDelete) --
+
+// -- Config Loader (read ism:config:{module} with fallbacks) --
+
+// -- Main App --
 export default function App() {
   // State, effects, handlers
   // Render
@@ -325,7 +327,7 @@ export default function App() {
 - No business thresholds hardcoded. Pull from storage (seeded by project context or user input).
 - Clipboard bridge: every artifact that produces data must have an "Export JSON" button. Every artifact that consumes data must have an "Import JSON" button. These are **required fallback mechanisms** for when CRM is unavailable. The **primary data exchange mechanism is CRM-first via MCP** — artifact approval buttons generate a structured payload that Claude reads and uses to call MCP automatically. Clipboard is the resilience layer, not the default.
 - ISM Execution Logs: every CRM write triggered by an artifact must produce a corresponding entry in the ISM Execution Logs custom module via MCP. Entry must include: field changed, old value, new value, who triggered, ISO timestamp, domain and stage context. This is non-negotiable.
-- Version in filename: `{name}-v{MAJOR}.{MINOR}.jsx` (ISM-P009).
+- Version in filename: `{name}-v{MAJOR}.{MINOR}.artifact.tsx` (ISM-P009).
 - Version also in the file's top comment line.
 - Toast notifications for user feedback on actions (save, export, import, errors).
 - Copy-to-clipboard with sandbox fallback (ISM-F003).
@@ -340,6 +342,38 @@ Examples: discovery-dashboard, sourcing-workbench, launch-control, ops-dashboard
 ---
 
 ## 4. Project Setup Standards
+
+### Project Hierarchy
+
+Chat Project (claude.ai) -> Cowork Project (Claude Desktop) -> Task
+
+| Level | Platform | Contains | Cardinality |
+|-------|----------|----------|-------------|
+| Chat Project | claude.ai | 1 artifact, project knowledge, instructions | 1 |
+| Cowork Project | Claude Desktop | execution context, skill/plugin refs, CLAUDE.md | many per Chat |
+| Task | Claude Desktop | orchestration workflow (config + prompt) | many per Cowork |
+
+Chat projects own the UI/UX artifact and business context.
+Cowork projects own the execution environment and task orchestration.
+Tasks invoke skills by mode — they are orchestrators, not executors.
+
+A Chat project with no artifact (e.g., System Ops governance) can still
+have Cowork projects and tasks.
+
+**Directory structure:**
+```
+projects/
+  chat/
+    {module-name}/
+      project.yaml         # Machine-readable metadata
+      instructions.md       # Claude.ai project instructions
+      artifact-prompt.md    # Prompt to generate/update the artifact
+    artifact-prompt-template.md   # Shared template for all artifact prompts
+  cowork/
+    {project-name}/
+      project.yaml         # Machine-readable metadata
+      instructions.md       # CLAUDE.md content for Claude Desktop
+```
 
 ### CLAUDE.md (Project Instructions)
 
@@ -399,11 +433,15 @@ Each project has a set of reference files loaded into every conversation:
 
 | File type | Suffix | Example |
 |-----------|--------|---------|
+| Chat project YAML | `.yaml` | `projects/chat/ism-product-research/project.yaml` |
+| Cowork project YAML | `.yaml` | `projects/cowork/daily-discovery/project.yaml` |
+| Chat instructions | `.md` | `projects/chat/ism-product-research/instructions.md` |
+| Cowork instructions | `.md` | `projects/cowork/daily-discovery/instructions.md` |
+| Artifact prompt | `.md` | `projects/chat/ism-product-research/artifact-prompt.md` |
 | Task config | `.yaml` | `tasks/product-pipeline/daily-discovery/config.yaml` |
 | Context JSON | `.ctx.json` | `crm-field-mappings.ctx.json` |
 | Context MD | `.ctx.md` | `brand-rules.ctx.md` |
-| Project instruction | `.proj.md` | `CLAUDE-product-pipeline.proj.md` |
-| Artifact | `.artifact.jsx` | `discovery-dashboard-v1.0.artifact.jsx` |
+| Artifact | `.artifact.tsx` | `market-testing-v1.0.artifact.tsx` |
 
 **Not renamed:** SKILL.md (Claude spec), reference/ files (already in typed directory), architecture docs (01-03 series), decision-log, build-status, README files.
 
@@ -443,12 +481,21 @@ skills_invoked:
     prefix: KI
 
 working_directories:
-  context: "context/product-pipeline/"
-  output: "context/pending-updates/"
+  context:
+    path: "context/product-pipeline/"
+    description: "Runtime business config — thresholds, CRM field mappings, gate criteria, zone rotation"
+  output:
+    path: "context/pending-updates/"
+    description: "Staged outputs for human review before git commit"
 
 runtime_context:
   - "zone-rotation.ctx.json"
   - "crm-field-mappings.ctx.json"
+
+runtime_paths:
+  dev: "skills/{capability}/{skill}/"
+  deployed: "~/.claude/skills/{skill}/"
+  plugin: "{plugin-name}:{skill-name}"
 ```
 
 ### prompt.md Structure
@@ -552,17 +599,9 @@ skill-share/
       product-ops.plugin/         (Plugin 4)
     .claude/skills/               (standalone skill output — for ~/.claude/skills/ deployment)
     product-discovery.plugin.zip  (upload-ready zip)
-  artifacts/                      (built JSX artifacts)
-    discovery-dashboard-v1.0.jsx
-    positioning-workbench-v1.0.jsx
-    sourcing-workbench-v1.0.jsx
-    test-lab-a-v1.0.jsx
-    test-lab-b-v1.0.jsx
-    portfolio-dashboard-v1.0.jsx
-    launch-control-v1.0.jsx
-    ops-dashboard-v1.0.jsx
-    seller-central-ops-v1.0.jsx
-    source-to-pay-tracker-v1.0.jsx
+  artifacts/                      (built TSX artifacts)
+    campaign-planner-v1.0.artifact.tsx
+    scale-decision-workbench-v1.0.artifact.tsx
   tools/                          (build scripts + generated registry)
     build.py                      (unified build entry point)
     generate-registry.py          (generates plugin-registry.json from plugins.yaml)
@@ -577,9 +616,22 @@ skill-share/
         description.md
         prompt.md
         references/
-  projects/                       (project instructions / CLAUDE.md files)
-    CLAUDE-product-pipeline.proj.md
-    CLAUDE-launch-ops.proj.md
+  projects/                       (project definitions — Chat and Cowork)
+    chat/
+      artifact-prompt-template.md
+      ism-product-research/       (D1 + D1.5)
+      ism-sourcing/               (D2)
+      ism-market-testing/         (D2.5)
+      ism-portfolio/              (cross-domain)
+      ism-launch-control/         (D3)
+      ism-live-ops/               (D4)
+      ism-procurement/            (S2P)
+    cowork/
+      daily-discovery/            (-> ism-product-research)
+      product-evaluation/         (-> ism-product-research)
+      test-campaign/              (-> ism-market-testing)
+      system-governance/          (no parent Chat project)
+      skill-development/          (no parent Chat project)
   resources/                      (reference PDFs, external guides)
   tests/                          (skill evaluations and test suites per skill-creator)
     {skill-name}/
@@ -610,8 +662,9 @@ skill-share/
 |---|---|---|
 | Skill | `{domain}-{verb/noun}` kebab-case | product-discover |
 | Plugin | `{domain}-{scope}` kebab-case | product-discovery |
-| Artifact | `{domain}-{function}` kebab-case | discovery-dashboard |
-| Project | Title case, descriptive | "Product Pipeline" |
+| Artifact | `{name}-v{M}.{m}.artifact.tsx` | market-testing-v1.0.artifact.tsx |
+| Chat Project | `ism-{module}` kebab-case | ism-product-research |
+| Cowork Project | `{purpose}` kebab-case | daily-discovery |
 | CRM module | PascalCase with underscores (Zoho convention) | Product_Launches |
 | Storage key | `ism:{entity}:{id}:{sub}` | ism:p:p123:out:scout |
 | Slack channel | `#ism-{purpose}` | #ism-launch-alerts |

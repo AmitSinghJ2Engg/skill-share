@@ -427,3 +427,48 @@ skills/founder/         — ism founder
 - Tasks are scalable: new tasks add a directory, not a monolithic file.
 - Skill-creator has complete standards coverage (security, composability, descriptions, tasks, build).
 - Claude reference docs have a discoverable index without tracking 460KB of spec files.
+
+---
+
+## DL-015: Project Hierarchy, Chat/Cowork Distinction, Artifact Module Grouping
+
+**Date:** 2026-04-04
+**Status:** Implemented
+**Trigger:** System audit identified no project type distinction, artifacts disconnected
+from projects, JSX/TSX mismatch, no artifact creation workflow.
+
+**Decisions:**
+
+1. **Two project types** — Chat (claude.ai, owns artifact + context) and Cowork
+   (Claude Desktop, owns execution context + tasks). Hierarchy:
+   Chat Project -> Cowork Project(s) -> Task(s).
+
+2. **7 Chat modules** — 10 planned artifacts consolidated into 7 business modules:
+   Product Research (D1+D1.5), Sourcing (D2), Market Testing (D2.5),
+   Portfolio (cross-domain), Launch Control (D3), Live Ops (D4), Procurement (S2P).
+
+3. **1 artifact per Chat project** — separation of concerns per business module.
+   Cross-module artifacts allowed as exceptions.
+
+4. **TSX format** — artifacts move from JSX to TSX per Claude.ai standards.
+   Versioned storage keys (e.g., ism4_*). Naming: {name}-v{M}.{m}.artifact.tsx.
+
+5. **Artifact prompt per Chat project** — standardized prompt template enforcing
+   TSX, window.storage, no hardcoded values, clipboard bridge, toast notifications.
+
+6. **Cowork projects refactored** — 3 monolithic .proj.md files split into scoped
+   Cowork projects, each linking to a parent Chat project.
+
+7. **Task bundle enhancement** — folder_instructions (working_directories with
+   descriptions) added to config.yaml, runtime_paths for dev/deployed/plugin resolution.
+
+8. **skill-creator update** — ismokraft-standards.md gains pointer to architecture
+   docs (01-03) without bundling them.
+
+**Consequences:**
+- `projects/chat/` contains 7 Chat project directories with project.yaml, instructions.md, artifact-prompt.md
+- `projects/cowork/` contains 5 Cowork project directories with project.yaml, instructions.md
+- 3 old .proj.md files deleted
+- Artifact files renamed from .jsx to .tsx
+- docs/03-implementation-standards.md updated with hierarchy, TSX format, enhanced task schema
+- Shared artifact-prompt-template.md provides consistent artifact generation standards

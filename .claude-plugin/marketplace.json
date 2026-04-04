@@ -1,12 +1,11 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "skill-share",
-  "description": "Ismokraft business operating system plugins for product discovery, evaluation, sourcing, testing, launch, and operations.",
   "owner": {
     "name": "Ismokraft",
     "email": "amit.singh@ismokraft.com"
   },
   "metadata": {
+    "description": "Ismokraft business operating system plugins for product discovery, evaluation, sourcing, testing, launch, and operations.",
     "pluginRoot": "./dist/build"
   },
   "plugins": [
@@ -17,7 +16,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "governance-architecture.plugin",
+      "source": "./governance-architecture.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -31,7 +30,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "governance-audit.plugin",
+      "source": "./governance-audit.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -45,7 +44,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "governance-business.plugin",
+      "source": "./governance-business.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -59,7 +58,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "product-discovery.plugin",
+      "source": "./product-discovery.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -73,7 +72,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "product-evaluation.plugin",
+      "source": "./product-evaluation.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -87,7 +86,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "product-launch.plugin",
+      "source": "./product-launch.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -101,7 +100,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "product-ops.plugin",
+      "source": "./product-ops.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -115,7 +114,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "product-sourcing.plugin",
+      "source": "./product-sourcing.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -129,7 +128,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "product-testing.plugin",
+      "source": "./product-testing.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -143,7 +142,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "revenue-analytics.plugin",
+      "source": "./revenue-analytics.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -157,7 +156,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "supplier-research.plugin",
+      "source": "./supplier-research.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",

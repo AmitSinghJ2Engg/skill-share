@@ -793,20 +793,19 @@ def generate_marketplace(repo_root, registry):
             "description": plugin_def.get("description", ""),
             "version": plugin_def.get("version", "1.0.0"),
             "author": plugin_def.get("author", {"name": "Ismokraft"}),
-            "source": f"{plugin_name}.plugin",
+            "source": f"./{plugin_name}.plugin",
             "category": "productivity",
             "keywords": ["ismokraft", plugin_name.replace("-", " ")],
         })
 
     marketplace = {
-        "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
         "name": "skill-share",
-        "description": "Ismokraft business operating system plugins for product discovery, evaluation, sourcing, testing, launch, and operations.",
         "owner": {
             "name": "Ismokraft",
             "email": "amit.singh@ismokraft.com",
         },
         "metadata": {
+            "description": "Ismokraft business operating system plugins for product discovery, evaluation, sourcing, testing, launch, and operations.",
             "pluginRoot": "./dist/build",
         },
         "plugins": plugins_list,

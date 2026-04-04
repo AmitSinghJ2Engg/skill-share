@@ -397,3 +397,31 @@ skills/founder/         — ism founder
 - Slack routing is enforced at both SKILL.md and reference file level.
 - Developers can use `make build` or `python make.py build` on any platform.
 - `ismokraft-standards.md` is the single source for project conventions used by skill-creator.
+
+---
+
+## DL-014: Build Output Reform, Task Bundles, Git Cleanup (2026-04-04)
+
+**Context:** Audit of the skill-share repo against official Claude documentation (skills.md, plugins.md, The Complete Guide to Building Skills PDF) identified 6 areas needing normalization: dist/ tracked in git unnecessarily (132 files), no standalone skill build output, unclear plugin naming, monolithic task files, skill-creator standards gaps, and no index for Claude reference docs.
+
+**Decisions:**
+
+1. **dist/ removed from git tracking** — 132 regeneratable build artifacts were bloating the repo. `.gitignore` changed from selective includes (`!/dist/build/`, `!/dist/README.md`) to blanket `/dist/`. Files removed from index with `git rm -r --cached dist/`. Local files preserved.
+
+2. **`.plugin` naming convention** — Plugin build directories now use `.plugin` suffix: `dist/build/{name}.plugin/`. Upload zips are `{name}.plugin.zip`. Makes plugin bundles visually distinct from regular directories and aligns with `.plugin.zip` upload convention. Changes in: `build-plugin.py` (3 lines), `validate-system.py` (2 lines), `make.py` (1 line), `03-implementation-standards.md`.
+
+3. **Standalone skill build step** — `build-skill.py` extended with `--all` mode that discovers all skills with SKILL.md across `skills/{capability}/` and copies them to `dist/.claude/skills/{skill-name}/`. Flat output (no capability subdirectory) matches Claude Code's skill discovery. Added to build pipeline as stage 2.5 (after VALIDATE, before BUILD). New `build-skills` target in `make.py` and `Makefile`.
+
+4. **Task bundle structure** — 2 monolithic `.task.md` files split into structured bundles at `tasks/{workflow}/{task-name}/` with 4 files each: `config.yaml` (metadata), `description.md` (summary), `prompt.md` (orchestration steps), `references/README.md` (external links). `validate-system.py` `discover_tasks()` updated to walk bundle directories and parse `config.yaml` + `prompt.md` (backward-compatible with flat `.task.md`). Old flat files deleted.
+
+5. **Skill-creator standards updated** — `ismokraft-standards.md` extended with 5 new sections: Security Rules (no XML in frontmatter, no "claude"/"anthropic" in names, no README.md in skill dirs), Composability (independent skills, CRM-mediated data exchange), Description Structure (three-part PREFIX/WHAT/WHEN format), Task Bundles (bundle format reference), Build Conventions (`.plugin` naming, standalone output, dist/ not tracked).
+
+6. **Claude Code specs index** — `docs/claude-code-specs/INDEX.md` created as a routing table for 14+ reference docs (~460KB) organized by Core, Build with Claude Code, Reference, and Admin categories. `.gitignore` updated with carve-out so INDEX.md is tracked while spec files remain gitignored.
+
+**Consequences:**
+- Repo size reduced by 132 tracked build artifacts. `git clone` is faster.
+- Plugin bundles are visually distinct with `.plugin` suffix.
+- Skills deployable standalone to `~/.claude/skills/` via `python make.py build-skills`.
+- Tasks are scalable: new tasks add a directory, not a monolithic file.
+- Skill-creator has complete standards coverage (security, composability, descriptions, tasks, build).
+- Claude reference docs have a discoverable index without tracking 460KB of spec files.

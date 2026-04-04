@@ -1,23 +1,4 @@
----
-name: product-pipeline-event-test-campaign
-version: "1.0.0"
-project: Product Pipeline
-type: event
-trigger: "Product at FBA + SampleConfirmation exists in CRM"
-skills_invoked: [FO-SAMPLE, AO-TEST, MC-COMPARISON, PM-TEST]
----
-
 # Task: Test Campaign Workflow (Domain 2.5)
-
-## Trigger
-
-Event-based: activated when a product has been dispatched to Amazon FBA and a SampleConfirmation record exists in CRM with status PASS or WAIVED. Team initiates this task manually after confirming FBA inbound shipment is received.
-
-## What This Task Does
-
-Orchestrates the full Domain 2.5 market testing workflow: FBA dispatch tracking, test listing preparation, PPC campaign planning, performance analysis, cost comparison, and Gate 2 scale decision. This is the critical path between "sample at FBA" and "commit to bulk order."
-
-The task is an orchestrator — it invokes skills by mode and handles flow control. It does NOT implement campaign logic, margin calculations, or Seller Central actions directly.
 
 ## Inputs
 
@@ -87,8 +68,8 @@ Invoke **AO- ads-ops TEST mode** with phase = `analyze_discovery`:
 The skill analyzes keyword performance, classifies into 4 buckets (winner/learner/loser/no_data), rates data quality, and outputs **TestResults** with harvested keywords and negative keywords.
 
 **Decision point based on data quality:**
-- HIGH/MEDIUM → proceed to Phase 2 (Step 5)
-- LOW + extend_recommended → present extension option to team. If approved, extend Phase 1 by config `max_extension_days`. If rejected, proceed with available data.
+- HIGH/MEDIUM -> proceed to Phase 2 (Step 5)
+- LOW + extend_recommended -> present extension option to team. If approved, extend Phase 1 by config `max_extension_days`. If rejected, proceed with available data.
 
 ### Step 5: Plan Phase 2 validation campaign
 
@@ -113,12 +94,12 @@ The skill outputs TestResults with per-keyword margin viability assessment and b
 ### Step 7: Cost comparison and costing scenarios
 
 Invoke **MC- margin-calculator COMPARISON mode** with:
-- CostEstimate (Domain 1) — pre-test assumed economics
-- MarginRecord (Domain 2) — actual vendor COGS economics
-- TestActuals from Step 6 — actual CPC, CVR, ACoS from test campaigns
+- CostEstimate (Domain 1) -- pre-test assumed economics
+- MarginRecord (Domain 2) -- actual vendor COGS economics
+- TestActuals from Step 6 -- actual CPC, CVR, ACoS from test campaigns
 
 The skill outputs:
-- **CostComparison** — side-by-side: estimate vs actual vs test
+- **CostComparison** -- side-by-side: estimate vs actual vs test
 - **CostingScenarios** (3-5 bulk scenarios at different MOQ/price points)
 
 ### Step 8: Compliance timeline check
@@ -130,7 +111,7 @@ Output **ComplianceTimelineCheck**:
 - WARNING: some certs may not complete in time (human can accept risk)
 - BLOCK: critical certs will not be ready
 
-### Step 9: Gate 2 — Scale Decision
+### Step 9: Gate 2 -- Scale Decision
 
 Present all evidence for the human to make the commit/don't-commit decision:
 
@@ -154,31 +135,6 @@ Present all evidence for the human to make the commit/don't-commit decision:
 **If PASS:** Output ScaleDecision with quantity, target landed cost, max MOQ, launch timeline. This triggers Domain 3 (bulk order initiation + Source to Pay pipeline).
 
 **If FAIL:** Output kill/park recommendation with full rationale. Log to CRM. Post kill/park alert to Slack via `slack-messaging` skill.
-
-## Outputs
-
-| Output | Destination | Condition |
-|---|---|---|
-| TestPlan (Phase 1 + 2) | Presented to team | Always |
-| TestResults (Phase 1 + 2) | Stored in CRM/Confluence | After each phase |
-| CostComparison | CRM Product_Launches | After Step 7 |
-| CostingScenarios | CRM Product_Launches | After Step 7 |
-| ComplianceTimelineCheck | CRM Product_Launches | After Step 8 |
-| ScaleDecision | CRM Product_Launches | After Gate 2 |
-| Gate 2 result | CRM stage advance | On pass |
-| Slack alerts (via `slack-messaging` skill) | #ism-launch-alerts | On gate decisions |
-| ISM_ExecutionLogs record | CRM ISM_ExecutionLogs | Always |
-| ISM_Learnings record | CRM ISM_Learnings | On Gate 2 decision |
-
-## Error Handling
-
-| Condition | Action |
-|---|---|
-| Missing prerequisite data | State exact gap, do not proceed |
-| Search Term Report not provided | Ask team to export from Seller Central |
-| Data quality LOW after both phases | Recommend extension or abort; human decides |
-| Compliance BLOCK | Cannot pass Gate 2; present options (wait, accept risk, abort) |
-| Skill invocation fails | Log error, present partial results, ask for manual input |
 
 ### Step 10: Write execution log
 
@@ -220,6 +176,31 @@ Timestamp: now
 **Route through `slack-messaging` skill** for correct mrkdwn formatting.
 
 Post Gate 2 decision summary to **#ism-launch-alerts** with: product name, verdict, key metrics, and next action.
+
+## Outputs
+
+| Output | Destination | Condition |
+|---|---|---|
+| TestPlan (Phase 1 + 2) | Presented to team | Always |
+| TestResults (Phase 1 + 2) | Stored in CRM/Confluence | After each phase |
+| CostComparison | CRM Product_Launches | After Step 7 |
+| CostingScenarios | CRM Product_Launches | After Step 7 |
+| ComplianceTimelineCheck | CRM Product_Launches | After Step 8 |
+| ScaleDecision | CRM Product_Launches | After Gate 2 |
+| Gate 2 result | CRM stage advance | On pass |
+| Slack alerts (via `slack-messaging` skill) | #ism-launch-alerts | On gate decisions |
+| ISM_ExecutionLogs record | CRM ISM_ExecutionLogs | Always |
+| ISM_Learnings record | CRM ISM_Learnings | On Gate 2 decision |
+
+## Error Handling
+
+| Condition | Action |
+|---|---|
+| Missing prerequisite data | State exact gap, do not proceed |
+| Search Term Report not provided | Ask team to export from Seller Central |
+| Data quality LOW after both phases | Recommend extension or abort; human decides |
+| Compliance BLOCK | Cannot pass Gate 2; present options (wait, accept risk, abort) |
+| Skill invocation fails | Log error, present partial results, ask for manual input |
 
 ## Constraints
 

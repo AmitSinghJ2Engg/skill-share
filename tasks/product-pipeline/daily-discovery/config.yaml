@@ -1,0 +1,31 @@
+name: daily-discovery
+version: "1.1.0"
+type: scheduled
+schedule: "Daily, 7:00 AM IST"
+project: Product Pipeline
+
+skills_invoked:
+  - skill: ikraft-keyword-intelligence
+    mode: GENERATE
+    prefix: KI
+  - skill: product-discover
+    mode: BATCH
+    prefix: PD
+  - skill: zoho-data-ops
+    mode: WRITE
+    prefix: ZO
+  - skill: product-screen
+    mode: SCORE
+    prefix: PS
+  - skill: product-screen
+    mode: REPORT
+    prefix: PS
+
+working_directories:
+  context: "context/product-pipeline/"
+  output: "context/pending-updates/"
+
+runtime_context:
+  - "zone-rotation.ctx.json"
+  - "crm-field-mappings.ctx.json"
+  - "financial-constants.ctx.json"

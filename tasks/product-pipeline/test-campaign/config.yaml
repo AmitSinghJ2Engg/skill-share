@@ -1,0 +1,29 @@
+name: test-campaign
+version: "1.0.0"
+type: event
+trigger: "Product at FBA + SampleConfirmation exists in CRM"
+project: Product Pipeline
+
+skills_invoked:
+  - skill: fulfillment-ops
+    mode: SAMPLE
+    prefix: FO
+  - skill: ads-ops
+    mode: TEST
+    prefix: AO
+  - skill: margin-calculator
+    mode: COMPARISON
+    prefix: MC
+  - skill: product-monitor
+    mode: MONITOR
+    prefix: PM
+
+working_directories:
+  context: "context/product-pipeline/"
+  output: "context/pending-updates/"
+
+runtime_context:
+  - "ppc-test-campaign-config.ctx.json"
+  - "gate-criteria.ctx.json"
+  - "financial-constants.ctx.json"
+  - "amazon-fee-table.ctx.md"

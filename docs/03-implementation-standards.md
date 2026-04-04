@@ -197,7 +197,7 @@ Each skill entry specifies the skill directory name and the capability group it 
 
 ### Built Plugin Layout
 
-The build script assembles the following structure at `dist/build/{plugin-name}/`:
+The build script assembles the following structure at `dist/build/{plugin-name}.plugin/`:
 
 ```
 .claude-plugin/
@@ -262,10 +262,10 @@ One plugin serves multiple business tasks. Example: product-discovery plugin con
 2. Each skill entry specifies the capability group and skill directory name.
 3. **Generate registry:** `python tools/generate-registry.py` reads `plugins.yaml` and produces `tools/plugin-registry.json`.
 4. **Validate:** `python tools/validate-system.py --check-only` checks I/O contracts, references, budgets.
-5. **Build:** `python tools/build-plugin.py --plugin <name>` assembles to `dist/build/{plugin-name}/`.
+5. **Build:** `python tools/build-plugin.py --plugin <name>` assembles to `dist/build/{plugin-name}.plugin/`.
 6. **Review** the intermediate build directory.
-7. **Package:** re-run with `--confirm` to zip to `dist/{plugin-name}.zip`.
-8. Test locally: `claude --plugin-dir dist/build/{plugin-name}` to verify skills load.
+7. **Package:** re-run with `--confirm` to zip to `dist/{plugin-name}.plugin.zip`.
+8. Test locally: `claude --plugin-dir dist/build/{plugin-name}.plugin` to verify skills load.
 9. Test upload: install in Claude Desktop Cowork.
 
 Or use the unified entry point: `python tools/build.py --all` (or `--plugin <name>`).
@@ -399,7 +399,7 @@ Each project has a set of reference files loaded into every conversation:
 
 | File type | Suffix | Example |
 |-----------|--------|---------|
-| Task instruction | `.task.md` | `product-pipeline-scheduled-daily-discovery.task.md` |
+| Task config | `.yaml` | `tasks/product-pipeline/daily-discovery/config.yaml` |
 | Context JSON | `.ctx.json` | `crm-field-mappings.ctx.json` |
 | Context MD | `.ctx.md` | `brand-rules.ctx.md` |
 | Project instruction | `.proj.md` | `CLAUDE-product-pipeline.proj.md` |
@@ -413,30 +413,64 @@ Each project has a set of reference files loaded into every conversation:
 
 ## 5. Scheduled Task Standards
 
-### Task Instruction Format
+### Task Bundle Format
+
+Tasks are organized as bundles under `tasks/{workflow}/{task-name}/`:
+
+```
+tasks/
+  product-pipeline/
+    daily-discovery/
+      config.yaml       # Metadata: name, version, type, schedule, skills, working dirs
+      description.md    # 5-10 line summary
+      prompt.md         # Full orchestration steps
+      references/
+        README.md       # Links to context files, plugins, CRM modules
+```
+
+### config.yaml Schema
+
+```yaml
+name: daily-discovery
+version: "1.1.0"
+type: scheduled              # scheduled | event
+schedule: "Daily, 7:00 AM IST"
+project: Product Pipeline
+
+skills_invoked:
+  - skill: ikraft-keyword-intelligence
+    mode: GENERATE
+    prefix: KI
+
+working_directories:
+  context: "context/product-pipeline/"
+  output: "context/pending-updates/"
+
+runtime_context:
+  - "zone-rotation.ctx.json"
+  - "crm-field-mappings.ctx.json"
+```
+
+### prompt.md Structure
 
 ```markdown
 # Task: {Name}
 
-## Schedule
-{cron expression or description}
-
-## What This Task Does
-{2-3 sentences}
+## Inputs
+{What data the task needs}
 
 ## Steps
-1. {Step 1 — be explicit about which MCP tools to call}
+1. {Step 1 — be explicit about which skills/modes to invoke}
 2. {Step 2}
-3. {Step 3}
-
-## Inputs
-{What data the task needs — CRM records, project context, etc.}
 
 ## Outputs
-{What the task produces — CRM updates, Slack messages, files}
+{What the task produces}
 
 ## Error Handling
 {What to do if a step fails}
+
+## Constraints
+{Boundary rules}
 ```
 
 ### Rules
@@ -508,14 +542,16 @@ skill-share/
       launch-benchmarks.json
       analytics-config.json
     pending-updates/              (staged learning synthesis — human reviews before committing)
-  dist/                           (built plugins — compiled artifacts)
+  dist/                           (built plugins — compiled artifacts, gitignored)
     build/                        (intermediate build directory — reviewable before zipping)
-    product-discovery.plugin      (Plugin 1a)
-    product-evaluation.plugin     (Plugin 1b)
-    product-sourcing.plugin       (Plugin 2a)
-    product-testing.plugin        (Plugin 2b)
-    product-launch.plugin         (Plugin 3)
-    product-ops.plugin            (Plugin 4)
+      product-discovery.plugin/   (Plugin 1a)
+      product-evaluation.plugin/  (Plugin 1b)
+      product-sourcing.plugin/    (Plugin 2a)
+      product-testing.plugin/     (Plugin 2b)
+      product-launch.plugin/      (Plugin 3)
+      product-ops.plugin/         (Plugin 4)
+    .claude/skills/               (standalone skill output — for ~/.claude/skills/ deployment)
+    product-discovery.plugin.zip  (upload-ready zip)
   artifacts/                      (built JSX artifacts)
     discovery-dashboard-v1.0.jsx
     positioning-workbench-v1.0.jsx
@@ -535,7 +571,12 @@ skill-share/
     validate-system.py            (cross-cutting validation + manifest)
     plugin-registry.json          (GENERATED — do not edit manually)
   tasks/                          (task instructions — orchestration definitions)
-    {project}-{type}-{trigger}-{action}.task.md
+    {workflow}/
+      {task-name}/
+        config.yaml
+        description.md
+        prompt.md
+        references/
   projects/                       (project instructions / CLAUDE.md files)
     CLAUDE-product-pipeline.proj.md
     CLAUDE-launch-ops.proj.md
@@ -575,7 +616,7 @@ skill-share/
 | Storage key | `ism:{entity}:{id}:{sub}` | ism:p:p123:out:scout |
 | Slack channel | `#ism-{purpose}` | #ism-launch-alerts |
 | Git branch | `{domain}/{change}` | product-system/trim-skills |
-| Scheduled task | `{project}-{type}-{trigger}-{action}.task.md` | product-pipeline-scheduled-daily-discovery.task.md |
+| Task bundle | `tasks/{workflow}/{task-name}/` | tasks/product-pipeline/daily-discovery/ |
 
 ---
 

@@ -172,12 +172,7 @@ def cmd_clean_all():
 
 
 def cmd_all():
-    cmd_registry()
-    cmd_validate()
-    cmd_build()
-    cmd_manifest()
-    cmd_marketplace()
-    print("\nFull pipeline complete.")
+    run("Full Pipeline", [PYTHON, os.path.join(TOOLS, "build.py"), "--all"])
 
 
 def cmd_ci():

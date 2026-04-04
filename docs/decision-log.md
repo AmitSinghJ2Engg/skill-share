@@ -406,7 +406,7 @@ skills/founder/         — ism founder
 
 **Decisions:**
 
-1. **dist/ removed from git tracking** — 132 regeneratable build artifacts were bloating the repo. `.gitignore` changed from selective includes (`!/dist/build/`, `!/dist/README.md`) to blanket `/dist/`. Files removed from index with `git rm -r --cached dist/`. Local files preserved.
+1. **dist/ partially removed from git tracking** — Regeneratable artifacts (zips, manifests, standalone skill output) are gitignored. However, `dist/build/*.plugin/` directories remain tracked because the marketplace `source` paths resolve relative to the repo — `git clone` must deliver them. `.gitignore` uses `/dist/*` with `!/dist/build/` carve-out. Marketplace `pluginRoot: "./dist/build"` added so source paths stay clean. Net: ~80% reduction in tracked dist/ files while preserving marketplace install chain.
 
 2. **`.plugin` naming convention** — Plugin build directories now use `.plugin` suffix: `dist/build/{name}.plugin/`. Upload zips are `{name}.plugin.zip`. Makes plugin bundles visually distinct from regular directories and aligns with `.plugin.zip` upload convention. Changes in: `build-plugin.py` (3 lines), `validate-system.py` (2 lines), `make.py` (1 line), `03-implementation-standards.md`.
 
@@ -414,14 +414,16 @@ skills/founder/         — ism founder
 
 4. **Task bundle structure** — 2 monolithic `.task.md` files split into structured bundles at `tasks/{workflow}/{task-name}/` with 4 files each: `config.yaml` (metadata), `description.md` (summary), `prompt.md` (orchestration steps), `references/README.md` (external links). `validate-system.py` `discover_tasks()` updated to walk bundle directories and parse `config.yaml` + `prompt.md` (backward-compatible with flat `.task.md`). Old flat files deleted.
 
-5. **Skill-creator standards updated** — `ismokraft-standards.md` extended with 5 new sections: Security Rules (no XML in frontmatter, no "claude"/"anthropic" in names, no README.md in skill dirs), Composability (independent skills, CRM-mediated data exchange), Description Structure (three-part PREFIX/WHAT/WHEN format), Task Bundles (bundle format reference), Build Conventions (`.plugin` naming, standalone output, dist/ not tracked).
+5. **Skill-creator standards updated** — `ismokraft-standards.md` extended with 5 new sections: Security Rules (no XML in frontmatter, no "claude"/"anthropic" in names, no README.md in skill dirs), Composability (independent skills, CRM-mediated data exchange), Description Structure (three-part PREFIX/WHAT/WHEN format), Task Bundles (bundle format reference), Build Conventions (`.plugin` naming, standalone output, dist/build/ tracked for marketplace).
 
 6. **Claude Code specs index** — `docs/claude-code-specs/INDEX.md` created as a routing table for 14+ reference docs (~460KB) organized by Core, Build with Claude Code, Reference, and Admin categories. `.gitignore` updated with carve-out so INDEX.md is tracked while spec files remain gitignored.
 
 **Consequences:**
-- Repo size reduced by 132 tracked build artifacts. `git clone` is faster.
+- Tracked dist/ reduced to plugin build directories only (`dist/build/*.plugin/`). Zips, manifests, and standalone skill output are gitignored.
+- Marketplace install chain works after `git clone`: marketplace.json → pluginRoot → `dist/build/{name}.plugin/` → plugin.json + skills/.
 - Plugin bundles are visually distinct with `.plugin` suffix.
 - Skills deployable standalone to `~/.claude/skills/` via `python make.py build-skills`.
+- Build pipeline treats validation as advisory — context budget warnings don't block plugin builds.
 - Tasks are scalable: new tasks add a directory, not a monolithic file.
 - Skill-creator has complete standards coverage (security, composability, descriptions, tasks, build).
 - Claude reference docs have a discoverable index without tracking 460KB of spec files.

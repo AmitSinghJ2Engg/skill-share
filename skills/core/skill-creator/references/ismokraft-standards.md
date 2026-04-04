@@ -138,4 +138,4 @@ Tasks invoke skills by mode. They do not reference skill-internal files (referen
 - **Plugin naming:** Build output uses `.plugin` suffix: `dist/build/{name}.plugin/`
 - **Upload format:** `.plugin.zip` wrapping contents in `{name}.plugin/` top-level folder
 - **Standalone skills:** `dist/.claude/skills/{skill-name}/` for `~/.claude/skills/` deployment
-- **dist/ not tracked:** All build output is gitignored. Rebuild with `python make.py build`.
+- **dist/build/ tracked:** Plugin build directories (`dist/build/*.plugin/`) are tracked in git for marketplace. Zips and standalone skill output are gitignored.

@@ -542,8 +542,8 @@ skill-share/
       launch-benchmarks.json
       analytics-config.json
     pending-updates/              (staged learning synthesis — human reviews before committing)
-  dist/                           (built plugins — compiled artifacts, gitignored)
-    build/                        (intermediate build directory — reviewable before zipping)
+  dist/                           (built plugins — zips and standalone output gitignored)
+    build/                        (plugin directories — tracked in git for marketplace)
       product-discovery.plugin/   (Plugin 1a)
       product-evaluation.plugin/  (Plugin 1b)
       product-sourcing.plugin/    (Plugin 2a)

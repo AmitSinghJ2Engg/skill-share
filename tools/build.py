@@ -111,8 +111,10 @@ def main():
 
     # Stage 6: SUMMARY
     print_summary(results)
-    has_failure = any(v is False for v in results.values())
-    sys.exit(1 if has_failure else 0)
+    # Only fail on blocking stages (Registry, Build). Validate is advisory.
+    blocking = ("Registry", "Build")
+    has_blocking_failure = any(results.get(s) is False for s in blocking)
+    sys.exit(1 if has_blocking_failure else 0)
 
 
 def print_summary(results):

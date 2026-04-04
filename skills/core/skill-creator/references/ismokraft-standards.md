@@ -98,3 +98,44 @@ Only reference skills that have a SKILL.md in this repo. Current confirmed skill
 - founder: ism-founder
 
 Do NOT reference: ism-skill-factory, ism-scrum-master, ism-sop-builder, automation-designer, artifacts-builder-v2, skill-commander, product-intelligence, product-pipeline, product-lab, market-intelligence-research. These are retired/never-built.
+
+## Security Rules
+
+- **No XML angle brackets** (`<`, `>`) in frontmatter values. Use plain text or quotes.
+- **No "claude" or "anthropic"** in skill names. These are reserved by the platform.
+- **No README.md** inside skill directories. SKILL.md is the entry point; README.md would conflict with Claude's file discovery.
+
+## Composability
+
+- Skills must function independently. No hard cross-skill dependencies (no `import` or `require` of another skill).
+- A skill may reference another skill in its "Related Skills" table for informational purposes, but must never block execution if that skill is absent.
+- Cross-skill data exchange happens through CRM or task orchestration, not direct skill-to-skill calls.
+
+## Description Structure
+
+Three-part format for the `description` frontmatter field:
+
+```
+PREFIX- What it does (verb phrase). When to use: "trigger phrase 1", "trigger phrase 2".
+Capabilities: mode1 (does X), mode2 (does Y).
+```
+
+- First 250 chars: PREFIX + WHAT + WHEN. This is visible in skill listings.
+- Chars 251-1024: Capabilities, additional triggers. Still used for matching but truncated in UI.
+
+## Task Bundles
+
+Tasks are organized as bundles under `tasks/{workflow}/{task-name}/`:
+- `config.yaml` — metadata: name, version, type, schedule, skills invoked, working dirs
+- `description.md` — 5-10 line summary
+- `prompt.md` — full orchestration steps
+- `references/README.md` — links to context files, plugins, CRM modules
+
+Tasks invoke skills by mode. They do not reference skill-internal files (references/, scripts/).
+
+## Build Conventions
+
+- **Plugin naming:** Build output uses `.plugin` suffix: `dist/build/{name}.plugin/`
+- **Upload format:** `.plugin.zip` wrapping contents in `{name}.plugin/` top-level folder
+- **Standalone skills:** `dist/.claude/skills/{skill-name}/` for `~/.claude/skills/` deployment
+- **dist/ not tracked:** All build output is gitignored. Rebuild with `python make.py build`.

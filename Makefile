@@ -27,8 +27,8 @@ help: ## Show available targets
 registry: ## Generate plugin-registry.json from plugins.yaml
 	$(PYTHON) $(TOOLS)/generate-registry.py
 
-validate: ## Run system validation checks
-	$(PYTHON) $(TOOLS)/validate-system.py
+validate: ## Run system validation checks (advisory — does not block)
+	$(PYTHON) make.py validate
 
 build: ## Full build pipeline: registry + validate + build all
 	$(PYTHON) make.py build

@@ -33,6 +33,15 @@ def run(name, cmd):
         sys.exit(result.returncode)
 
 
+def run_advisory(name, cmd):
+    """Run a build step. Prints output but does not exit on failure (advisory)."""
+    print(f"\n--- {name} ---")
+    result = subprocess.run(cmd, cwd=REPO_ROOT)
+    if result.returncode != 0:
+        print(f"ADVISORY: {name} reported issues (non-blocking)")
+    return result.returncode == 0
+
+
 def cmd_help():
     """Show available targets."""
     print("""
@@ -91,7 +100,8 @@ def cmd_registry_check():
 
 
 def cmd_validate():
-    run("System Validation", [PYTHON, os.path.join(TOOLS, "validate-system.py"), "--check-only"])
+    # Validation is advisory per DL-014 — reports issues but does not block
+    run_advisory("System Validation", [PYTHON, os.path.join(TOOLS, "validate-system.py"), "--check-only"])
 
 
 def cmd_validate_fix():
@@ -145,14 +155,34 @@ def cmd_check(args):
 
 def cmd_clean():
     print("\n--- Clean build directories ---")
-    build_dir = os.path.join(REPO_ROOT, "dist", "build")
+    cleaned = False
+    dist_dir = os.path.join(REPO_ROOT, "dist")
+    build_dir = os.path.join(dist_dir, "build")
+    claude_dir = os.path.join(dist_dir, ".claude")
+
+    # Clean dist/build/ subdirectories
     if os.path.isdir(build_dir):
         for item in os.listdir(build_dir):
             path = os.path.join(build_dir, item)
             if os.path.isdir(path):
                 shutil.rmtree(path)
                 print(f"  Removed dist/build/{item}/")
-    else:
+                cleaned = True
+
+    # Clean dist/.claude/ (standalone skill output)
+    if os.path.isdir(claude_dir):
+        shutil.rmtree(claude_dir)
+        print("  Removed dist/.claude/")
+        cleaned = True
+
+    # Clean dist/skill-manifest.json
+    manifest = os.path.join(dist_dir, "skill-manifest.json")
+    if os.path.isfile(manifest):
+        os.remove(manifest)
+        print("  Removed dist/skill-manifest.json")
+        cleaned = True
+
+    if not cleaned:
         print("  Nothing to clean.")
 
 
@@ -178,8 +208,12 @@ def cmd_all():
 def cmd_ci():
     cmd_registry_check()
     cmd_registry()
-    cmd_validate()
-    print("\nCI checks passed.")
+    # Validation is advisory per DL-014 — context budget warnings don't block CI
+    ok = run_advisory("System Validation", [PYTHON, os.path.join(TOOLS, "validate-system.py"), "--check-only"])
+    if ok:
+        print("\nCI checks passed.")
+    else:
+        print("\nCI checks completed with advisory warnings (see above).")
 
 
 TARGETS = {

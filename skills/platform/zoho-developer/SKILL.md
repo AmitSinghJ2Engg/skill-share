@@ -66,7 +66,6 @@ Required: `registry_id`, `surface`, `version`, `code`. Optional: `test_cases[]`,
 |-------|-------------|
 | `zoho-solutions-architect` | Upstream -- receives Tech Specs; architect designs, developer builds |
 | `zoho-data-ops` | Peer -- handles runtime MCP I/O; this skill handles custom code |
-| `artifacts-builder-v2` | Peer [future] -- MCP-dependent artifacts rely on Zoho code |
 | `ism-learning-engine` | Exception capture [future] |
 
 ## Reference Files

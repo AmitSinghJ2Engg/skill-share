@@ -29,7 +29,7 @@ impact/effort/urgency ratings, and examples. Read before Step 3.
 **Definition:** Work happens or data exists but nothing records it in any system.
 **Detection:** Jira has no issues of a particular type, or a Bigin field that should be populated is empty across records at the relevant stage.
 **Default ratings:** impact=medium, effort=quick, urgency=now
-**handoff:** zoho-solutions-architect (if needs new field/pipeline) or ism-sop-builder (if process needs defining first)
+**handoff:** zoho-solutions-architect (if needs new field/pipeline) or ecosystem-ops (Confluence publish) (if process needs defining first)
 **Example:** Vendor negotiations happen over WhatsApp/email but no notes are logged in Bigin Contacts.
 
 ---
@@ -38,7 +38,7 @@ impact/effort/urgency ratings, and examples. Read before Step 3.
 **Definition:** A business process exists and is understood but is not written down anywhere accessible to the team.
 **Detection:** No Confluence SOP found for the process, OR Confluence search returns nothing for expected process keywords.
 **Default ratings:** impact=medium, effort=quick, urgency=soon
-**handoff:** ism-sop-builder
+**handoff:** ecosystem-ops (Confluence publish)
 **Example:** How to process a customer return is known by one person but has no SOP.
 
 ---
@@ -47,7 +47,7 @@ impact/effort/urgency ratings, and examples. Read before Step 3.
 **Definition:** The team needs an interactive tool, calculator, or dashboard but none exists.
 **Detection:** A domain skill exists (e.g., margin-calculator) but no corresponding artifact exists to make it self-service. Or a function requires UI that no artifact provides.
 **Default ratings:** impact=high, effort=deep, urgency=soon
-**handoff:** artifacts-builder-v2
+**handoff:** operator — manual build
 **Example:** Product Hub is still pending — all 6 spokes at ⬜ status.
 
 ---
@@ -65,7 +65,7 @@ impact/effort/urgency ratings, and examples. Read before Step 3.
 **Definition:** A process, SOP, or system config exists but is outdated and no longer reflects current operations.
 **Detection:** Confluence page modifiedTime > staleness threshold (see expected-state.md), OR page content references retired skills, old pipeline stages, or deprecated fields.
 **Default ratings:** impact=low, effort=quick, urgency=later
-**handoff:** ism-sop-builder (SOP update) or system-ops (Confluence page update)
+**handoff:** ecosystem-ops (Confluence publish) (SOP update) or system-ops (Confluence page update)
 **Example:** A Confluence SOP references ism-confluence-publisher (retired 2026-03-11).
 
 ---

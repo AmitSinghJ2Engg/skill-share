@@ -25,7 +25,7 @@ Compliant: `const { netProfit, totalFees } = marginData; // from skill output`
 
 Scan for: scoring arrays with weights, `reduce()` over criteria, grade functions with threshold branches, gate-check functions combining multiple conditions.
 
-Belongs in: product-lab (CTX-003/CTX-007), vendor-ops (CTX-004).
+Belongs in: product-evaluate (CTX-003/CTX-007), vendor-ops (CTX-004).
 
 ### Cat 4 -- Independent Strategic Decisions (V-051 CRITICAL)
 
@@ -79,9 +79,9 @@ Verdict rule: 0 findings = COMPLIANT, medium only = AT_RISK, any CRITICAL/HIGH =
 | Violation | Route to |
 |---|---|
 | Fee constants (Cat 1/2) | margin-calculator + CTX-001/002 |
-| Scoring logic (Cat 3) | product-lab/vendor-ops + CTX-003/004/007 |
+| Scoring logic (Cat 3) | product-evaluate/vendor-ops + CTX-003/004/007 |
 | Strategic decisions (Cat 4) | ism-business-authority or domain skill |
-| Self-config (Cat 5) | zoho-solutions-architect (CRM/Bigin), ism-scrum-master (channels) |
-| Stale data (Cat 6) | artifacts-builder-v2 (add source label) |
+| Self-config (Cat 5) | zoho-solutions-architect (CRM/Bigin), zoho-solutions-architect (channels) |
+| Stale data (Cat 6) | operator — manual rebuild (add source label) |
 
-Skill updates -> ism-skill-factory. Artifact rebuilds -> artifacts-builder-v2.
+Skill updates -> skill-creator. Artifact rebuilds -> operator — manual rebuild.

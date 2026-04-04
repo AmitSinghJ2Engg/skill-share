@@ -98,7 +98,7 @@ RECOMMENDATION:
 skill_name: ism-business-authority
 upstream_skills: []
 downstream_skills:
-  - product-lab: evaluation model + GO FEARLESS
+  - product-evaluate: evaluation model + GO FEARLESS
   - vendor-ops: vendor evaluation model
   - margin-calculator: financial formula references
   - ism-learning-engine: governance decisions

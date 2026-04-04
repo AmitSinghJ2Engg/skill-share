@@ -236,12 +236,12 @@ Score: 1-5 per dimension. Bands: >=4 Healthy / 3-3.9 Watch / <3 At Risk.
 
 | Type | Route to |
 |---|---|
-| triggering_fix | ism-skill-factory |
-| schema_update | ism-skill-factory |
-| rule_addition | ism-skill-factory |
+| triggering_fix | skill-creator |
+| schema_update | skill-creator |
+| rule_addition | skill-creator |
 | maturity_promotion | AUDIT mode |
-| skill_split | ism-skill-factory |
-| skill_deprecation | AUDIT mode + ism-scrum-master |
+| skill_split | skill-creator |
+| skill_deprecation | AUDIT mode |
 | dependency_gap | AUDIT mode |
 | governance_contract_gap | AUDIT mode |
 

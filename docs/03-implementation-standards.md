@@ -156,15 +156,11 @@ Every skill has a 2-letter prefix code. This prefix appears at the start of the 
 | RO | revenue-ops | D4 |
 | LE | ism-learning-engine | D4 |
 
-**Zoho Platform (4):** ZA zoho-solutions-architect, ZD zoho-developer, ZO zoho-data-ops, AD automation-designer
+**Zoho Platform (3):** ZA zoho-solutions-architect, ZD zoho-developer, ZO zoho-data-ops
 
-**Governance & System (8):** EO ecosystem-ops, SF ism-skill-factory, IG ikraft-skill-auditor, AG ikraft-architecture-governance, AU ism-gap-auditor, SC skill-commander, SB ism-sop-builder, OG okr-kpi-governance
+**Governance & System (5):** EO ecosystem-ops, IG ikraft-skill-auditor, AG ikraft-architecture-governance, AU ism-gap-auditor, OG okr-kpi-governance
 
-**Founder & Ops (3):** IF ism-founder, SM ism-scrum-master, BA ism-business-authority
-
-**Content (1):** DC doc-coauthoring
-
-**Artifact Builders (2):** AB artifacts-builder-v2, WB web-artifacts-builder
+**Founder & Ops (2):** IF ism-founder, BA ism-business-authority
 
 **File Format (4):** DX docx, XL xlsx, PT pptx, PF pdf
 

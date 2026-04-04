@@ -19,5 +19,5 @@ JSX artifact files for Claude.ai conversations. One file per artifact, versioned
 | `seller-central-ops-v1.0.jsx` | Launch & Ops | Domain 2.5 + 3 (manual ops) | Not built |
 | `source-to-pay-tracker-v1.0.jsx` | Launch & Ops | Source to Pay pipeline | Not built |
 
-Build using `artifacts-builder-v2` or `web-artifacts-builder` skills in "System Ops" project.
+Build artifacts manually or using `skill-creator` in "System Ops" project.
 See `docs/03-implementation-standards.md` section 3 for artifact standards.

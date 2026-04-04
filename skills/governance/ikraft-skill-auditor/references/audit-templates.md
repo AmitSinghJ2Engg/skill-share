@@ -11,7 +11,7 @@
 # Ismokraft Skill Governance Audit Report
 
 **Audit Date**: [ISO date]
-**Auditor**: ikraft-skill-governance v[version]
+**Auditor**: ikraft-skill-auditor v[version]
 **Scope**: [full | single | domain | ...]
 **Target**: [skill name, domain, or "All Skills"]
 **Reference Files Used**: [list]

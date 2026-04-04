@@ -27,7 +27,7 @@ measurable_kpis:
     measurement: "% of Deluge/Flow code outputs that deploy and run without error on first attempt"
     target: "> 70%"
     at_risk_threshold: "< 40%"
-    signal_to: ism-scrum-master
+    signal_to: ism-learning-engine
   - kpi_id: KPI-SKILL-ZD-03
     name: Tech Spec Adherence Rate
     source: ism-learning-engine ZD-* records
@@ -45,13 +45,7 @@ upstream_skills:
   - skill_name: zoho-solutions-architect
     data_consumed: Tech Spec with Deluge/Flow/Creator requirements
     required: false
-  - skill_name: automation-designer
-    data_consumed: AutomationSpec for implementation
-    required: false
 downstream_skills:
-  - skill_name: ism-scrum-master
-    data_produced: implementation tasks and bug fixes
-    trigger_condition: On code review or test failure
   - skill_name: zoho-data-ops
     data_produced: Custom functions that zoho-data-ops may call
     trigger_condition: When data ops requires server-side logic

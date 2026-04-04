@@ -354,3 +354,46 @@ skills/founder/         — ism founder
 - Slack routing is now a codified, enforceable standard across the entire system.
 - System Ops project provides a home for governance and tooling skills that didn't fit Product Pipeline or Launch & Ops.
 - Artifacts are clipboard-bridge enabled: Export/Import for data portability, Send to Slack for team notifications.
+
+---
+
+## DL-013: System Audit — SKILL.md Trim, Plugin Restructure, Ghost Cleanup (2026-04-04)
+
+**Context:** Full system audit against the Official Claude Skill Guide (authority), project docs (01-03), and existing repo. Identified: 3 build failures (plugins over 70KB), 5 oversized SKILL.md files (14-32KB), 10+ ghost skill references across 30+ files, Slack routing not enforced in reference files, and no Makefile for developers.
+
+**Decision:** Seven-phase migration executed in a single session.
+
+**Changes:**
+
+1. **Plugin restructure — 2 new standalone plugins** — `supplier-intelligence` (40KB) and `revenue-ops` (56KB) were too large for their parent plugins. Created `supplier-research` and `revenue-analytics` as standalone plugins. Removed heavyweight skills from `product-sourcing` (128KB→69KB) and `product-ops` (98KB→28KB). **All 11 plugins now build under 70KB.**
+
+2. **SKILL.md aggressive trim (5 files):**
+   - `supplier-intelligence`: 22KB → 6.5KB. Moved scoring models, signal matrices, ranking weights to existing `references/`.
+   - `revenue-ops`: 14KB → 5.9KB. Moved analysis steps, output schemas, thresholds to existing `references/`.
+   - `capital-planner`: 14KB → 5.1KB. Removed duplicate session protocol, moved formulas to existing `references/`.
+   - `ism-founder`: 25KB → 5KB. Created `references/modes-and-schemas.md` for output structures, JSON schemas, Confluence registry. Cleaned delegation map of ghost references.
+   - `ecosystem-ops`: 32KB → 4.5KB. Created `references/session-sync-protocol.md` (signal taxonomy, 4-step protocol), `references/artifact-lifecycle.md` (lifecycle states, GO FEARLESS), `references/context-modules.md` (canonical locations).
+
+3. **Ghost skill cleanup — 10 ghost skills removed from 30+ files:**
+   - `product-intelligence` → `product-market-intelligence` or `product-discover`
+   - `product-lab` → `product-evaluate`
+   - `ism-skill-factory` → `skill-creator`
+   - `ikraft-skill-governance` → `ikraft-skill-auditor`
+   - Removed entirely: `artifacts-builder-v2`, `skill-commander`, `automation-designer`, `ism-sop-builder`, `ism-scrum-master`, `market-intelligence-research`
+   - Fixed in: 6 SKILL.md files, 12 reference files, 3 docs files, 1 project file, 1 artifacts README
+
+4. **Slack routing enforced in reference files** — Updated `content-writer`, `revenue-ops`, `capital-planner` reference files to say "format via slack-messaging skill" instead of direct Slack MCP calls with hardcoded channel IDs and message templates.
+
+5. **Developer experience** — Created `Makefile` wrapping `make.py`. Updated `README.md` with prerequisites (Python 3.9+, PyYAML), all 11 plugins in install instructions, Windows troubleshooting section.
+
+6. **ismokraft-standards.md updated** — Added: required frontmatter fields (`version`, `lifecycle`), sections to avoid in SKILL.md (governance contracts, dependency metadata, execution logs), ghost skill prevention list (28 confirmed skills, 10 retired/never-built).
+
+7. **Prefix registry cleaned** — Removed 8 ghost prefixes from `docs/03-implementation-standards.md` (AD, SF, SC, SB, SM-scrum, AB, WB, DC).
+
+**Consequences:**
+- 11 plugins, all under 70KB, all build successfully.
+- No SKILL.md exceeds 7KB (target 5KB, 12 warnings remain for minor overages).
+- Zero ghost skill references in SKILL.md files and their reference files.
+- Slack routing is enforced at both SKILL.md and reference file level.
+- Developers can use `make build` or `python make.py build` on any platform.
+- `ismokraft-standards.md` is the single source for project conventions used by skill-creator.

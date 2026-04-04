@@ -114,9 +114,8 @@ measurable_kpis:
 | Skill | Relationship |
 |---|---|
 | `ikraft-architecture-governance` | Sibling — architecture compliance + ecosystem intelligence |
-| `ism-skill-factory` | Creates skills — auditor checks what factory produces |
+| `skill-creator` | Creates skills — auditor checks what creator produces |
 | `ecosystem-ops` | Manages ecosystem health — auditor checks skill compliance |
-| `ism-scrum-master` | Audit findings feed into sprint backlog |
 | `ism-gap-auditor` | Process-level gaps; auditor handles skill-level compliance |
 | `ism-learning-engine` | Exception capture sink |
 

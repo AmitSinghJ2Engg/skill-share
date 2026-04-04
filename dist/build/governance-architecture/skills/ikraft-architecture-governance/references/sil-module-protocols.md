@@ -81,13 +81,13 @@ Sequence: identify root cause -> assign rec_type -> assign priority (P1 blocks o
 
 | rec_type | route_to |
 |---|---|
-| triggering_fix | ism-skill-factory (description update) |
-| schema_update | ism-skill-factory (schema fix) |
-| rule_addition | ism-skill-factory (add to references/) |
-| maturity_promotion | ikraft-skill-governance (registry update) |
-| skill_split | ism-skill-factory (new skill) |
-| skill_deprecation | ikraft-skill-governance + ism-scrum-master |
-| dependency_gap | ikraft-skill-governance (dep graph) |
-| governance_contract_gap | ikraft-skill-governance (V-037 to V-046) |
+| triggering_fix | skill-creator (description update) |
+| schema_update | skill-creator (schema fix) |
+| rule_addition | skill-creator (add to references/) |
+| maturity_promotion | ikraft-skill-auditor (registry update) |
+| skill_split | skill-creator (new skill) |
+| skill_deprecation | ikraft-skill-auditor + operator — manual action |
+| dependency_gap | ikraft-skill-auditor (dep graph) |
+| governance_contract_gap | ikraft-skill-auditor (V-037 to V-046) |
 
 SIL NEVER routes automatically. All routes require Amit's explicit confirmation.

@@ -41,8 +41,8 @@ Chain: User request -> skill reads context -> skill selects artifact + parameter
 | Net margin | margin-calculator + financial-formulas.md |
 | Amazon referral/FBA fees | margin-calculator + amazon-fee-table.md |
 | Break-even ROAS / LTV | margin-calculator + financial-formulas.md |
-| Product opportunity score | product-lab + opportunity-scoring-model.md |
-| Gate pass/fail | product-lab GATE-CHECK mode |
+| Product opportunity score | product-evaluate + opportunity-scoring-model.md |
+| Gate pass/fail | product-evaluate GATE-CHECK mode |
 | Vendor tier qualification | vendor-ops + vendor-evaluation-model.md |
 | ACoS / ROAS verdict | ads-ops |
 
@@ -66,11 +66,11 @@ Pre-creation guardrail mandatory. See `skill-creation-guardrail.md` for 5-step p
 |---|---|---|
 | CTX-001 | Amazon India Fee Structure 2026 | margin-calculator |
 | CTX-002 | Financial Formulas | margin-calculator |
-| CTX-003 | Product Evaluation Model v2 | product-lab |
+| CTX-003 | Product Evaluation Model v2 | product-evaluate |
 | CTX-004 | Vendor Evaluation Model v2 | vendor-ops |
 | CTX-005 | GO FEARLESS Standard v1.0 | ism-business-authority |
 | CTX-006 | Business Context | ism-business-authority |
-| CTX-007 | Opportunity Scoring Model | product-lab |
+| CTX-007 | Opportunity Scoring Model | product-evaluate |
 | CTX-008 | CRM Field Mappings | zoho-solutions-architect |
 | CTX-009 | Bigin Live State | zoho-solutions-architect |
 | CTX-010 | Storage Schema | ecosystem-ops |

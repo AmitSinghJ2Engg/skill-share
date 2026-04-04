@@ -62,16 +62,16 @@ entity -> authoritative_system -> allowed_writers -> sync_targets
 | Entity | Authoritative System | Allowed Writers | Sync Targets |
 |---|---|---|---|
 | Pipeline stage record | Zoho Bigin Pipelines | launch-gate-checker | None |
-| Jira issue | Jira (ISK project) | ism-gap-auditor, ism-scrum-master | Confluence |
-| Sprint record | Jira (ISK project) | ism-scrum-master | None |
+| Jira issue | Jira (ISK project) | ism-gap-auditor | Confluence |
+| Sprint record | Jira (ISK project) | operator — manual | None |
 
 ### Governance Entities
 
 | Entity | Authoritative System | Allowed Writers | Sync Targets |
 |---|---|---|---|
-| Skill registry | ikraft-skill-governance refs | ikraft-skill-governance | Confluence |
-| Audit report | Confluence | ikraft-skill-governance, ecosystem-ops | None |
-| SOP documents | Confluence | ism-sop-builder | Google Drive |
+| Skill registry | ikraft-skill-auditor refs | ikraft-skill-auditor | Confluence |
+| Audit report | Confluence | ikraft-skill-auditor, ecosystem-ops | None |
+| SOP documents | Confluence | ecosystem-ops | Google Drive |
 | Execution logs | Conversation output | Individual skills | Confluence (if persisted) |
 
 ---

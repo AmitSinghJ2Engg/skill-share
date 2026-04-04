@@ -61,11 +61,11 @@ See `references/schemas-and-steps.md` for full I/O schemas, GapRecord JSON shape
 | missing_pipeline | zoho-solutions-architect |
 | missing_automation | zoho-solutions-architect -> zoho-developer |
 | missing_tracking | zoho-solutions-architect |
-| missing_documentation | ism-sop-builder |
-| missing_artifact | artifacts-builder-v2 |
+| missing_documentation | ecosystem-ops (Confluence publish) |
+| missing_artifact | operator — manual build |
 | broken_handoff | zoho-developer |
-| stale_process | ism-sop-builder |
-| missing_alert | automation-designer |
+| stale_process | ecosystem-ops (Confluence publish) |
+| missing_alert | zoho-developer |
 | missing_gate | product-evaluate |
 
 See `references/gap-types.md` for detection criteria, default impact/effort/urgency, and examples.
@@ -121,7 +121,6 @@ measurable_kpis:
 | `ikraft-skill-auditor` | Skill-level compliance; gap-auditor handles process-level gaps |
 | `ikraft-architecture-governance` | Sibling in governance-architecture plugin |
 | `ism-business-authority` | Upstream — business priority alignment for gap scoring |
-| `ism-scrum-master` | Jira tickets flow to sprint backlog |
 | `ism-learning-engine` | Exception capture sink |
 
 ---

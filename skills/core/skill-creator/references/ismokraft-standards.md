@@ -16,9 +16,10 @@ Apply these when creating or modifying skills for the Ismokraft system.
 ---
 name: skill-name
 description: >
-  What it does. Trigger for: "phrase1", "phrase2", "PREFIX-".
+  PREFIX- What it does. Trigger for: "phrase1", "phrase2", "PREFIX-".
+version: "1.0.0"
+lifecycle: prototype
 metadata:
-  version: "1.0.0"
   domain: capability-group
   prefix: XX-
 ---
@@ -31,8 +32,21 @@ Optional fields: `disable-model-invocation`, `allowed-tools`, `argument-hint`.
 - **Mode table:** Every multi-mode skill needs `| Mode | Purpose | Trigger |` at the top.
 - **Session protocol:** List reference files to read at session start.
 - **Boundary statement:** State what the skill does NOT do (single responsibility).
-- **S22 (no-fake-data):** Skills that write to CRM must declare S22 compliance.
+- **S22 (no-fake-data):** Every skill that touches data must declare S22 compliance.
 - **No hardcoded business values.** Reference `context/` files for thresholds, fee tables, formulas.
+- **Exception handling section:** List what to do when inputs are missing or edge cases occur.
+- **Reference files table:** Always end SKILL.md with a table of reference files and when to read them.
+
+## Sections to Avoid in SKILL.md
+
+These belong in `references/` files, NOT in SKILL.md:
+- Full JSON schemas (input/output) — move to `references/schemas-and-steps.md`
+- Detailed scoring rubrics, formulas, weights — move to dedicated reference files
+- Governance contracts (`skill_name`, `write_permissions`, `measurable_kpis`) — non-standard, remove
+- Dependency metadata (`upstream_skills`, `downstream_skills`) — non-standard, remove
+- Execution log templates — non-standard, remove
+- Session learnings logs — belongs in CRM/learning engine
+- Related skills table — only if pointing to real, existing skills (never ghost references)
 
 ## Three-Layer Architecture
 
@@ -63,4 +77,24 @@ Skills and tasks that produce Slack output must include a step: "Format message 
 ## Plugin Definitions
 
 Plugins are defined in `plugins.yaml` (repo root). Skills can appear in multiple plugins.
-Plugin builds must stay under 70KB uncompressed.
+Plugin builds must stay under 70KB uncompressed. Currently 11 plugins:
+- Pipeline: product-discovery, product-evaluation, product-sourcing, product-testing, product-launch, product-ops
+- Standalone: supplier-research, revenue-analytics
+- Governance: governance-audit, governance-architecture, governance-business
+
+## Ghost Skill Prevention
+
+Only reference skills that have a SKILL.md in this repo. Current confirmed skills (28):
+- research: ikraft-keyword-intelligence, product-discover, product-screen, product-market-intelligence, supplier-intelligence
+- evaluation: product-evaluate, product-spec, compliance-ops
+- finance: margin-calculator, capital-planner, revenue-ops
+- marketing: content-writer, ads-ops
+- sourcing: vendor-ops
+- operations: fulfillment-ops, product-monitor, ecosystem-ops
+- learning: ism-learning-engine (placeholder)
+- platform: zoho-solutions-architect, zoho-developer, zoho-data-ops, slack-messaging
+- governance: ikraft-skill-auditor, ikraft-architecture-governance, ism-gap-auditor, ism-business-authority, okr-kpi-governance
+- core: skill-creator
+- founder: ism-founder
+
+Do NOT reference: ism-skill-factory, ism-scrum-master, ism-sop-builder, automation-designer, artifacts-builder-v2, skill-commander, product-intelligence, product-pipeline, product-lab, market-intelligence-research. These are retired/never-built.

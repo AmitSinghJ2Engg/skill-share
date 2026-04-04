@@ -134,7 +134,6 @@ measurable_kpis:
 |---|---|
 | `ikraft-skill-auditor` | Sibling — standards compliance + resolution registry |
 | `ism-gap-auditor` | Process gaps; architecture-governance handles structural compliance |
-| `artifacts-builder-v2` | Artifacts are architecture audit subjects |
 | `ecosystem-ops` | Ecosystem health — architecture validates structure |
 | `ism-learning-engine` | Exception capture sink; LE-* records are SYNTHESIZE input |
 

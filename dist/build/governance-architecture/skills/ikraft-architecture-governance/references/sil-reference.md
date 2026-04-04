@@ -47,7 +47,7 @@ Pattern candidate format:
 ### Maintenance
 
 - Review active entries quarterly or at skill maturity level changes
-- Supersede when ism-skill-factory fix makes rule redundant
+- Supersede when skill-creator fix makes rule redundant
 - No confirming observations for 3+ months -> supersede as "unconfirmed"
 
 ---
@@ -169,7 +169,7 @@ Option B Split: [rationale, proposed sub-skills, effort]
 Option C Deprecate: [rationale, replacement skill, effort]
 
 Recommendation: [option + justification]
-Route to ism-scrum-master as backlog item? (yes / no)
+Route to operator — Jira backlog as backlog item? (yes / no)
 ```
 
 ### T5: EcosystemHealthSummary

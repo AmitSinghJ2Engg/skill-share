@@ -67,10 +67,10 @@ Declared orphan: orphan_declared true with orphan_reason.
 |---|---|
 | WF-PRODUCT-LAUNCH | market-researcher -> product-scorer -> margin-calculator -> launch-gate-checker |
 | WF-VENDOR-EVALUATION | vendor-discovery -> vendor-scorer -> rfq-generator |
-| WF-SPRINT-CYCLE | ism-gap-auditor -> ism-scrum-master -> ecosystem-ops |
-| WF-ARTIFACT-RELEASE | artifacts-builder-v2 -> artifact-lifecycle |
+| WF-SPRINT-CYCLE | ism-gap-auditor -> ecosystem-ops |
+| WF-ARTIFACT-RELEASE | ecosystem-ops (artifact lifecycle) |
 | WF-ZOHO-IMPLEMENTATION | zoho-solutions-architect -> zoho-developer |
-| WF-SKILL-CREATION | ism-skill-factory -> ikraft-skill-governance |
+| WF-SKILL-CREATION | skill-creator -> ikraft-skill-auditor |
 
 ---
 

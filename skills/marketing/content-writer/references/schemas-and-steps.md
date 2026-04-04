@@ -79,4 +79,4 @@
 
 When operator says "push listing to CRM":
 - Use Zoho CRM MCP to update Products module with listing content
-- Alert `#ism-launch-alerts` via Slack MCP
+- Alert `#ism-launch-alerts` — format via `slack-messaging` skill before posting

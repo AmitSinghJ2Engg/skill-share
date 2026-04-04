@@ -28,14 +28,14 @@ measurable_kpis:
     measurement: "% of tech specs passed to zoho-developer that contain all required implementation fields"
     target: "> 85%"
     at_risk_threshold: "< 60% -- specs are incomplete, causing implementation rework"
-    signal_to: ism-scrum-master
+    signal_to: ism-learning-engine
   - kpi_id: KPI-SKILL-ZA-03
     name: Design Revision Rate
     source: "ism-learning-engine LE-* records -- ZA-prefix"
     measurement: "% of designs that require revision after handoff to zoho-developer"
     target: "< 30%"
     at_risk_threshold: "> 60%"
-    signal_to: ism-scrum-master
+    signal_to: ism-learning-engine
 ```
 
 ## Dependency Metadata
@@ -53,9 +53,6 @@ downstream_skills:
   - skill_name: ecosystem-ops
     data_produced: Tech Specs for Confluence publishing
     trigger_condition: On the operator confirmation
-  - skill_name: ism-scrum-master
-    data_produced: design tasks for sprint backlog
-    trigger_condition: On complex design decisions
 fallback_skill: null
 orphan_declared: false
 ```

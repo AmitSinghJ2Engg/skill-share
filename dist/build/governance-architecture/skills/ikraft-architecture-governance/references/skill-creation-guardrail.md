@@ -51,12 +51,12 @@ Output `SkillCreationVerdict`:
   "recommended_action": "EXTEND X as mode Y | MERGE A + B | ALLOW",
   "domain_assignment": "string (if ALLOW)",
   "prefix_suggestion": "string (if ALLOW)",
-  "next_step": "ism-skill-factory (if ALLOW) | arch-gov confirm merge/extend"
+  "next_step": "skill-creator (if ALLOW) | arch-gov confirm merge/extend"
 }
 ```
 
-BLOCK_CREATE -> state target skill + mode/file name, route to ism-skill-factory.
-ALLOW_CREATE -> confirm domain + prefix, route to ism-skill-factory.
+BLOCK_CREATE -> state target skill + mode/file name, route to skill-creator.
+ALLOW_CREATE -> confirm domain + prefix, route to skill-creator.
 
 ---
 

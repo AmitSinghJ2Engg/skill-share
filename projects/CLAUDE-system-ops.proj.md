@@ -27,7 +27,6 @@ Ismokraft's system governance, architecture, and internal tooling project. Cover
 | ZO | zoho-data-ops | platform | *(disable-model-invocation: true)* |
 | ZA | zoho-solutions-architect | platform | DESIGN |
 | ZD | zoho-developer | platform | BUILD |
-| AD | automation-designer | platform | DESIGN |
 | SM | slack-messaging | platform | *(auto-trigger on Slack compose)* |
 
 ## Plugins

@@ -115,9 +115,7 @@ measurable_kpis:
 | `margin-calculator` | Source of costing KPI formulas |
 | `ads-ops` | Consumes ROAS/ACoS benchmarks; sends actuals for evaluation |
 | `revenue-ops` | Sends revenue/units actuals for evaluation |
-| `artifacts-builder-v2` | Builds dashboards consuming evaluation output |
 | `ism-gap-auditor` | At-risk KPI signals trigger gap audit |
-| `ism-scrum-master` | At-risk KPIs generate Jira tasks |
 
 ---
 

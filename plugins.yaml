@@ -36,14 +36,12 @@ plugins:
         from: research
 
   product-sourcing:
-    description: "Domain 2 -- product spec, supplier discovery, vendor evaluation, actual unit economics, compliance initiation."
-    version: "1.0.0"
+    description: "Domain 2 -- product spec, vendor evaluation, actual unit economics, compliance initiation."
+    version: "1.1.0"
     project: "Product Pipeline"
     skills:
       - skill: product-spec
         from: evaluation
-      - skill: supplier-intelligence
-        from: research
       - skill: vendor-ops
         from: sourcing
       - skill: margin-calculator
@@ -84,18 +82,36 @@ plugins:
         from: operations
 
   product-ops:
-    description: "Domain 4 -- live monitoring, ad management, revenue ops, learning engine."
-    version: "1.1.0"
+    description: "Domain 4 -- live monitoring, ad management, learning engine."
+    version: "1.2.0"
     project: "Launch & Ops"
     skills:
       - skill: ism-learning-engine
         from: learning
-      - skill: revenue-ops
-        from: finance
       - skill: product-monitor
         from: operations
       - skill: ads-ops
         from: marketing
+      - skill: slack-messaging
+        from: platform
+
+  # ── Standalone (heavyweight skills) ─────────────────────────────
+
+  supplier-research:
+    description: "Supplier intelligence engine -- multi-source discovery, enrichment, verification, classification, 5-dimension ranking for India suppliers."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: supplier-intelligence
+        from: research
+
+  revenue-analytics:
+    description: "Revenue health analytics -- sales, settlement reconciliation, returns, forecasting, P&L, marketing efficiency. Read-only."
+    version: "1.0.0"
+    project: "Launch & Ops"
+    skills:
+      - skill: revenue-ops
+        from: finance
       - skill: slack-messaging
         from: platform
 

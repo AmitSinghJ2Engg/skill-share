@@ -10,7 +10,7 @@
     {
       "name": "governance-architecture",
       "description": "Architecture compliance and ecosystem health -- 7-Law enforcement, pattern synthesis, gap detection and routing.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -93,8 +93,8 @@
     },
     {
       "name": "product-ops",
-      "description": "Domain 4 -- live monitoring, ad management, revenue ops, learning engine.",
-      "version": "1.0.0",
+      "description": "Domain 4 -- live monitoring, ad management, learning engine.",
+      "version": "1.2.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -107,8 +107,8 @@
     },
     {
       "name": "product-sourcing",
-      "description": "Domain 2 -- product spec, supplier discovery, vendor evaluation, actual unit economics, compliance initiation.",
-      "version": "1.0.0",
+      "description": "Domain 2 -- product spec, vendor evaluation, actual unit economics, compliance initiation.",
+      "version": "1.1.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -122,7 +122,7 @@
     {
       "name": "product-testing",
       "description": "Domain 2.5 -- test campaigns, monitoring, FBA dispatch, compliance tracking.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -131,6 +131,34 @@
       "keywords": [
         "ismokraft",
         "product testing"
+      ]
+    },
+    {
+      "name": "revenue-analytics",
+      "description": "Revenue health analytics -- sales, settlement reconciliation, returns, forecasting, P&L, marketing efficiency. Read-only.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/revenue-analytics",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "revenue analytics"
+      ]
+    },
+    {
+      "name": "supplier-research",
+      "description": "Supplier intelligence engine -- multi-source discovery, enrichment, verification, classification, 5-dimension ranking for India suppliers.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/supplier-research",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "supplier research"
       ]
     }
   ]

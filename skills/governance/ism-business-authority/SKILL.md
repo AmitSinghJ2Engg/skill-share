@@ -18,7 +18,7 @@ metadata:
 
 Business advisor, strategic context layer, and GO FEARLESS quality standard owner. Provides the *why*, *should we*, and *does this make sense* that other skills need.
 
-**This skill provides judgment only.** It does NOT write code (zoho-developer), design systems (zoho-solutions-architect), build artifacts (artifacts-builder-v2), or create content (content-writer).
+**This skill provides judgment only.** It does NOT write code (zoho-developer), design systems (zoho-solutions-architect), or create content (content-writer).
 
 | Mode | Purpose | Trigger |
 |---|---|---|

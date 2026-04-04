@@ -328,19 +328,79 @@ def discover_skills(repo_root):
     return skills
 
 
+def parse_task_bundle(task_dir):
+    """Parse a task bundle directory (config.yaml + prompt.md). Returns dict."""
+    config_path = os.path.join(task_dir, "config.yaml")
+    prompt_path = os.path.join(task_dir, "prompt.md")
+
+    if not os.path.isfile(config_path) or not os.path.isfile(prompt_path):
+        return None
+
+    # Parse config.yaml with regex (no PyYAML dependency)
+    with open(config_path, "r", encoding="utf-8") as f:
+        config_content = f.read()
+
+    meta = {}
+    for line in config_content.split("\n"):
+        m = re.match(r'^(\w[\w-]*)\s*:\s*"?([^"#\n]*)"?\s*$', line)
+        if m:
+            meta[m.group(1)] = m.group(2).strip().strip('"').strip("'")
+
+    # Parse skill invocations from prompt.md
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        prompt_content = f.read()
+
+    invocations = []
+    for m in re.finditer(r'\*\*([A-Z]{2})-?\s+([a-z][a-z0-9-]+)\s+(\w+)\s+mode\*\*', prompt_content):
+        prefix, skill, mode = m.group(1), m.group(2), m.group(3).upper()
+        inv = {"prefix": prefix, "skill": skill, "mode": mode}
+        if inv not in invocations:
+            invocations.append(inv)
+
+    # Extract skills_invoked from config
+    fm_skills = []
+    for m in re.finditer(r'skill:\s+([a-z][a-z0-9-]+)', config_content):
+        fm_skills.append(m.group(1))
+
+    return {
+        "name": meta.get("name", os.path.basename(task_dir)),
+        "schedule": meta.get("schedule", meta.get("trigger", "")),
+        "skills_invoked_fm": fm_skills,
+        "skills_invoked_content": invocations,
+        "meta": meta,
+    }
+
+
 def discover_tasks(repo_root):
-    """Find all task files. Returns dict of task_name -> parsed task."""
+    """Find all task files. Supports both bundle format and flat .task.md files."""
     tasks = {}
     tasks_dir = os.path.join(repo_root, "tasks")
     if not os.path.isdir(tasks_dir):
         return tasks
 
+    # Bundle format: tasks/{workflow}/{task-name}/prompt.md
+    for workflow in sorted(os.listdir(tasks_dir)):
+        workflow_dir = os.path.join(tasks_dir, workflow)
+        if not os.path.isdir(workflow_dir):
+            continue
+        for task_name in sorted(os.listdir(workflow_dir)):
+            task_dir = os.path.join(workflow_dir, task_name)
+            if not os.path.isdir(task_dir):
+                continue
+            task = parse_task_bundle(task_dir)
+            if task:
+                tasks[task["name"]] = task
+
+    # Backward-compatible: flat .task.md files in tasks/
     for fname in sorted(os.listdir(tasks_dir)):
         fpath = os.path.join(tasks_dir, fname)
         if not os.path.isfile(fpath) or not fname.endswith(".md"):
             continue
+        if fname == "README.md":
+            continue
         task = parse_task_file(fpath)
-        tasks[task["name"]] = task
+        if task["name"] not in tasks:
+            tasks[task["name"]] = task
 
     return tasks
 
@@ -724,7 +784,7 @@ def generate_marketplace(repo_root, registry):
 
     plugins_list = []
     for plugin_name, plugin_def in registry.get("plugins", {}).items():
-        build_dir = os.path.join(repo_root, "dist", "build", plugin_name)
+        build_dir = os.path.join(repo_root, "dist", "build", f"{plugin_name}.plugin")
         if not os.path.isdir(build_dir):
             continue
 
@@ -733,7 +793,7 @@ def generate_marketplace(repo_root, registry):
             "description": plugin_def.get("description", ""),
             "version": plugin_def.get("version", "1.0.0"),
             "author": plugin_def.get("author", {"name": "Ismokraft"}),
-            "source": f"./dist/build/{plugin_name}",
+            "source": f"./dist/build/{plugin_name}.plugin",
             "category": "productivity",
             "keywords": ["ismokraft", plugin_name.replace("-", " ")],
         })

@@ -14,7 +14,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/governance-architecture",
+      "source": "./dist/build/governance-architecture.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -28,7 +28,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/governance-audit",
+      "source": "./dist/build/governance-audit.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -42,7 +42,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/governance-business",
+      "source": "./dist/build/governance-business.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -56,7 +56,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/product-discovery",
+      "source": "./dist/build/product-discovery.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -70,7 +70,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/product-evaluation",
+      "source": "./dist/build/product-evaluation.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -84,7 +84,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/product-launch",
+      "source": "./dist/build/product-launch.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -98,7 +98,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/product-ops",
+      "source": "./dist/build/product-ops.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -112,7 +112,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/product-sourcing",
+      "source": "./dist/build/product-sourcing.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -126,7 +126,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/product-testing",
+      "source": "./dist/build/product-testing.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -140,7 +140,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/revenue-analytics",
+      "source": "./dist/build/revenue-analytics.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",
@@ -154,7 +154,7 @@
       "author": {
         "name": "Ismokraft"
       },
-      "source": "./dist/build/supplier-research",
+      "source": "./dist/build/supplier-research.plugin",
       "category": "productivity",
       "keywords": [
         "ismokraft",

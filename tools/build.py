@@ -85,6 +85,10 @@ def main():
         print_summary(results)
         sys.exit(0 if all(v in (True, "skipped") for v in results.values()) else 1)
 
+    # Stage 2.5: SKILLS
+    ok = run_step("SKILLS", [python, os.path.join(tools_dir, "build-skill.py"), "--all"], repo_root)
+    results["Skills"] = ok
+
     # Stage 3: BUILD
     build_cmd = [python, os.path.join(tools_dir, "build-plugin.py")]
     if args.all:

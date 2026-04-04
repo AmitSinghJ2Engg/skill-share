@@ -52,6 +52,7 @@ def cmd_help():
 
   Build Pipeline:
     build                 Full build pipeline for all plugins (registry + validate + build)
+    build-skills          Build all skills to dist/.claude/skills/ (standalone deployment)
     build-plugin <name>   Build a single plugin
     build-confirm         Build all plugins and package to .zip (no review step)
     package <name>        Package a single plugin to .zip
@@ -108,6 +109,10 @@ def cmd_build_plugin(args):
     run(f"Build {args[0]}", [PYTHON, os.path.join(TOOLS, "build.py"), "--plugin", args[0]])
 
 
+def cmd_build_skills():
+    run("Build All Skills", [PYTHON, os.path.join(TOOLS, "build-skill.py"), "--all"])
+
+
 def cmd_build_confirm():
     run("Build & Package All", [PYTHON, os.path.join(TOOLS, "build.py"), "--all", "--confirm"])
 
@@ -160,7 +165,7 @@ def cmd_clean_all():
     dist_dir = os.path.join(REPO_ROOT, "dist")
     if os.path.isdir(dist_dir):
         for f in os.listdir(dist_dir):
-            if f.endswith(".zip") or f == "skill-manifest.json":
+            if f.endswith(".plugin.zip") or f == "skill-manifest.json":
                 os.remove(os.path.join(dist_dir, f))
                 print(f"  Removed dist/{f}")
     print("  Cleaned.")
@@ -190,6 +195,7 @@ TARGETS = {
     "validate":       (cmd_validate, False),
     "validate-fix":   (cmd_validate_fix, False),
     "build":          (cmd_build, False),
+    "build-skills":   (cmd_build_skills, False),
     "build-plugin":   (cmd_build_plugin, True),
     "build-confirm":  (cmd_build_confirm, False),
     "package":        (cmd_package, True),

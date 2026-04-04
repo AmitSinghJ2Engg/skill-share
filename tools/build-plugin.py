@@ -252,7 +252,7 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
         return False
 
     # Build intermediate directory
-    build_dir = os.path.join(output_dir, "build", plugin_name)
+    build_dir = os.path.join(output_dir, "build", f"{plugin_name}.plugin")
     if os.path.exists(build_dir):
         shutil.rmtree(build_dir)
     os.makedirs(build_dir, exist_ok=True)
@@ -352,13 +352,13 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
 
     # Package as .zip (Claude Desktop upload requires .zip, not .plugin)
     # Wrap contents inside a top-level folder matching plugin name
-    output_file = os.path.join(output_dir, f"{plugin_name}.zip")
+    output_file = os.path.join(output_dir, f"{plugin_name}.plugin.zip")
     with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
         for dirpath, dirnames, filenames in os.walk(build_dir):
             for filename in filenames:
                 file_path = os.path.join(dirpath, filename)
                 rel_path = os.path.relpath(file_path, build_dir).replace("\\", "/")
-                arcname = f"{plugin_name}/{rel_path}"
+                arcname = f"{plugin_name}.plugin/{rel_path}"
                 zf.write(file_path, arcname)
 
     zip_size = os.path.getsize(output_file)

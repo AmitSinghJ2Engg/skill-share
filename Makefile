@@ -6,7 +6,7 @@ PYTHON ?= python
 REPO_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TOOLS := $(REPO_ROOT)tools
 
-.PHONY: help registry validate build build-plugin clean all ci create
+.PHONY: help registry validate build build-skills build-plugin clean all ci create
 
 help: ## Show available targets
 	@echo ""
@@ -16,6 +16,7 @@ help: ## Show available targets
 	@echo "  make registry       Generate plugin-registry.json from plugins.yaml"
 	@echo "  make validate       Run cross-cutting validation checks"
 	@echo "  make build          Full pipeline: registry + validate + build all plugins"
+	@echo "  make build-skills   Build all skills to dist/.claude/skills/"
 	@echo "  make build-plugin P=name  Build a single plugin (e.g. make build-plugin P=product-ops)"
 	@echo "  make clean          Remove dist/ build artifacts"
 	@echo "  make all            registry + validate + build + manifest + marketplace"
@@ -31,6 +32,9 @@ validate: ## Run system validation checks
 
 build: ## Full build pipeline: registry + validate + build all
 	$(PYTHON) make.py build
+
+build-skills: ## Build all skills to dist/.claude/skills/
+	$(PYTHON) $(TOOLS)/build-skill.py --all
 
 build-plugin: ## Build single plugin (P=name)
 	$(PYTHON) $(TOOLS)/build-plugin.py --plugin $(P)

@@ -1,8 +1,0 @@
-{
-  "name": "governance-audit",
-  "description": "Skill standards compliance -- audit 20 standards (S1-S20), 46+ violation codes, maturity lifecycle, resolution registry.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Ismokraft"
-  }
-}

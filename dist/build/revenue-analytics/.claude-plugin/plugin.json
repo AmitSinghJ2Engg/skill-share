@@ -1,8 +1,0 @@
-{
-  "name": "revenue-analytics",
-  "description": "Revenue health analytics -- sales, settlement reconciliation, returns, forecasting, P&L, marketing efficiency. Read-only.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Ismokraft"
-  }
-}

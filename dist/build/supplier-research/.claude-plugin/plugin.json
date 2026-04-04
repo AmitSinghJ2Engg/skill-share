@@ -1,8 +1,0 @@
-{
-  "name": "supplier-research",
-  "description": "Supplier intelligence engine -- multi-source discovery, enrichment, verification, classification, 5-dimension ranking for India suppliers.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Ismokraft"
-  }
-}

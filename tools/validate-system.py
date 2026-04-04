@@ -793,7 +793,7 @@ def generate_marketplace(repo_root, registry):
             "description": plugin_def.get("description", ""),
             "version": plugin_def.get("version", "1.0.0"),
             "author": plugin_def.get("author", {"name": "Ismokraft"}),
-            "source": f"./{plugin_name}.plugin",
+            "source": f"./dist/build/{plugin_name}.plugin",
             "category": "productivity",
             "keywords": ["ismokraft", plugin_name.replace("-", " ")],
         })
@@ -806,7 +806,6 @@ def generate_marketplace(repo_root, registry):
         },
         "metadata": {
             "description": "Ismokraft business operating system plugins for product discovery, evaluation, sourcing, testing, launch, and operations.",
-            "pluginRoot": "./dist/build",
         },
         "plugins": plugins_list,
     }

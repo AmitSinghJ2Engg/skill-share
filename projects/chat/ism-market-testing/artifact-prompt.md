@@ -10,7 +10,7 @@ Build a unified Market Testing artifact for Ismokraft covering Domain 2.5 (Test 
 
 1. **Product Intake** — Input Amazon listing URL or paste product data. Preview extracted ListingRecord fields (ASIN, title, bullets, price, BSR, rating, implicit keywords). Import Helium10/Jungle Scout CSV — preview parsed KeywordSet with intent classification and dedup stats. Validate data completeness before proceeding.
 
-2. **Campaign Planner** — Configure campaigns using Amazon Ads-aligned fields (from `amazon-ads-campaign-fields.ctx.json`). Generate 3-5 scenario flavors (Conservative, Balanced, Aggressive, Keyword-focused, Custom) with comparison table showing: total budget, duration, risk level, data quality potential, forecast. Select scenario, review full CampaignPlan details, approve. "Save to CRM" button creates Campaign_Plans record via clipboard bridge.
+2. **Campaign Planner** — Configure campaigns using Amazon Ads-aligned fields (from `amazon-ads-campaign-fields.ctx.json`). Generate 3-5 scenario flavors (Conservative, Balanced, Aggressive, Keyword-focused, Custom) with comparison table showing: total budget, duration, risk level, data quality potential, forecast. Select scenario, review full CampaignPlan details, approve. "Save to CRM" button creates 1 Campaigns record (strategy) + N Amazon_Ad_Campaigns records (individual campaigns) via clipboard bridge.
 
 3. **Performance Monitor** — Daily metrics import (paste CSV or enter manually). Trend charts: ACoS, CTR, CVR, CPC over time (Recharts line charts). Day-over-day and cumulative comparisons. Anomaly flags with visual indicators (spend spike, ACoS jump, CTR drop, zero-order days). Budget pacing bar (spent vs remaining vs total). Per-campaign breakdown for multi-campaign scenarios.
 
@@ -31,9 +31,9 @@ Build a unified Market Testing artifact for Ismokraft covering Domain 2.5 (Test 
 - **Export JSON** — copies full state payload to clipboard (required fallback)
 - **Import JSON** — prompts for JSON paste, restores state
 - **Share to Slack** — generates formatted mrkdwn summary for the active view, copies to clipboard. User pastes to Claude for routing through slack-messaging skill.
-- **Save to CRM** — generates structured payload for Campaign_Plans module. User pastes to Claude for routing through zoho-data-ops skill.
-- **Approve Plan** — changes plan status to Approved in state, generates CRM update payload
-- **Start Campaign** — changes plan status to Active, generates CRM update payload
+- **Save to CRM** — generates structured payload for Campaigns + Amazon_Ad_Campaigns modules. User pastes to Claude for routing through zoho-data-ops skill.
+- **Approve Plan** — changes plan status to Approved in state, generates CRM update payload for both modules
+- **Start Campaign** — changes strategy status to Active, generates CRM update payload
 
 ### Storage Keys
 
@@ -42,7 +42,8 @@ Build a unified Market Testing artifact for Ismokraft covering Domain 2.5 (Test 
 - `ism4_p:{productId}:listing` — ListingRecord per product
 - `ism4_p:{productId}:keywords` — imported KeywordSet per product
 - `ism4_p:{productId}:scenarios` — generated CampaignScenario[] per product
-- `ism4_p:{productId}:campaign` — selected campaign plan + daily metrics
+- `ism4_p:{productId}:strategy` — selected Campaigns record (strategy) + aggregate metrics
+- `ism4_p:{productId}:campaigns` — Amazon_Ad_Campaigns records + daily metrics per campaign
 - `ism4_p:{productId}:scale-decision` — Gate 2 analysis data
 
 ### Config Defaults

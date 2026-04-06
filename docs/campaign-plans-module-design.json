@@ -1,82 +1,134 @@
 {
   "_generated": "2026-04-06",
-  "_source": "DL-016 — Amazon PPC campaign planning system expansion",
-  "_note": "Design spec for Zoho CRM custom module Campaign_Plans. Fields mirror Amazon Create Campaign form + forecast + actuals tracking.",
+  "_source": "DL-017 — Two-module campaign system (Campaigns + Amazon_Ad_Campaigns)",
+  "_note": "Replaces single Campaign_Plans design. Campaigns = strategy/round level (built-in). Amazon_Ad_Campaigns = individual SC campaign level (custom).",
 
-  "module": "Campaign_Plans",
-  "api_name": "Campaign_Plans",
-  "lookup": "Product_Launches",
+  "architecture": {
+    "strategy_module": "Campaigns",
+    "campaign_module": "Amazon_Ad_Campaigns",
+    "relationship": "Campaigns 1:N Amazon_Ad_Campaigns",
+    "data_flow": "Amazon_Ad_Campaigns actuals roll up to Campaigns aggregates. Daily snapshots in ISM_ExecutionLogs."
+  },
 
-  "field_groups": {
-    "identity": {
-      "Plan_Name": { "type": "text", "label": "Plan Name", "description": "Test_[ProductName]_SP_Auto_v1" },
-      "Plan_Version": { "type": "integer", "label": "Plan Version", "description": "Incremental version number" },
-      "Plan_Status": { "type": "picklist", "label": "Plan Status", "values": ["Draft", "Approved", "Active", "Completed", "Archived"] },
-      "Scenario_Type": { "type": "picklist", "label": "Scenario Type", "values": ["Conservative", "Balanced", "Aggressive", "Keyword_Focused", "Custom"] },
-      "Created_By": { "type": "userlookup", "label": "Created By" },
-      "Approved_By": { "type": "userlookup", "label": "Approved By" },
-      "Approved_Date": { "type": "date", "label": "Approved Date" }
+  "Campaigns": {
+    "api_name": "Campaigns",
+    "id": "645926000004114076",
+    "type": "built-in",
+    "role": "Strategy/round level — one per test round per product",
+    "lookup": "Product_Launches",
+
+    "custom_fields": {
+      "strategy": {
+        "Product_Launch": {"type": "lookup", "label": "Product Launch", "related_module": "Product_Launches"},
+        "Scenario_Type": {"type": "picklist", "label": "Scenario Type", "values": ["Conservative", "Balanced", "Aggressive", "Keyword_Focused", "Custom"]},
+        "Test_Phase": {"type": "picklist", "label": "Test Phase", "values": ["Discovery", "Validation", "Scale"]},
+        "Total_Budget_INR": {"type": "currency", "label": "Total Budget (INR)"}
+      },
+      "aggregates": {
+        "Agg_Impressions": {"type": "integer", "label": "Agg. Impressions"},
+        "Agg_Clicks": {"type": "integer", "label": "Agg. Clicks"},
+        "Agg_Orders": {"type": "integer", "label": "Agg. Orders"},
+        "Agg_Spend_INR": {"type": "currency", "label": "Agg. Spend (INR)"},
+        "Agg_Revenue_INR": {"type": "currency", "label": "Agg. Revenue (INR)"},
+        "Agg_ACoS_Pct": {"type": "percent", "label": "Agg. ACoS %"},
+        "Agg_CVR_Pct": {"type": "percent", "label": "Agg. CVR %"},
+        "Agg_CTR_Pct": {"type": "percent", "label": "Agg. CTR %"}
+      },
+      "gate_2": {
+        "Gate_2_Verdict": {"type": "picklist", "label": "Gate 2 Verdict", "values": ["Scale", "Kill", "Pivot", "Pending"]},
+        "Gate_2_Date": {"type": "date", "label": "Gate 2 Date"},
+        "Gate_2_Rationale": {"type": "textarea", "label": "Gate 2 Rationale"},
+        "Risk_Level": {"type": "picklist", "label": "Risk Level", "values": ["LOW", "MEDIUM", "HIGH"]},
+        "Data_Quality": {"type": "picklist", "label": "Data Quality", "values": ["HIGH", "MEDIUM", "LOW"]}
+      }
     },
+    "campaign_type_picklist_addition": "Amazon PPC Test"
+  },
 
-    "campaign_settings": {
-      "Campaign_Name": { "type": "text", "label": "Campaign Name", "description": "Amazon campaign name as it appears in Seller Central" },
-      "Start_Date": { "type": "date", "label": "Start Date" },
-      "End_Date": { "type": "date", "label": "End Date" },
-      "Country": { "type": "picklist", "label": "Country", "values": ["IN", "US"] },
-      "Daily_Budget_INR": { "type": "currency", "label": "Daily Budget (INR)" },
-      "Total_Budget_Estimate_INR": { "type": "currency", "label": "Total Budget Estimate (INR)" },
-      "Bidding_Strategy": { "type": "picklist", "label": "Bidding Strategy", "values": ["Dynamic_Up_Down", "Dynamic_Down_Only", "Fixed"] }
-    },
+  "Amazon_Ad_Campaigns": {
+    "api_name": "Amazon_Ad_Campaigns",
+    "type": "custom",
+    "role": "Individual campaign level — 1:1 with Amazon Seller Central campaign",
+    "lookups": ["Campaigns", "Product_Launches"],
 
-    "bidding_details": {
-      "Top_of_Search_Adjustment_Pct": { "type": "percent", "label": "Top of Search Adjustment %" },
-      "Product_Pages_Adjustment_Pct": { "type": "percent", "label": "Product Pages Adjustment %" },
-      "Rest_of_Search_Adjustment_Pct": { "type": "percent", "label": "Rest of Search Adjustment %" }
-    },
-
-    "ad_groups": {
-      "Ad_Group_Name": { "type": "text", "label": "Ad Group Name" },
-      "Targeting_Type": { "type": "picklist", "label": "Targeting Type", "values": ["Auto", "Manual_Exact", "Manual_Phrase", "Manual_Broad"] },
-      "Default_Bid_INR": { "type": "currency", "label": "Default Bid (INR)" },
-      "Product_ASINs": { "type": "textarea", "label": "Product ASINs", "description": "JSON array of ASINs" }
-    },
-
-    "keywords": {
-      "Target_Keywords_JSON": { "type": "textarea", "label": "Target Keywords", "description": "JSON: [{keyword, match_type, bid_inr}]" },
-      "Negative_Keywords_JSON": { "type": "textarea", "label": "Negative Keywords", "description": "JSON: [{keyword, match_type}]" },
-      "Excluded_ASINs": { "type": "textarea", "label": "Excluded ASINs", "description": "JSON array" },
-      "Keyword_Source": { "type": "picklist", "label": "Keyword Source", "values": ["Helium10", "Auto_Harvested", "Manual", "Mixed"] }
-    },
-
-    "forecast": {
-      "Est_Impressions": { "type": "integer", "label": "Est. Impressions" },
-      "Est_Clicks": { "type": "integer", "label": "Est. Clicks" },
-      "Est_Orders_Low": { "type": "integer", "label": "Est. Orders (Low)" },
-      "Est_Orders_High": { "type": "integer", "label": "Est. Orders (High)" },
-      "Est_Total_Spend_INR": { "type": "currency", "label": "Est. Total Spend (INR)" },
-      "Est_ACoS_Low_Pct": { "type": "percent", "label": "Est. ACoS Low %" },
-      "Est_ACoS_High_Pct": { "type": "percent", "label": "Est. ACoS High %" },
-      "Risk_Level": { "type": "picklist", "label": "Risk Level", "values": ["LOW", "MEDIUM", "HIGH"] }
-    },
-
-    "actuals": {
-      "Actual_Impressions": { "type": "integer", "label": "Actual Impressions" },
-      "Actual_Clicks": { "type": "integer", "label": "Actual Clicks" },
-      "Actual_Orders": { "type": "integer", "label": "Actual Orders" },
-      "Actual_Spend_INR": { "type": "currency", "label": "Actual Spend (INR)" },
-      "Actual_Revenue_INR": { "type": "currency", "label": "Actual Revenue (INR)" },
-      "Actual_ACoS_Pct": { "type": "percent", "label": "Actual ACoS %" },
-      "Actual_CVR_Pct": { "type": "percent", "label": "Actual CVR %" },
-      "Actual_CTR_Pct": { "type": "percent", "label": "Actual CTR %" },
-      "Actual_CPC_INR": { "type": "currency", "label": "Actual CPC (INR)" },
-      "Phase": { "type": "picklist", "label": "Phase", "values": ["Discovery", "Validation", "Scale"] },
-      "Data_Quality": { "type": "picklist", "label": "Data Quality", "values": ["HIGH", "MEDIUM", "LOW"] }
-    },
-
-    "meta": {
-      "Notes": { "type": "textarea", "label": "Notes" },
-      "Slack_Shared": { "type": "boolean", "label": "Slack Shared" },
-      "Confluence_URL": { "type": "website", "label": "Confluence URL" }
+    "field_groups": {
+      "identity": {
+        "Campaign_Name": {"type": "text", "label": "Campaign Name"},
+        "Campaign_Type": {"type": "picklist", "label": "Campaign Type", "values": ["SP", "SB", "SD"]},
+        "Status": {"type": "picklist", "label": "Status", "values": ["Draft", "Approved", "Active", "Paused", "Completed", "Archived"]},
+        "Campaign_Strategy": {"type": "lookup", "label": "Campaign Strategy", "related_module": "Campaigns"},
+        "Product_Launch": {"type": "lookup", "label": "Product Launch", "related_module": "Product_Launches"},
+        "Amazon_Campaign_ID": {"type": "text", "label": "Amazon Campaign ID"}
+      },
+      "settings": {
+        "Targeting_Type": {"type": "picklist", "label": "Targeting Type", "values": ["Auto", "Manual_Exact", "Manual_Phrase", "Manual_Broad"]},
+        "Bidding_Strategy": {"type": "picklist", "label": "Bidding Strategy", "values": ["Dynamic_Up_Down", "Dynamic_Down_Only", "Fixed"]},
+        "Daily_Budget_INR": {"type": "currency", "label": "Daily Budget (INR)"},
+        "Start_Date": {"type": "date", "label": "Start Date"},
+        "End_Date": {"type": "date", "label": "End Date"},
+        "Country": {"type": "picklist", "label": "Country", "values": ["IN", "US"]},
+        "Top_of_Search_Adjustment_Pct": {"type": "percent", "label": "Top of Search Adjustment %"},
+        "Product_Pages_Adjustment_Pct": {"type": "percent", "label": "Product Pages Adjustment %"},
+        "Rest_of_Search_Adjustment_Pct": {"type": "percent", "label": "Rest of Search Adjustment %"}
+      },
+      "ad_group_keywords": {
+        "Ad_Group_Name": {"type": "text", "label": "Ad Group Name"},
+        "Default_Bid_INR": {"type": "currency", "label": "Default Bid (INR)"},
+        "Product_ASINs": {"type": "textarea", "label": "Product ASINs", "description": "JSON array"},
+        "Target_Keywords_JSON": {"type": "textarea", "label": "Target Keywords", "description": "JSON: [{keyword, match_type, bid_inr}]"},
+        "Negative_Keywords_JSON": {"type": "textarea", "label": "Negative Keywords", "description": "JSON: [{keyword, match_type}]"},
+        "Excluded_ASINs": {"type": "textarea", "label": "Excluded ASINs", "description": "JSON array"},
+        "Keyword_Source": {"type": "picklist", "label": "Keyword Source", "values": ["Helium10", "Auto_Harvested", "Manual", "Mixed"]}
+      },
+      "forecast": {
+        "Est_Impressions": {"type": "integer", "label": "Est. Impressions"},
+        "Est_Clicks": {"type": "integer", "label": "Est. Clicks"},
+        "Est_Orders_Low": {"type": "integer", "label": "Est. Orders (Low)"},
+        "Est_Orders_High": {"type": "integer", "label": "Est. Orders (High)"},
+        "Est_Total_Spend_INR": {"type": "currency", "label": "Est. Total Spend (INR)"},
+        "Est_ACoS_Low_Pct": {"type": "percent", "label": "Est. ACoS Low %"},
+        "Est_ACoS_High_Pct": {"type": "percent", "label": "Est. ACoS High %"},
+        "Risk_Level": {"type": "picklist", "label": "Risk Level", "values": ["LOW", "MEDIUM", "HIGH"]}
+      },
+      "actuals": {
+        "Actual_Impressions": {"type": "integer", "label": "Actual Impressions", "note": "Cumulative (campaign-to-date)"},
+        "Actual_Clicks": {"type": "integer", "label": "Actual Clicks", "note": "Cumulative"},
+        "Actual_Orders": {"type": "integer", "label": "Actual Orders", "note": "Cumulative"},
+        "Actual_Spend_INR": {"type": "currency", "label": "Actual Spend (INR)", "note": "Cumulative"},
+        "Actual_Revenue_INR": {"type": "currency", "label": "Actual Revenue (INR)", "note": "Cumulative"},
+        "Actual_ACoS_Pct": {"type": "percent", "label": "Actual ACoS %", "note": "Computed from cumulative totals"},
+        "Actual_CVR_Pct": {"type": "percent", "label": "Actual CVR %", "note": "Computed from cumulative totals"},
+        "Actual_CTR_Pct": {"type": "percent", "label": "Actual CTR %", "note": "Computed from cumulative totals"},
+        "Actual_CPC_INR": {"type": "currency", "label": "Actual CPC (INR)", "note": "Computed from cumulative totals"},
+        "Phase": {"type": "picklist", "label": "Phase", "values": ["Discovery", "Validation", "Scale"]},
+        "Data_Quality": {"type": "picklist", "label": "Data Quality", "values": ["HIGH", "MEDIUM", "LOW"]}
+      },
+      "meta": {
+        "Notes": {"type": "textarea", "label": "Notes"},
+        "Slack_Shared": {"type": "boolean", "label": "Slack Shared"},
+        "Confluence_URL": {"type": "website", "label": "Confluence URL"}
+      }
     }
-  }
+  },
+
+  "daily_data_preservation": {
+    "actuals_fields": "Running totals (campaign-to-date: total impressions, total spend, etc.)",
+    "computed_rates": "ACoS/CVR/CTR computed from cumulative totals, not daily values",
+    "daily_snapshots": "ISM_ExecutionLogs — one entry per daily-ads-analysis run per campaign, Output_Summary stores that day's metrics as JSON",
+    "trend_analysis": "daily-ads-analysis queries execution logs to compute day-over-day deltas and detect anomalies"
+  },
+
+  "validation_rules": {
+    "Amazon_Ad_Campaigns": [
+      {"rule": "Budget required", "condition": "Daily_Budget_INR > 0 when Status = Approved", "error": "Daily budget must be positive before approval"},
+      {"rule": "Date ordering", "condition": "End_Date > Start_Date when both set", "error": "End date must be after start date"}
+    ]
+  },
+
+  "workflows": [
+    {"name": "Campaign Strategy Active", "trigger": "Campaigns.Status -> Active", "action": "Slack #ism-launch-alerts"},
+    {"name": "Ad Campaign Start Date", "trigger": "Amazon_Ad_Campaigns.Status -> Active", "action": "Set Start_Date if blank"},
+    {"name": "ACoS Breakeven Alert", "trigger": "Amazon_Ad_Campaigns.Actual_ACoS_Pct > breakeven", "action": "Slack alert"},
+    {"name": "Strategy Complete", "trigger": "All child Amazon_Ad_Campaigns completed", "action": "Campaigns.Status -> Completed"}
+  ]
 }

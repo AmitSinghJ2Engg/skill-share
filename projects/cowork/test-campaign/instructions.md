@@ -51,15 +51,17 @@ Read from `context/product-pipeline/`:
 
 ## CRM Configuration
 
+Two-module campaign system (DL-017):
 - Module: Product_Launches — product record, test metrics, Gate 2 decision
-- Module: Campaign_Plans — structured campaign plans (lookup to Product_Launches)
-- Write to: Campaign_Plans (plan creation, daily actuals), Product_Launches (test summary fields), ISM_ExecutionLogs, ISM_Learnings
+- Module: Campaigns (built-in, ID: 645926000004114076) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
+- Module: Amazon_Ad_Campaigns (custom) — individual campaign level, 1:1 with Seller Central campaign, cumulative actuals. Lookups to Campaigns + Product_Launches.
+- Write to: Campaigns (strategy creation, aggregates), Amazon_Ad_Campaigns (campaign creation, daily cumulative actuals), Product_Launches (test summary fields), ISM_ExecutionLogs (daily snapshots + summary), ISM_Learnings
 - Dedup: check ISM_ExecutionLogs before running daily-ads-analysis
 
 ## Integrations
 
-- Zoho CRM: read/write Product_Launches, Campaign_Plans
-- Zoho Bigin: stages 4-6
+- Zoho CRM: read/write Product_Launches, Campaigns, Amazon_Ad_Campaigns, ISM_ExecutionLogs
+- Zoho Bigin: stages 4-6 (one-way sync from CRM)
 - Helium10 / Jungle Scout: keyword CSV import
 - Amazon Seller Central: listing URL, Search Term Report CSV
 - Slack: #ism-launch-alerts, #ism-launch-reports

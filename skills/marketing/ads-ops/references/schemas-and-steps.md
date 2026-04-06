@@ -465,4 +465,4 @@
    - Assess risk based on budget exposure and data quality potential
 5. **Rank scenarios** — score by: budget efficiency (spend vs expected learnings), risk level, Gate 2 alignment
 6. **Output CampaignScenario[]** — sorted by rank; include comparison table summary
-7. **Await selection** — user picks a scenario; selected plan saved to Campaign_Plans CRM module via zoho-data-ops
+7. **Await selection** — user picks a scenario; saved to CRM via zoho-data-ops as 1 Campaigns record (strategy) + N Amazon_Ad_Campaigns records (individual campaigns)

@@ -2,7 +2,7 @@ name: daily-ads-analysis
 version: "1.0.0"
 type: scheduled
 schedule: "Daily, 10:00 AM IST (after Seller Central data refreshes)"
-trigger: "Active Campaign_Plans exist in CRM (Plan_Status = Active)"
+trigger: "Active Campaigns exist in CRM (Status = Active, Type = Amazon PPC Test)"
 project: Product Pipeline
 
 skills_invoked:

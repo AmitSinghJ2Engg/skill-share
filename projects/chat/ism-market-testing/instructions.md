@@ -22,7 +22,7 @@ Ismokraft's market testing and scale decision hub. Covers Domain 2.5: test listi
 | MC | margin-calculator | COMPARISON | Pre-test vs actual vs test economics |
 | FO | fulfillment-ops | SAMPLE | FBA dispatch verification |
 | PM | product-monitor | MONITOR | BSR, reviews, listing health during test |
-| ZO | zoho-data-ops | WRITE | CRM read/write for Campaign_Plans, Product_Launches |
+| ZO | zoho-data-ops | WRITE | CRM read/write for Campaigns, Amazon_Ad_Campaigns, Product_Launches |
 | SM | slack-messaging | (auto) | Formatted Slack messages |
 
 ## Data Integrity Rules
@@ -46,12 +46,16 @@ Read from project context files:
 
 ## CRM Configuration
 
-- Module: Product_Launches (ID: 645926000008511067)
-- Module: Campaign_Plans (lookup to Product_Launches) — campaign plans with Amazon Ads fields, forecast, actuals
+Two-module campaign system (DL-017):
+- Module: Product_Launches (ID: 645926000008511067) — product record
+- Module: Campaigns (ID: 645926000004114076, built-in) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
+- Module: Amazon_Ad_Campaigns (custom) — individual campaign level, 1:1 with Seller Central campaign, cumulative actuals. Lookups to Campaigns + Product_Launches.
+- ISM_ExecutionLogs — daily snapshots (Output_Summary JSON) for trend analysis
 - Field mappings: see crm-field-mappings.ctx.json
 - Campaign config: see ppc-test-campaign-config.ctx.json
 - Amazon Ads fields: see amazon-ads-campaign-fields.ctx.json
-- Campaign_Plans design: see docs/campaign-plans-module-design.json
+- Module design: see docs/campaign-plans-module-design.json
+- Bigin: one-way sync from CRM (5 read-only fields: strategy name, status, ACoS, spend, Gate 2 verdict)
 
 ## Tasks
 
@@ -60,8 +64,8 @@ Read from project context files:
 
 ## Integrations
 
-- Zoho CRM: read/write Product_Launches, Campaign_Plans
-- Zoho Bigin: Product Launch Factory stages 4-6 (Test Listing, Paid Testing, Scale Decision)
+- Zoho CRM: read/write Product_Launches, Campaigns, Amazon_Ad_Campaigns, ISM_ExecutionLogs
+- Zoho Bigin: Product Launch Factory stages 4-6 (one-way sync from CRM)
 - Amazon Seller Central: campaign data (manual import via clipboard)
 - Helium10 / Jungle Scout: keyword research CSV (manual import)
 - Slack: #ism-launch-alerts, #ism-launch-reports

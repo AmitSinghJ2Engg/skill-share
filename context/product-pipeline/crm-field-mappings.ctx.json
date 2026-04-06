@@ -106,8 +106,7 @@
           "Gate_3_Notes": {"type": "textarea", "label": "Gate 3 Notes"},
           "Gate_3_Override_Notes": {"type": "textarea", "label": "Gate 3 Override Notes"},
           "Scale_Verdict": {"type": "picklist", "label": "Scale Verdict"},
-          "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete"
-}
+          "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete"}
         },
         "compliance": {
           "Product_Compliance_Status": {"type": "picklist", "label": "Product Compliance Status"},
@@ -129,21 +128,21 @@
           "Post_Launch_Review_Notes": {"type": "textarea", "label": "Post-Launch Review Notes"}
         },
         "post_launch_metrics": {
-          "BSR_at_Launch": {"type": "integer", "label": "BSR at Launch"},
-          "Month_1_BSR": {"type": "integer", "label": "Month 1 BSR"},
-          "Month_1_Orders": {"type": "integer", "label": "Month 1 Orders"},
-          "Month_1_Revenue": {"type": "currency", "label": "Month 1 Revenue"},
-          "Month_1_ACoS": {"type": "percent", "label": "Month 1 ACoS %"},
-          "Month_1_Return_Rate": {"type": "percent", "label": "Month 1 Return Rate %"},
-          "Month_1_Avg_Rating": {"type": "integer", "label": "Month 1 Avg Rating"},
-          "Month_3_Orders": {"type": "integer", "label": "Month 3 Orders"},
-          "Month_3_Revenue": {"type": "currency", "label": "Month 3 Revenue"},
-          "Month_3_ACoS": {"type": "percent", "label": "Month 3 ACoS %"},
-          "Month_3_Return_Rate": {"type": "percent", "label": "Month 3 Return Rate %"},
-          "Month_3_Avg_Rating": {"type": "integer", "label": "Month 3 Avg Rating"},
-          "Projected_CBFA_at_Scale": {"type": "formula", "label": "Projected CBFA at Scale"},
-          "Projected_ROI_at_Scale": {"type": "formula", "label": "Projected ROI at Scale %"},
-          "Projected_Landed_Cost_at_Scale": {"type": "currency", "label": "Projected Landed Cost at Scale"}
+          "BSR_at_Launch": {"type": "integer"},
+          "Month_1_BSR": {"type": "integer"},
+          "Month_1_Orders": {"type": "integer"},
+          "Month_1_Revenue": {"type": "currency"},
+          "Month_1_ACoS": {"type": "percent"},
+          "Month_1_Return_Rate": {"type": "percent"},
+          "Month_1_Avg_Rating": {"type": "integer"},
+          "Month_3_Orders": {"type": "integer"},
+          "Month_3_Revenue": {"type": "currency"},
+          "Month_3_ACoS": {"type": "percent"},
+          "Month_3_Return_Rate": {"type": "percent"},
+          "Month_3_Avg_Rating": {"type": "integer"},
+          "Projected_CBFA_at_Scale": {"type": "formula"},
+          "Projected_ROI_at_Scale": {"type": "formula"},
+          "Projected_Landed_Cost_at_Scale": {"type": "currency"}
         },
         "cross_system_ids": {
           "Bigin_Record_ID": {"type": "text", "label": "Bigin Record ID"},
@@ -157,10 +156,8 @@
           "Scale_Projections_URL": {"type": "website", "label": "Scale Projections URL"}
         },
         "vendor_link": {
-          "Vendor_Score": {"type": "integer", "label": "Vendor Score"
-},
-          "Vendor_Grade": {"type": "text", "label": "Vendor Grade"
-}
+          "Vendor_Score": {"type": "integer", "label": "Vendor Score"},
+          "Vendor_Grade": {"type": "text", "label": "Vendor Grade"}
         }
       }
     },
@@ -246,72 +243,105 @@
       }
     },
 
-    "Campaign_Plans": {
-      "api_name": "Campaign_Plans",
-      "label": "Campaign Plans",
+    "Campaigns": {
+      "api_name": "Campaigns",
+      "id": "645926000004114076",
+      "label": "Campaigns",
+      "note": "Built-in module — strategy/round level. Parent of Amazon_Ad_Campaigns.",
       "lookup": "Product_Launches",
       "fields": {
         "identity": {
-          "Plan_Name": {"type": "text", "label": "Plan Name"},
-          "Plan_Version": {"type": "integer", "label": "Plan Version"},
-          "Plan_Status": {"type": "picklist", "label": "Plan Status"},
-          "Scenario_Type": {"type": "picklist", "label": "Scenario Type"},
-          "Approved_By": {"type": "userlookup", "label": "Approved By"},
-          "Approved_Date": {"type": "date", "label": "Approved Date"}
+          "Campaign_Name": {"type": "text"},
+          "Type": {"type": "picklist", "note": "Add 'Amazon PPC Test'"},
+          "Status": {"type": "picklist"}
         },
-        "campaign_settings": {
-          "Campaign_Name": {"type": "text", "label": "Campaign Name"},
-          "Start_Date": {"type": "date", "label": "Start Date"},
-          "End_Date": {"type": "date", "label": "End Date"},
-          "Country": {"type": "picklist", "label": "Country"},
-          "Daily_Budget_INR": {"type": "currency", "label": "Daily Budget (INR)"},
-          "Total_Budget_Estimate_INR": {"type": "currency", "label": "Total Budget Estimate (INR)"},
-          "Bidding_Strategy": {"type": "picklist", "label": "Bidding Strategy"}
+        "strategy": {
+          "Product_Launch": {"type": "lookup", "related_module": "Product_Launches"},
+          "Scenario_Type": {"type": "picklist"},
+          "Test_Phase": {"type": "picklist"},
+          "Total_Budget_INR": {"type": "currency"}
         },
-        "bidding_details": {
-          "Top_of_Search_Adjustment_Pct": {"type": "percent", "label": "Top of Search Adjustment %"},
-          "Product_Pages_Adjustment_Pct": {"type": "percent", "label": "Product Pages Adjustment %"},
-          "Rest_of_Search_Adjustment_Pct": {"type": "percent", "label": "Rest of Search Adjustment %"}
+        "aggregates": {
+          "Agg_Impressions": {"type": "integer"},
+          "Agg_Clicks": {"type": "integer"},
+          "Agg_Orders": {"type": "integer"},
+          "Agg_Spend_INR": {"type": "currency"},
+          "Agg_Revenue_INR": {"type": "currency"},
+          "Agg_ACoS_Pct": {"type": "percent"},
+          "Agg_CVR_Pct": {"type": "percent"},
+          "Agg_CTR_Pct": {"type": "percent"}
         },
-        "ad_groups": {
-          "Ad_Group_Name": {"type": "text", "label": "Ad Group Name"},
-          "Targeting_Type": {"type": "picklist", "label": "Targeting Type"},
-          "Default_Bid_INR": {"type": "currency", "label": "Default Bid (INR)"},
-          "Product_ASINs": {"type": "textarea", "label": "Product ASINs"}
+        "gate_2": {
+          "Gate_2_Verdict": {"type": "picklist"},
+          "Gate_2_Date": {"type": "date"},
+          "Gate_2_Rationale": {"type": "textarea"},
+          "Risk_Level": {"type": "picklist"},
+          "Data_Quality": {"type": "picklist"}
+        }
+      }
+    },
+
+    "Amazon_Ad_Campaigns": {
+      "api_name": "Amazon_Ad_Campaigns",
+      "label": "Amazon Ad Campaigns",
+      "note": "Custom module — 1:1 with Seller Central campaign. Child of Campaigns.",
+      "lookups": ["Campaigns", "Product_Launches"],
+      "fields": {
+        "identity": {
+          "Campaign_Name": {"type": "text"},
+          "Campaign_Type": {"type": "picklist"},
+          "Status": {"type": "picklist"},
+          "Campaign_Strategy": {"type": "lookup", "related_module": "Campaigns"},
+          "Product_Launch": {"type": "lookup", "related_module": "Product_Launches"},
+          "Amazon_Campaign_ID": {"type": "text"}
         },
-        "keywords": {
-          "Target_Keywords_JSON": {"type": "textarea", "label": "Target Keywords"},
-          "Negative_Keywords_JSON": {"type": "textarea", "label": "Negative Keywords"},
-          "Excluded_ASINs": {"type": "textarea", "label": "Excluded ASINs"},
-          "Keyword_Source": {"type": "picklist", "label": "Keyword Source"}
+        "settings": {
+          "Targeting_Type": {"type": "picklist"},
+          "Bidding_Strategy": {"type": "picklist"},
+          "Daily_Budget_INR": {"type": "currency"},
+          "Start_Date": {"type": "date"},
+          "End_Date": {"type": "date"},
+          "Country": {"type": "picklist"},
+          "Top_of_Search_Adjustment_Pct": {"type": "percent"},
+          "Product_Pages_Adjustment_Pct": {"type": "percent"},
+          "Rest_of_Search_Adjustment_Pct": {"type": "percent"}
+        },
+        "ad_group_keywords": {
+          "Ad_Group_Name": {"type": "text"},
+          "Default_Bid_INR": {"type": "currency"},
+          "Product_ASINs": {"type": "textarea"},
+          "Target_Keywords_JSON": {"type": "textarea"},
+          "Negative_Keywords_JSON": {"type": "textarea"},
+          "Excluded_ASINs": {"type": "textarea"},
+          "Keyword_Source": {"type": "picklist"}
         },
         "forecast": {
-          "Est_Impressions": {"type": "integer", "label": "Est. Impressions"},
-          "Est_Clicks": {"type": "integer", "label": "Est. Clicks"},
-          "Est_Orders_Low": {"type": "integer", "label": "Est. Orders (Low)"},
-          "Est_Orders_High": {"type": "integer", "label": "Est. Orders (High)"},
-          "Est_Total_Spend_INR": {"type": "currency", "label": "Est. Total Spend (INR)"},
-          "Est_ACoS_Low_Pct": {"type": "percent", "label": "Est. ACoS Low %"},
-          "Est_ACoS_High_Pct": {"type": "percent", "label": "Est. ACoS High %"},
-          "Risk_Level": {"type": "picklist", "label": "Risk Level"}
+          "Est_Impressions": {"type": "integer"},
+          "Est_Clicks": {"type": "integer"},
+          "Est_Orders_Low": {"type": "integer"},
+          "Est_Orders_High": {"type": "integer"},
+          "Est_Total_Spend_INR": {"type": "currency"},
+          "Est_ACoS_Low_Pct": {"type": "percent"},
+          "Est_ACoS_High_Pct": {"type": "percent"},
+          "Risk_Level": {"type": "picklist"}
         },
         "actuals": {
-          "Actual_Impressions": {"type": "integer", "label": "Actual Impressions"},
-          "Actual_Clicks": {"type": "integer", "label": "Actual Clicks"},
-          "Actual_Orders": {"type": "integer", "label": "Actual Orders"},
-          "Actual_Spend_INR": {"type": "currency", "label": "Actual Spend (INR)"},
-          "Actual_Revenue_INR": {"type": "currency", "label": "Actual Revenue (INR)"},
-          "Actual_ACoS_Pct": {"type": "percent", "label": "Actual ACoS %"},
-          "Actual_CVR_Pct": {"type": "percent", "label": "Actual CVR %"},
-          "Actual_CTR_Pct": {"type": "percent", "label": "Actual CTR %"},
-          "Actual_CPC_INR": {"type": "currency", "label": "Actual CPC (INR)"},
-          "Phase": {"type": "picklist", "label": "Phase"},
-          "Data_Quality": {"type": "picklist", "label": "Data Quality"}
+          "Actual_Impressions": {"type": "integer"},
+          "Actual_Clicks": {"type": "integer"},
+          "Actual_Orders": {"type": "integer"},
+          "Actual_Spend_INR": {"type": "currency"},
+          "Actual_Revenue_INR": {"type": "currency"},
+          "Actual_ACoS_Pct": {"type": "percent"},
+          "Actual_CVR_Pct": {"type": "percent"},
+          "Actual_CTR_Pct": {"type": "percent"},
+          "Actual_CPC_INR": {"type": "currency"},
+          "Phase": {"type": "picklist"},
+          "Data_Quality": {"type": "picklist"}
         },
         "meta": {
-          "Notes": {"type": "textarea", "label": "Notes"},
-          "Slack_Shared": {"type": "boolean", "label": "Slack Shared"},
-          "Confluence_URL": {"type": "website", "label": "Confluence URL"}
+          "Notes": {"type": "textarea"},
+          "Slack_Shared": {"type": "boolean"},
+          "Confluence_URL": {"type": "website"}
         }
       }
     },
@@ -352,7 +382,13 @@
       "Test_Listing_Complete": {"type": "boolean", "label": "Test Listing Complete"},
       "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete"},
       "Vendor_Score": {"type": "integer", "label": "Vendor Score"},
-      "Vendor_Grade": {"type": "text", "label": "Vendor Grade"}
-    }
+      "Vendor_Grade": {"type": "text", "label": "Vendor Grade"},
+      "Active_Campaign_Strategy": {"type": "text", "label": "Active Campaign Strategy", "source": "Campaigns.Campaign_Name"},
+      "Campaign_Status": {"type": "picklist", "label": "Campaign Status", "source": "Campaigns.Status"},
+      "Campaign_ACoS_Current": {"type": "percent", "label": "Campaign ACoS Current", "source": "Campaigns.Agg_ACoS_Pct"},
+      "Campaign_Spend_Total": {"type": "currency", "label": "Campaign Spend Total", "source": "Campaigns.Agg_Spend_INR"},
+      "Gate_2_Verdict": {"type": "picklist", "label": "Gate 2 Verdict", "source": "Campaigns.Gate_2_Verdict"}
+    },
+    "sync_direction": "CRM_to_Bigin_only"
   }
 }

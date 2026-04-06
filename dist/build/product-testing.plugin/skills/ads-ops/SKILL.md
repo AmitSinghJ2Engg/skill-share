@@ -124,7 +124,7 @@ Generate 3-5 Amazon Ads-compliant campaign plan flavors from product data + keyw
 5. Rank scenarios by budget efficiency, risk level, alignment with Gate 2 criteria
 6. Present comparison table + recommendation
 
-**Output:** `CampaignScenario[]` — array of CampaignPlan objects, each Amazon Ads-compliant. Human selects a scenario -> it becomes the TestPlan for Phase 1/2 execution.
+**Output:** `CampaignScenario[]` — array of CampaignPlan objects, each Amazon Ads-compliant. Human selects a scenario -> saved to CRM as 1 Campaigns record (strategy/round level) + N Amazon_Ad_Campaigns records (individual campaign level). The selected plan becomes the TestPlan for Phase 1/2 execution.
 
 ---
 

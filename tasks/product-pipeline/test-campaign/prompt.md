@@ -79,21 +79,29 @@ Present the scenario comparison table to the user. The table includes: scenario 
 
 **Human gate:** User selects a scenario. This is the campaign plan commitment.
 
-After selection:
-- Invoke **ZO- zoho-data-ops WRITE mode** to create a `Campaign_Plans` record in CRM with Plan_Status = "Draft"
-- Populate all campaign settings, bidding details, ad group, keywords, and forecast fields from the selected scenario
-- Set Scenario_Type to the selected flavor
+After selection, create two levels of CRM records:
 
-**Human gate:** User reviews the CRM record and approves (Plan_Status -> "Approved"). The approved plan becomes the TestPlan for Phase 1/2 execution.
+1. **Campaigns record (strategy level):**
+   - Invoke **ZO- zoho-data-ops WRITE mode** to create a `Campaigns` record with Status = "Planning", Type = "Amazon PPC Test"
+   - Set Product_Launch lookup, Scenario_Type, Test_Phase, Total_Budget_INR from the selected scenario
+   - Gate_2_Verdict = "Pending"
+
+2. **Amazon_Ad_Campaigns records (individual campaign level):**
+   - For each campaign in the selected scenario, invoke **ZO- zoho-data-ops WRITE mode** to create an `Amazon_Ad_Campaigns` record with Status = "Draft"
+   - Set Campaign_Strategy lookup to the Campaigns record created above
+   - Set Product_Launch lookup to the same Product_Launches record
+   - Populate campaign settings, bidding details, ad group, keywords, and forecast fields from the scenario's CampaignPlan
+
+**Human gate:** User reviews the CRM records and approves (Campaigns Status -> "Active", Amazon_Ad_Campaigns Status -> "Approved"). The approved plan becomes the TestPlan for Phase 1/2 execution.
 
 ### Step 2: Plan Phase 1 discovery campaign
 
 Invoke **AO- ads-ops TEST mode** with phase = `plan_discovery`:
 - Product name, ASIN, selling price, category from CRM record
 - breakeven_acos_pct and target_acos_pct from MarginRecord
-- Campaign parameters from the approved Campaign_Plans record (budget, bid strategy, duration)
+- Campaign parameters from the approved Amazon_Ad_Campaigns record (budget, bid strategy, duration)
 
-The skill reads `ppc-test-campaign-config.ctx.json` for defaults and the Campaign_Plans record for approved overrides. It outputs a **TestPlan** aligned with the selected scenario.
+The skill reads `ppc-test-campaign-config.ctx.json` for defaults and the Amazon_Ad_Campaigns record for approved overrides. It outputs a **TestPlan** aligned with the selected scenario.
 
 **Human gate:** TestPlan requires explicit approval before any ad spend is committed. Present the plan clearly and wait for approval.
 
@@ -194,7 +202,7 @@ Execution_Date: now
 Status: "SUCCESS" | "PARTIAL" | "FAILED"
 Input_Fingerprint: "product={product_name},asin={asin},phases_completed={1|2|both}"
 Output_Summary: "gate2_verdict={PASS|FAIL|CONDITIONAL},winners={count},blended_acos={pct},scale_qty={qty_or_na}"
-Systems_Modified: "Product_Launches,ISM_Learnings"
+Systems_Modified: "Campaigns,Amazon_Ad_Campaigns,Product_Launches,ISM_Learnings"
 Slack_Tag: "#ism-launch-alerts"
 ```
 

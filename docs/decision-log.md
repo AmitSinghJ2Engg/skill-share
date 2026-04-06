@@ -516,3 +516,52 @@ from projects, JSX/TSX mismatch, no artifact creation workflow.
 - `projects/cowork/test-campaign/project.yaml` — added product-discovery plugin, PD + KI skills, daily-ads-analysis task
 - `projects/cowork/test-campaign/instructions.md` — added PD LISTING_PARSE, KI IMPORT, AO SCENARIO to active skills, Campaign_Plans CRM, daily-ads-analysis task
 - `docs/zoho-campaign-plans-implementation.md` (new) — Zoho CRM module creation, workflow rules, Bigin sync, MCP integration, implementation checklist
+
+---
+
+## DL-017: CRM Architecture — Two-Module Campaign System
+
+**Date:** 2026-04-06
+**Status:** Accepted
+**Context:** DL-016 review found no standards violations, but the `Campaign_Plans` single-module design has a structural gap: AO SCENARIO produces 1-3 campaigns per test round (Conservative=1, Balanced=2, Aggressive=3, future SB/SD=5-6). Gate 2 decisions aggregate across all campaigns, but the single-table design has no natural place for this aggregation. One record does not equal one test.
+
+**Options considered:**
+1. **Single Campaign_Plans module** (DL-016 design) — one record per campaign. Gate 2 aggregation done in application logic. Simple but requires querying multiple records and computing aggregates every time.
+2. **Built-in Campaigns + custom Amazon_Ad_Campaigns** — Campaigns module (strategy/round level) aggregates metrics and holds Gate 2 verdict; Amazon_Ad_Campaigns (individual campaign level) maps 1:1 to Seller Central campaigns. Two-level hierarchy.
+3. **Two custom modules (Amazon_Ad_Strategies + Amazon_Ad_Campaigns)** — same as Option 2 but using a custom module instead of built-in Campaigns. Fallback if Campaigns module can't support custom lookups.
+
+**Decision:** Option 2 — built-in Campaigns + custom Amazon_Ad_Campaigns.
+
+**Rationale:**
+- Built-in Campaigns module already exists (ID: 645926000004114076) with standard CRM fields (name, type, status, dates). Reusing it avoids creating unnecessary custom modules.
+- Strategy/round level (Campaigns) naturally aggregates across individual campaigns. Gate 2 reads one record, not N.
+- Individual campaign level (Amazon_Ad_Campaigns) maps 1:1 to Seller Central, preserving the Amazon Ads field structure from DL-016.
+- Daily data preservation: actuals are cumulative (campaign-to-date), daily snapshots stored in ISM_ExecutionLogs for trend analysis. No data loss on daily updates.
+- Bigin sync simplified: one-way CRM -> Bigin only. Bigin is a read-only visibility layer with 5 fields.
+- If MCP inspection shows Campaigns can't support custom lookups, fall back to Option 3.
+
+**Consequences:**
+- `Campaign_Plans` module design replaced by two-module design (Campaigns + Amazon_Ad_Campaigns)
+- `crm-field-mappings.ctx.json` restructured: Campaign_Plans removed, Campaigns (with custom fields) and Amazon_Ad_Campaigns added
+- `campaign-plans-module-design.json` rewritten for two-module spec
+- `zoho-campaign-plans-implementation.md` rewritten for two-module implementation plan
+- All task prompts, project instructions, and artifact prompts updated to reference both modules
+- Bigin sync changed from bidirectional to one-way (CRM -> Bigin)
+- `.mcp.json` added to project root for Zoho CRM and Bigin MCP server configuration (gitignored)
+
+**Files modified:**
+- `.mcp.json` (new, gitignored) — Zoho CRM + Bigin MCP server endpoints
+- `.gitignore` — added .mcp.json
+- `context/product-pipeline/crm-field-mappings.ctx.json` — Campaign_Plans replaced with Campaigns + Amazon_Ad_Campaigns, Bigin sync fields added
+- `docs/campaign-plans-module-design.json` — rewritten for two-module spec
+- `docs/zoho-campaign-plans-implementation.md` — rewritten for two-module design + daily data preservation + one-way Bigin sync
+- `skills/marketing/ads-ops/SKILL.md` — SCENARIO output writes to both modules
+- `skills/marketing/ads-ops/references/schemas-and-steps.md` — CRM mapping updated
+- `context/product-pipeline/ppc-test-campaign-config.ctx.json` — source note updated
+- `tasks/product-pipeline/test-campaign/prompt.md` — Step 1.6 creates Campaigns + N Amazon_Ad_Campaigns
+- `tasks/product-pipeline/test-campaign/config.yaml` — added crm-field-mappings.ctx.json to runtime_context
+- `tasks/product-pipeline/daily-ads-analysis/prompt.md` — query Amazon_Ad_Campaigns, aggregate to Campaigns, log daily snapshots
+- `tasks/product-pipeline/daily-ads-analysis/config.yaml` — trigger updated
+- `projects/chat/ism-market-testing/artifact-prompt.md` — CRM module refs, storage keys updated
+- `projects/chat/ism-market-testing/instructions.md` — two-module CRM config, integrations
+- `projects/cowork/test-campaign/instructions.md` — two-module CRM config, integrations

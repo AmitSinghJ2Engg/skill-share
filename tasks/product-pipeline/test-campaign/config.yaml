@@ -50,6 +50,7 @@ runtime_context:
   - "financial-constants.ctx.json"
   - "amazon-fee-table.ctx.md"
   - "amazon-ads-campaign-fields.ctx.json"
+  - "crm-field-mappings.ctx.json"
 
 runtime_paths:
   dev: "skills/{capability}/{skill}/"

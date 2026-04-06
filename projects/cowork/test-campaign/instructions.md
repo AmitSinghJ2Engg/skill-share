@@ -48,7 +48,6 @@ Read from `context/product-pipeline/`:
 - financial-constants.ctx.json — margin formulas
 - amazon-fee-table.ctx.md — fee structure
 - amazon-ads-campaign-fields.ctx.json — Amazon Ads campaign field reference
-- campaign-plans-module-design.ctx.json — Campaign_Plans CRM module design
 
 ## CRM Configuration
 

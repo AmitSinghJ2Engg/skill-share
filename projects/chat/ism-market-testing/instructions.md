@@ -51,7 +51,7 @@ Read from project context files:
 - Field mappings: see crm-field-mappings.ctx.json
 - Campaign config: see ppc-test-campaign-config.ctx.json
 - Amazon Ads fields: see amazon-ads-campaign-fields.ctx.json
-- Campaign_Plans design: see campaign-plans-module-design.ctx.json
+- Campaign_Plans design: see docs/campaign-plans-module-design.json
 
 ## Tasks
 

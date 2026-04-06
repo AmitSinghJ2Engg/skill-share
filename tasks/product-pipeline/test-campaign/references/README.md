@@ -6,7 +6,7 @@
 - `context/product-pipeline/financial-constants.ctx.json` — financial thresholds
 - `context/product-pipeline/amazon-fee-table.ctx.md` — Amazon India 2026 fee tables
 - `context/product-pipeline/amazon-ads-campaign-fields.ctx.json` — Amazon Ads campaign field reference
-- `context/product-pipeline/campaign-plans-module-design.ctx.json` — Campaign_Plans CRM module design
+- `docs/campaign-plans-module-design.json` — Campaign_Plans CRM module design spec
 
 ## Plugins Required
 - `product-testing` — FO, AO, PM, CO, SM skills

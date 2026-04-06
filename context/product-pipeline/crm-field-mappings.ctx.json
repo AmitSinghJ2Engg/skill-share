@@ -1,7 +1,4 @@
 {
-  "_generated": "2026-03-30",
-  "_source": "Phase 0 MCP probes via Zoho CRM and Bigin APIs",
-  "_note": "Field API names are the actual Zoho field identifiers. Use these in MCP calls.",
 
   "modules": {
     "Product_Launches": {
@@ -11,156 +8,159 @@
       "fields": {
         "identity": {
           "Name": {"type": "text", "label": "Product Name"},
-          "Product_SKU": {"type": "autonumber", "label": "Product-SKU", "custom": true},
+          "Product_SKU": {"type": "autonumber", "label": "Product-SKU"},
           "id": {"type": "bigint", "label": "Record Id"},
           "Owner": {"type": "ownerlookup", "label": "CustomModule Owner"}
         },
         "pipeline_stage": {
-          "Current_Stage": {"type": "picklist", "label": "Current Stage", "custom": true},
-          "Target_Platform": {"type": "picklist", "label": "Target Platform", "custom": true},
-          "Launch_Priority": {"type": "picklist", "label": "Launch Priority", "custom": true},
-          "Product_Category": {"type": "picklist", "label": "Product Category", "custom": true},
-          "Target_Launch_Date": {"type": "date", "label": "Target Launch Date", "custom": true}
+          "Current_Stage": {"type": "picklist", "label": "Current Stage"},
+          "Target_Platform": {"type": "picklist", "label": "Target Platform"},
+          "Launch_Priority": {"type": "picklist", "label": "Launch Priority"},
+          "Product_Category": {"type": "picklist", "label": "Product Category"},
+          "Target_Launch_Date": {"type": "date", "label": "Target Launch Date"}
         },
         "scoring": {
-          "Opportunity_Score": {"type": "integer", "label": "Opportunity Score", "custom": true},
-          "Competition_Level": {"type": "picklist", "label": "Competition Level", "custom": true},
-          "Search_Trend": {"type": "picklist", "label": "Search Trend", "custom": true},
-          "Market_Size": {"type": "picklist", "label": "Market Size", "custom": true},
-          "Seasonality": {"type": "picklist", "label": "Seasonality", "custom": true},
-          "Financial_Viability": {"type": "picklist", "label": "Financial Viability", "custom": true}
+          "Opportunity_Score": {"type": "integer", "label": "Opportunity Score"},
+          "Competition_Level": {"type": "picklist", "label": "Competition Level"},
+          "Search_Trend": {"type": "picklist", "label": "Search Trend"},
+          "Market_Size": {"type": "picklist", "label": "Market Size"},
+          "Seasonality": {"type": "picklist", "label": "Seasonality"},
+          "Financial_Viability": {"type": "picklist", "label": "Financial Viability"}
         },
         "competitor_data": {
-          "Avg_Competitor_Reviews": {"type": "integer", "label": "Avg Competitor Reviews", "custom": true},
-          "Avg_Competitor_BSR": {"type": "integer", "label": "Avg Competitor BSR", "custom": true},
-          "Competitor_Price_Range": {"type": "text", "label": "Competitor Price Range", "custom": true},
-          "Primary_Keyword_Search_Volume": {"type": "integer", "label": "Primary Keyword Search Volume", "custom": true}
+          "Avg_Competitor_Reviews": {"type": "integer", "label": "Avg Competitor Reviews"},
+          "Avg_Competitor_BSR": {"type": "integer", "label": "Avg Competitor BSR"},
+          "Competitor_Price_Range": {"type": "text", "label": "Competitor Price Range"},
+          "Primary_Keyword_Search_Volume": {"type": "integer", "label": "Primary Keyword Search Volume"}
         },
         "financial_projected": {
-          "Target_Selling_Price": {"type": "currency", "label": "Target Selling Price", "custom": true},
-          "Estimated_Landed_Cost": {"type": "currency", "label": "Estimated Landed Cost", "custom": true},
-          "Estimated_Shipping_Cost": {"type": "currency", "label": "Estimated Shipping Cost", "custom": true},
-          "Estimated_Platform_Fees": {"type": "percent", "label": "Estimated Platform Fees %", "custom": true},
-          "Target_Landed_COGS": {"type": "currency", "label": "Target Landed COGS", "custom": true},
-          "Minimum_Viable_Price": {"type": "currency", "label": "Minimum Viable Price", "custom": true},
-          "COGS_Ceiling_INR": {"type": "currency", "label": "COGS Ceiling INR", "custom": true},
-          "Projected_CBFA": {"type": "formula", "label": "Projected CBFA", "custom": true},
-          "Break_even_CAC": {"type": "formula", "label": "Break-even CAC", "custom": true},
-          "Break_even_ACoS": {"type": "formula", "label": "Break-even ACoS %", "custom": true},
-          "Projected_ROI": {"type": "formula", "label": "Projected ROI %", "custom": true}
+          "Target_Selling_Price": {"type": "currency", "label": "Target Selling Price"},
+          "Estimated_Landed_Cost": {"type": "currency", "label": "Estimated Landed Cost"},
+          "Estimated_Shipping_Cost": {"type": "currency", "label": "Estimated Shipping Cost"},
+          "Estimated_Platform_Fees": {"type": "percent", "label": "Estimated Platform Fees %"},
+          "Target_Landed_COGS": {"type": "currency", "label": "Target Landed COGS"},
+          "Minimum_Viable_Price": {"type": "currency", "label": "Minimum Viable Price"},
+          "COGS_Ceiling_INR": {"type": "currency", "label": "COGS Ceiling INR"},
+          "Projected_CBFA": {"type": "formula", "label": "Projected CBFA"},
+          "Break_even_CAC": {"type": "formula", "label": "Break-even CAC"},
+          "Break_even_ACoS": {"type": "formula", "label": "Break-even ACoS %"},
+          "Projected_ROI": {"type": "formula", "label": "Projected ROI %"}
         },
         "financial_actual": {
-          "Actual_Landed_Cost": {"type": "currency", "label": "Actual Landed Cost", "custom": true},
-          "Selling_Price_Confirmed": {"type": "currency", "label": "Selling Price Confirmed", "custom": true},
-          "Actual_Platform_Fees": {"type": "percent", "label": "Actual Platform Fees %", "custom": true},
-          "Actual_CBFA": {"type": "formula", "label": "Actual CBFA", "custom": true},
-          "Actual_Break_even_ACoS": {"type": "formula", "label": "Actual Break-even ACoS %", "custom": true},
-          "Actual_Break_even_CAC": {"type": "formula", "label": "Actual Break-even CAC", "custom": true},
-          "ROI": {"type": "formula", "label": "ROI %", "custom": true},
-          "Launch_Price": {"type": "currency", "label": "Launch Price", "custom": true},
-          "MRP": {"type": "currency", "label": "MRP", "custom": true},
-          "Customs_Duty_Rate": {"type": "percent", "label": "Customs Duty Rate %", "custom": true}
+          "Actual_Landed_Cost": {"type": "currency", "label": "Actual Landed Cost"},
+          "Selling_Price_Confirmed": {"type": "currency", "label": "Selling Price Confirmed"},
+          "Actual_Platform_Fees": {"type": "percent", "label": "Actual Platform Fees %"},
+          "Actual_CBFA": {"type": "formula", "label": "Actual CBFA"},
+          "Actual_Break_even_ACoS": {"type": "formula", "label": "Actual Break-even ACoS %"},
+          "Actual_Break_even_CAC": {"type": "formula", "label": "Actual Break-even CAC"},
+          "ROI": {"type": "formula", "label": "ROI %"},
+          "Launch_Price": {"type": "currency", "label": "Launch Price"},
+          "MRP": {"type": "currency", "label": "MRP"},
+          "Customs_Duty_Rate": {"type": "percent", "label": "Customs Duty Rate %"}
         },
         "sourcing": {
-          "Supplier": {"type": "lookup", "label": "Supplier", "custom": true},
-          "Test_Supplier_Name": {"type": "text", "label": "Test Supplier Name", "custom": true},
-          "Sourcing_Model": {"type": "picklist", "label": "Sourcing Model", "custom": true},
-          "Sourcing_Model_Selected": {"type": "text", "label": "Sourcing Model Selected", "custom": true},
-          "Production_MOQ": {"type": "integer", "label": "Production MOQ", "custom": true},
-          "Typical_Lead_Time_Days": {"type": "integer", "label": "Typical Lead Time (Days)", "custom": true},
-          "Shipping_Packaging_Cost_Per_Unit": {"type": "currency", "label": "Shipping & Packaging Cost Per Unit", "custom": true}
+          "Supplier": {"type": "lookup", "label": "Supplier"},
+          "Test_Supplier_Name": {"type": "text", "label": "Test Supplier Name"},
+          "Sourcing_Model": {"type": "picklist", "label": "Sourcing Model"},
+          "Sourcing_Model_Selected": {"type": "text", "label": "Sourcing Model Selected"},
+          "Production_MOQ": {"type": "integer", "label": "Production MOQ"},
+          "Typical_Lead_Time_Days": {"type": "integer", "label": "Typical Lead Time (Days)"},
+          "Shipping_Packaging_Cost_Per_Unit": {"type": "currency", "label": "Shipping & Packaging Cost Per Unit"}
         },
         "testing": {
-          "Test_Mode": {"type": "picklist", "label": "Test Mode", "custom": true},
-          "Test_ASIN": {"type": "text", "label": "Test ASIN", "custom": true},
-          "Test_Listing_URL": {"type": "website", "label": "Test Listing URL", "custom": true},
-          "Test_Listing_Go_Live_Date": {"type": "date", "label": "Test Listing Go-Live Date", "custom": true},
-          "Test_Start_Date": {"type": "date", "label": "Test Start Date", "custom": true},
-          "Test_End_Date": {"type": "date", "label": "Test End Date", "custom": true},
-          "Test_Units_Ordered": {"type": "integer", "label": "Test Units Ordered", "custom": true},
-          "Test_Budget_Allocated": {"type": "currency", "label": "Test Budget Allocated", "custom": true},
-          "Amazon_PPC_Budget": {"type": "currency", "label": "Amazon PPC Budget", "custom": true},
-          "Meta_Ads_Budget": {"type": "currency", "label": "Meta Ads Budget", "custom": true},
-          "Total_Test_Spend": {"type": "currency", "label": "Total Test Spend", "custom": true},
-          "Test_Orders": {"type": "integer", "label": "Test Orders", "custom": true},
-          "Test_Revenue": {"type": "currency", "label": "Test Revenue", "custom": true},
-          "Test_Impressions": {"type": "integer", "label": "Test Impressions", "custom": true},
-          "Test_Clicks": {"type": "integer", "label": "Test Clicks", "custom": true},
-          "Test_ACoS": {"type": "formula", "label": "Test ACoS %", "custom": true},
-          "Test_CVR": {"type": "formula", "label": "Test CVR %", "custom": true},
-          "Test_CTR": {"type": "formula", "label": "Test CTR %", "custom": true},
-          "Test_Impression_Share": {"type": "integer", "label": "Test Impression Share", "custom": true},
-          "Test_Click_Through_Rate_CTR": {"type": "percent", "label": "Test Click-Through Rate (CTR)", "custom": true},
-          "Test_Add_to_Cart_Rate": {"type": "percent", "label": "Test Add-to-Cart Rate", "custom": true},
-          "Test_Landing_Page_Conversion_Rate": {"type": "percent", "label": "Test Landing Page Conversion Rate", "custom": true},
-          "Test_Cost_Per_Add_to_Cart_CPATC": {"type": "currency", "label": "Test Cost Per Add-to-Cart (CPATC)", "custom": true},
-          "Test_Cost_Per_Click_CPC": {"type": "currency", "label": "Test Cost Per Click (CPC)", "custom": true},
-          "Target_TACoS": {"type": "percent", "label": "Target TACoS %", "custom": true},
-          "Test_Sourcing_Complete_Date": {"type": "date", "label": "Test Sourcing Complete Date", "custom": true}
+          "Test_Mode": {"type": "picklist", "label": "Test Mode"},
+          "Test_ASIN": {"type": "text", "label": "Test ASIN"},
+          "Test_Listing_URL": {"type": "website", "label": "Test Listing URL"},
+          "Test_Listing_Go_Live_Date": {"type": "date", "label": "Test Listing Go-Live Date"},
+          "Test_Start_Date": {"type": "date", "label": "Test Start Date"},
+          "Test_End_Date": {"type": "date", "label": "Test End Date"},
+          "Test_Units_Ordered": {"type": "integer", "label": "Test Units Ordered"},
+          "Test_Budget_Allocated": {"type": "currency", "label": "Test Budget Allocated"},
+          "Amazon_PPC_Budget": {"type": "currency", "label": "Amazon PPC Budget"},
+          "Meta_Ads_Budget": {"type": "currency", "label": "Meta Ads Budget"},
+          "Total_Test_Spend": {"type": "currency", "label": "Total Test Spend"},
+          "Test_Orders": {"type": "integer", "label": "Test Orders"},
+          "Test_Revenue": {"type": "currency", "label": "Test Revenue"},
+          "Test_Impressions": {"type": "integer", "label": "Test Impressions"},
+          "Test_Clicks": {"type": "integer", "label": "Test Clicks"},
+          "Test_ACoS": {"type": "formula", "label": "Test ACoS %"},
+          "Test_CVR": {"type": "formula", "label": "Test CVR %"},
+          "Test_CTR": {"type": "formula", "label": "Test CTR %"},
+          "Test_Impression_Share": {"type": "integer", "label": "Test Impression Share"},
+          "Test_Click_Through_Rate_CTR": {"type": "percent", "label": "Test Click-Through Rate (CTR)"},
+          "Test_Add_to_Cart_Rate": {"type": "percent", "label": "Test Add-to-Cart Rate"},
+          "Test_Landing_Page_Conversion_Rate": {"type": "percent", "label": "Test Landing Page Conversion Rate"},
+          "Test_Cost_Per_Add_to_Cart_CPATC": {"type": "currency", "label": "Test Cost Per Add-to-Cart (CPATC)"},
+          "Test_Cost_Per_Click_CPC": {"type": "currency", "label": "Test Cost Per Click (CPC)"},
+          "Target_TACoS": {"type": "percent", "label": "Target TACoS %"},
+          "Test_Sourcing_Complete_Date": {"type": "date", "label": "Test Sourcing Complete Date"}
         },
         "gates": {
-          "Gate_1_Decision": {"type": "picklist", "label": "Gate 1 Decision", "custom": true},
-          "Gate_1_Approved_By": {"type": "userlookup", "label": "Gate 1 Approved By", "custom": true},
-          "Gate_1_Approval_Date": {"type": "date", "label": "Gate 1 Approval Date", "custom": true},
-          "Gate_1_Notes": {"type": "textarea", "label": "Gate 1 Notes", "custom": true},
-          "Gate_1_Override_Notes": {"type": "textarea", "label": "Gate 1 Override Notes", "custom": true},
-          "Gate_3_Approval": {"type": "picklist", "label": "Gate 3 Approval", "custom": true},
-          "Gate_3_Decision_Date": {"type": "date", "label": "Gate 3 Decision Date", "custom": true},
-          "Gate_3_Notes": {"type": "textarea", "label": "Gate 3 Notes", "custom": true},
-          "Gate_3_Override_Notes": {"type": "textarea", "label": "Gate 3 Override Notes", "custom": true},
-          "Scale_Verdict": {"type": "picklist", "label": "Scale Verdict", "custom": true},
-          "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete", "custom": true, "_note": "Bigin field, check CRM sync"}
+          "Gate_1_Decision": {"type": "picklist", "label": "Gate 1 Decision"},
+          "Gate_1_Approved_By": {"type": "userlookup", "label": "Gate 1 Approved By"},
+          "Gate_1_Approval_Date": {"type": "date", "label": "Gate 1 Approval Date"},
+          "Gate_1_Notes": {"type": "textarea", "label": "Gate 1 Notes"},
+          "Gate_1_Override_Notes": {"type": "textarea", "label": "Gate 1 Override Notes"},
+          "Gate_3_Approval": {"type": "picklist", "label": "Gate 3 Approval"},
+          "Gate_3_Decision_Date": {"type": "date", "label": "Gate 3 Decision Date"},
+          "Gate_3_Notes": {"type": "textarea", "label": "Gate 3 Notes"},
+          "Gate_3_Override_Notes": {"type": "textarea", "label": "Gate 3 Override Notes"},
+          "Scale_Verdict": {"type": "picklist", "label": "Scale Verdict"},
+          "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete"
+}
         },
         "compliance": {
-          "Product_Compliance_Status": {"type": "picklist", "label": "Product Compliance Status", "custom": true},
-          "Certifications_Required": {"type": "picklist", "label": "Certifications Required", "custom": true},
-          "Certifications_Obtained": {"type": "multiselectpicklist", "label": "Certifications Obtained", "custom": true},
-          "Compliance_Notes": {"type": "textarea", "label": "Compliance Notes", "custom": true},
-          "Compliance_Lead_Approver": {"type": "text", "label": "Compliance Lead Approver", "custom": true},
-          "Category_Approval_Status": {"type": "picklist", "label": "Category Approval Status", "custom": true}
+          "Product_Compliance_Status": {"type": "picklist", "label": "Product Compliance Status"},
+          "Certifications_Required": {"type": "picklist", "label": "Certifications Required"},
+          "Certifications_Obtained": {"type": "multiselectpicklist", "label": "Certifications Obtained"},
+          "Compliance_Notes": {"type": "textarea", "label": "Compliance Notes"},
+          "Compliance_Lead_Approver": {"type": "text", "label": "Compliance Lead Approver"},
+          "Category_Approval_Status": {"type": "picklist", "label": "Category Approval Status"}
         },
         "launch_ops": {
-          "Final_Listing_URL_Amz": {"type": "website", "label": "Final Listing URL - Amz", "custom": true},
-          "Final_Listing_URL_com": {"type": "website", "label": "Final Listing URL - .com", "custom": true},
-          "Live_Date": {"type": "datetime", "label": "Live Date", "custom": true},
-          "Initial_Stock_Quantity": {"type": "integer", "label": "Initial Stock Quantity", "custom": true},
-          "Reorder_Point": {"type": "integer", "label": "Reorder Point", "custom": true},
-          "Reorder_Quantity": {"type": "integer", "label": "Reorder Quantity", "custom": true},
-          "Fulfillment_Method": {"type": "picklist", "label": "Fulfillment Method", "custom": true},
-          "Post_Launch_Status": {"type": "picklist", "label": "Post-Launch Status", "custom": true},
-          "Post_Launch_Review_Notes": {"type": "textarea", "label": "Post-Launch Review Notes", "custom": true}
+          "Final_Listing_URL_Amz": {"type": "website", "label": "Final Listing URL - Amz"},
+          "Final_Listing_URL_com": {"type": "website", "label": "Final Listing URL - .com"},
+          "Live_Date": {"type": "datetime", "label": "Live Date"},
+          "Initial_Stock_Quantity": {"type": "integer", "label": "Initial Stock Quantity"},
+          "Reorder_Point": {"type": "integer", "label": "Reorder Point"},
+          "Reorder_Quantity": {"type": "integer", "label": "Reorder Quantity"},
+          "Fulfillment_Method": {"type": "picklist", "label": "Fulfillment Method"},
+          "Post_Launch_Status": {"type": "picklist", "label": "Post-Launch Status"},
+          "Post_Launch_Review_Notes": {"type": "textarea", "label": "Post-Launch Review Notes"}
         },
         "post_launch_metrics": {
-          "BSR_at_Launch": {"type": "integer", "label": "BSR at Launch", "custom": true},
-          "Month_1_BSR": {"type": "integer", "label": "Month 1 BSR", "custom": true},
-          "Month_1_Orders": {"type": "integer", "label": "Month 1 Orders", "custom": true},
-          "Month_1_Revenue": {"type": "currency", "label": "Month 1 Revenue", "custom": true},
-          "Month_1_ACoS": {"type": "percent", "label": "Month 1 ACoS %", "custom": true},
-          "Month_1_Return_Rate": {"type": "percent", "label": "Month 1 Return Rate %", "custom": true},
-          "Month_1_Avg_Rating": {"type": "integer", "label": "Month 1 Avg Rating", "custom": true},
-          "Month_3_Orders": {"type": "integer", "label": "Month 3 Orders", "custom": true},
-          "Month_3_Revenue": {"type": "currency", "label": "Month 3 Revenue", "custom": true},
-          "Month_3_ACoS": {"type": "percent", "label": "Month 3 ACoS %", "custom": true},
-          "Month_3_Return_Rate": {"type": "percent", "label": "Month 3 Return Rate %", "custom": true},
-          "Month_3_Avg_Rating": {"type": "integer", "label": "Month 3 Avg Rating", "custom": true},
-          "Projected_CBFA_at_Scale": {"type": "formula", "label": "Projected CBFA at Scale", "custom": true},
-          "Projected_ROI_at_Scale": {"type": "formula", "label": "Projected ROI at Scale %", "custom": true},
-          "Projected_Landed_Cost_at_Scale": {"type": "currency", "label": "Projected Landed Cost at Scale", "custom": true}
+          "BSR_at_Launch": {"type": "integer", "label": "BSR at Launch"},
+          "Month_1_BSR": {"type": "integer", "label": "Month 1 BSR"},
+          "Month_1_Orders": {"type": "integer", "label": "Month 1 Orders"},
+          "Month_1_Revenue": {"type": "currency", "label": "Month 1 Revenue"},
+          "Month_1_ACoS": {"type": "percent", "label": "Month 1 ACoS %"},
+          "Month_1_Return_Rate": {"type": "percent", "label": "Month 1 Return Rate %"},
+          "Month_1_Avg_Rating": {"type": "integer", "label": "Month 1 Avg Rating"},
+          "Month_3_Orders": {"type": "integer", "label": "Month 3 Orders"},
+          "Month_3_Revenue": {"type": "currency", "label": "Month 3 Revenue"},
+          "Month_3_ACoS": {"type": "percent", "label": "Month 3 ACoS %"},
+          "Month_3_Return_Rate": {"type": "percent", "label": "Month 3 Return Rate %"},
+          "Month_3_Avg_Rating": {"type": "integer", "label": "Month 3 Avg Rating"},
+          "Projected_CBFA_at_Scale": {"type": "formula", "label": "Projected CBFA at Scale"},
+          "Projected_ROI_at_Scale": {"type": "formula", "label": "Projected ROI at Scale %"},
+          "Projected_Landed_Cost_at_Scale": {"type": "currency", "label": "Projected Landed Cost at Scale"}
         },
         "cross_system_ids": {
-          "Bigin_Record_ID": {"type": "text", "label": "Bigin Record ID", "custom": true},
-          "Jira_Epic_ID": {"type": "text", "label": "Jira Epic ID", "custom": true},
-          "Zoho_Books_Item_ID": {"type": "text", "label": "Zoho Books Item ID", "custom": true},
-          "Zoho_Inventory_Item_ID": {"type": "text", "label": "Zoho Inventory Item ID", "custom": true},
-          "Keyword_Research_Doc": {"type": "website", "label": "Keyword Research Doc", "custom": true},
-          "Opportunity_Analysis_URL": {"type": "website", "label": "Opportunity Analysis URL", "custom": true},
-          "Financial_Analysis_URL": {"type": "website", "label": "Financial Analysis URL", "custom": true},
-          "Daily_Tracking_Sheet_URL": {"type": "website", "label": "Daily Tracking Sheet URL", "custom": true},
-          "Scale_Projections_URL": {"type": "website", "label": "Scale Projections URL", "custom": true}
+          "Bigin_Record_ID": {"type": "text", "label": "Bigin Record ID"},
+          "Jira_Epic_ID": {"type": "text", "label": "Jira Epic ID"},
+          "Zoho_Books_Item_ID": {"type": "text", "label": "Zoho Books Item ID"},
+          "Zoho_Inventory_Item_ID": {"type": "text", "label": "Zoho Inventory Item ID"},
+          "Keyword_Research_Doc": {"type": "website", "label": "Keyword Research Doc"},
+          "Opportunity_Analysis_URL": {"type": "website", "label": "Opportunity Analysis URL"},
+          "Financial_Analysis_URL": {"type": "website", "label": "Financial Analysis URL"},
+          "Daily_Tracking_Sheet_URL": {"type": "website", "label": "Daily Tracking Sheet URL"},
+          "Scale_Projections_URL": {"type": "website", "label": "Scale Projections URL"}
         },
         "vendor_link": {
-          "Vendor_Score": {"type": "integer", "label": "Vendor Score", "custom": true, "_note": "Bigin field, check CRM mapping"},
-          "Vendor_Grade": {"type": "text", "label": "Vendor Grade", "custom": true, "_note": "Bigin field, check CRM mapping"}
+          "Vendor_Score": {"type": "integer", "label": "Vendor Score"
+},
+          "Vendor_Grade": {"type": "text", "label": "Vendor Grade"
+}
         }
       }
     },
@@ -178,22 +178,22 @@
           "Website": {"type": "website", "label": "Website"}
         },
         "scoring": {
-          "Evaluation_Score": {"type": "double", "label": "Evaluation Score", "custom": true},
-          "Vendor_Grade": {"type": "picklist", "label": "Vendor Grade", "custom": true},
-          "Vendor_Status": {"type": "picklist", "label": "Vendor Status", "custom": true},
-          "Compliance_Track_Record": {"type": "picklist", "label": "Compliance Track Record", "custom": true}
+          "Evaluation_Score": {"type": "double", "label": "Evaluation Score"},
+          "Vendor_Grade": {"type": "picklist", "label": "Vendor Grade"},
+          "Vendor_Status": {"type": "picklist", "label": "Vendor Status"},
+          "Compliance_Track_Record": {"type": "picklist", "label": "Compliance Track Record"}
         },
         "capabilities": {
-          "Categories_Supplied": {"type": "multiselectpicklist", "label": "Categories Supplied", "custom": true},
-          "General_Lead_Time_Days": {"type": "integer", "label": "General Lead Time (Days)", "custom": true},
-          "Payment_Terms": {"type": "text", "label": "Payment Terms", "custom": true},
-          "Evaluation_Tracker_Sheet": {"type": "website", "label": "Evaluation Tracker Sheet", "custom": true}
+          "Categories_Supplied": {"type": "multiselectpicklist", "label": "Categories Supplied"},
+          "General_Lead_Time_Days": {"type": "integer", "label": "General Lead Time (Days)"},
+          "Payment_Terms": {"type": "text", "label": "Payment Terms"},
+          "Evaluation_Tracker_Sheet": {"type": "website", "label": "Evaluation Tracker Sheet"}
         },
         "address": {
-          "Address": {"type": "textarea", "label": "Address", "custom": true},
-          "Address_City": {"type": "text", "label": "Address - City", "custom": true},
-          "Address_Country_Region": {"type": "picklist", "label": "Address - Country / Region", "custom": true},
-          "Address_State_Province": {"type": "picklist", "label": "Address - State / Province", "custom": true}
+          "Address": {"type": "textarea", "label": "Address"},
+          "Address_City": {"type": "text", "label": "Address - City"},
+          "Address_Country_Region": {"type": "picklist", "label": "Address - Country / Region"},
+          "Address_State_Province": {"type": "picklist", "label": "Address - State / Province"}
         }
       }
     },
@@ -204,16 +204,16 @@
       "label": "ISM Learnings",
       "fields": {
         "Name": {"type": "text", "label": "Learning ID"},
-        "Skill_Name": {"type": "text", "label": "Skill Name", "custom": true},
-        "Exception_Type": {"type": "picklist", "label": "Exception Type", "custom": true},
-        "Description": {"type": "textarea", "label": "Description", "custom": true},
-        "Proposed_Update": {"type": "textarea", "label": "Proposed Update", "custom": true},
-        "Timestamp": {"type": "datetime", "label": "Timestamp", "custom": true},
-        "Target_Type": {"type": "picklist", "label": "Target Type", "custom": true},
-        "Target_Name": {"type": "text", "label": "Target Name", "custom": true},
-        "Severity": {"type": "picklist", "label": "Severity", "custom": true},
-        "Status": {"type": "picklist", "label": "Status", "custom": true},
-        "Slack_Dispatched": {"type": "boolean", "label": "Slack Dispatched", "custom": true}
+        "Skill_Name": {"type": "text", "label": "Skill Name"},
+        "Exception_Type": {"type": "picklist", "label": "Exception Type"},
+        "Description": {"type": "textarea", "label": "Description"},
+        "Proposed_Update": {"type": "textarea", "label": "Proposed Update"},
+        "Timestamp": {"type": "datetime", "label": "Timestamp"},
+        "Target_Type": {"type": "picklist", "label": "Target Type"},
+        "Target_Name": {"type": "text", "label": "Target Name"},
+        "Severity": {"type": "picklist", "label": "Severity"},
+        "Status": {"type": "picklist", "label": "Status"},
+        "Slack_Dispatched": {"type": "boolean", "label": "Slack Dispatched"}
       }
     },
 
@@ -222,13 +222,13 @@
       "id": "645926000009175428",
       "label": "ISM Execution Logs",
       "fields": {
-        "Skill_Name": {"type": "text", "label": "Skill Name", "custom": true},
-        "Input_Fingerprint": {"type": "text", "label": "Input Fingerprint", "custom": true},
-        "Status": {"type": "picklist", "label": "Status", "custom": true},
-        "Output_Summary": {"type": "textarea", "label": "Output Summary", "custom": true},
-        "Systems_Modified": {"type": "text", "label": "Systems Modified", "custom": true},
-        "Slack_Tag": {"type": "text", "label": "Slack Tag", "custom": true},
-        "Execution_Date": {"type": "datetime", "label": "Execution Date", "custom": true}
+        "Skill_Name": {"type": "text", "label": "Skill Name"},
+        "Input_Fingerprint": {"type": "text", "label": "Input Fingerprint"},
+        "Status": {"type": "picklist", "label": "Status"},
+        "Output_Summary": {"type": "textarea", "label": "Output Summary"},
+        "Systems_Modified": {"type": "text", "label": "Systems Modified"},
+        "Slack_Tag": {"type": "text", "label": "Slack Tag"},
+        "Execution_Date": {"type": "datetime", "label": "Execution Date"}
       }
     },
 
@@ -237,12 +237,12 @@
       "id": "645926000009176002",
       "label": "ISM Skill Feedbacks",
       "fields": {
-        "Skill_Name": {"type": "text", "label": "Skill Name", "custom": true},
-        "Outcome_Tag": {"type": "picklist", "label": "Outcome Tag", "custom": true},
-        "Rating": {"type": "integer", "label": "Rating", "custom": true},
-        "Feedback_Note": {"type": "textarea", "label": "Feedback Note", "custom": true},
-        "Session_Date": {"type": "date", "label": "Session Date", "custom": true},
-        "Submitted_By": {"type": "text", "label": "Submitted By", "custom": true}
+        "Skill_Name": {"type": "text", "label": "Skill Name"},
+        "Outcome_Tag": {"type": "picklist", "label": "Outcome Tag"},
+        "Rating": {"type": "integer", "label": "Rating"},
+        "Feedback_Note": {"type": "textarea", "label": "Feedback Note"},
+        "Session_Date": {"type": "date", "label": "Session Date"},
+        "Submitted_By": {"type": "text", "label": "Submitted By"}
       }
     },
 
@@ -250,69 +250,68 @@
       "api_name": "Campaign_Plans",
       "label": "Campaign Plans",
       "lookup": "Product_Launches",
-      "_note": "Custom module for Amazon PPC campaign plans. Design spec in campaign-plans-module-design.ctx.json.",
       "fields": {
         "identity": {
-          "Plan_Name": {"type": "text", "label": "Plan Name", "custom": true},
-          "Plan_Version": {"type": "integer", "label": "Plan Version", "custom": true},
-          "Plan_Status": {"type": "picklist", "label": "Plan Status", "custom": true},
-          "Scenario_Type": {"type": "picklist", "label": "Scenario Type", "custom": true},
-          "Approved_By": {"type": "userlookup", "label": "Approved By", "custom": true},
-          "Approved_Date": {"type": "date", "label": "Approved Date", "custom": true}
+          "Plan_Name": {"type": "text", "label": "Plan Name"},
+          "Plan_Version": {"type": "integer", "label": "Plan Version"},
+          "Plan_Status": {"type": "picklist", "label": "Plan Status"},
+          "Scenario_Type": {"type": "picklist", "label": "Scenario Type"},
+          "Approved_By": {"type": "userlookup", "label": "Approved By"},
+          "Approved_Date": {"type": "date", "label": "Approved Date"}
         },
         "campaign_settings": {
-          "Campaign_Name": {"type": "text", "label": "Campaign Name", "custom": true},
-          "Start_Date": {"type": "date", "label": "Start Date", "custom": true},
-          "End_Date": {"type": "date", "label": "End Date", "custom": true},
-          "Country": {"type": "picklist", "label": "Country", "custom": true},
-          "Daily_Budget_INR": {"type": "currency", "label": "Daily Budget (INR)", "custom": true},
-          "Total_Budget_Estimate_INR": {"type": "currency", "label": "Total Budget Estimate (INR)", "custom": true},
-          "Bidding_Strategy": {"type": "picklist", "label": "Bidding Strategy", "custom": true}
+          "Campaign_Name": {"type": "text", "label": "Campaign Name"},
+          "Start_Date": {"type": "date", "label": "Start Date"},
+          "End_Date": {"type": "date", "label": "End Date"},
+          "Country": {"type": "picklist", "label": "Country"},
+          "Daily_Budget_INR": {"type": "currency", "label": "Daily Budget (INR)"},
+          "Total_Budget_Estimate_INR": {"type": "currency", "label": "Total Budget Estimate (INR)"},
+          "Bidding_Strategy": {"type": "picklist", "label": "Bidding Strategy"}
         },
         "bidding_details": {
-          "Top_of_Search_Adjustment_Pct": {"type": "percent", "label": "Top of Search Adjustment %", "custom": true},
-          "Product_Pages_Adjustment_Pct": {"type": "percent", "label": "Product Pages Adjustment %", "custom": true},
-          "Rest_of_Search_Adjustment_Pct": {"type": "percent", "label": "Rest of Search Adjustment %", "custom": true}
+          "Top_of_Search_Adjustment_Pct": {"type": "percent", "label": "Top of Search Adjustment %"},
+          "Product_Pages_Adjustment_Pct": {"type": "percent", "label": "Product Pages Adjustment %"},
+          "Rest_of_Search_Adjustment_Pct": {"type": "percent", "label": "Rest of Search Adjustment %"}
         },
         "ad_groups": {
-          "Ad_Group_Name": {"type": "text", "label": "Ad Group Name", "custom": true},
-          "Targeting_Type": {"type": "picklist", "label": "Targeting Type", "custom": true},
-          "Default_Bid_INR": {"type": "currency", "label": "Default Bid (INR)", "custom": true},
-          "Product_ASINs": {"type": "textarea", "label": "Product ASINs", "custom": true}
+          "Ad_Group_Name": {"type": "text", "label": "Ad Group Name"},
+          "Targeting_Type": {"type": "picklist", "label": "Targeting Type"},
+          "Default_Bid_INR": {"type": "currency", "label": "Default Bid (INR)"},
+          "Product_ASINs": {"type": "textarea", "label": "Product ASINs"}
         },
         "keywords": {
-          "Target_Keywords_JSON": {"type": "textarea", "label": "Target Keywords", "custom": true},
-          "Negative_Keywords_JSON": {"type": "textarea", "label": "Negative Keywords", "custom": true},
-          "Excluded_ASINs": {"type": "textarea", "label": "Excluded ASINs", "custom": true},
-          "Keyword_Source": {"type": "picklist", "label": "Keyword Source", "custom": true}
+          "Target_Keywords_JSON": {"type": "textarea", "label": "Target Keywords"},
+          "Negative_Keywords_JSON": {"type": "textarea", "label": "Negative Keywords"},
+          "Excluded_ASINs": {"type": "textarea", "label": "Excluded ASINs"},
+          "Keyword_Source": {"type": "picklist", "label": "Keyword Source"}
         },
         "forecast": {
-          "Est_Impressions": {"type": "integer", "label": "Est. Impressions", "custom": true},
-          "Est_Clicks": {"type": "integer", "label": "Est. Clicks", "custom": true},
-          "Est_Orders_Low": {"type": "integer", "label": "Est. Orders (Low)", "custom": true},
-          "Est_Orders_High": {"type": "integer", "label": "Est. Orders (High)", "custom": true},
-          "Est_Total_Spend_INR": {"type": "currency", "label": "Est. Total Spend (INR)", "custom": true},
-          "Est_ACoS_Low_Pct": {"type": "percent", "label": "Est. ACoS Low %", "custom": true},
-          "Est_ACoS_High_Pct": {"type": "percent", "label": "Est. ACoS High %", "custom": true},
-          "Risk_Level": {"type": "picklist", "label": "Risk Level", "custom": true}
+          "Est_Impressions": {"type": "integer", "label": "Est. Impressions"},
+          "Est_Clicks": {"type": "integer", "label": "Est. Clicks"},
+          "Est_Orders_Low": {"type": "integer", "label": "Est. Orders (Low)"},
+          "Est_Orders_High": {"type": "integer", "label": "Est. Orders (High)"},
+          "Est_Total_Spend_INR": {"type": "currency", "label": "Est. Total Spend (INR)"},
+          "Est_ACoS_Low_Pct": {"type": "percent", "label": "Est. ACoS Low %"},
+          "Est_ACoS_High_Pct": {"type": "percent", "label": "Est. ACoS High %"},
+          "Risk_Level": {"type": "picklist", "label": "Risk Level"}
         },
         "actuals": {
-          "Actual_Impressions": {"type": "integer", "label": "Actual Impressions", "custom": true},
-          "Actual_Clicks": {"type": "integer", "label": "Actual Clicks", "custom": true},
-          "Actual_Orders": {"type": "integer", "label": "Actual Orders", "custom": true},
-          "Actual_Spend_INR": {"type": "currency", "label": "Actual Spend (INR)", "custom": true},
-          "Actual_Revenue_INR": {"type": "currency", "label": "Actual Revenue (INR)", "custom": true},
-          "Actual_ACoS_Pct": {"type": "percent", "label": "Actual ACoS %", "custom": true},
-          "Actual_CVR_Pct": {"type": "percent", "label": "Actual CVR %", "custom": true},
-          "Actual_CTR_Pct": {"type": "percent", "label": "Actual CTR %", "custom": true},
-          "Actual_CPC_INR": {"type": "currency", "label": "Actual CPC (INR)", "custom": true},
-          "Phase": {"type": "picklist", "label": "Phase", "custom": true},
-          "Data_Quality": {"type": "picklist", "label": "Data Quality", "custom": true}
+          "Actual_Impressions": {"type": "integer", "label": "Actual Impressions"},
+          "Actual_Clicks": {"type": "integer", "label": "Actual Clicks"},
+          "Actual_Orders": {"type": "integer", "label": "Actual Orders"},
+          "Actual_Spend_INR": {"type": "currency", "label": "Actual Spend (INR)"},
+          "Actual_Revenue_INR": {"type": "currency", "label": "Actual Revenue (INR)"},
+          "Actual_ACoS_Pct": {"type": "percent", "label": "Actual ACoS %"},
+          "Actual_CVR_Pct": {"type": "percent", "label": "Actual CVR %"},
+          "Actual_CTR_Pct": {"type": "percent", "label": "Actual CTR %"},
+          "Actual_CPC_INR": {"type": "currency", "label": "Actual CPC (INR)"},
+          "Phase": {"type": "picklist", "label": "Phase"},
+          "Data_Quality": {"type": "picklist", "label": "Data Quality"}
         },
         "meta": {
-          "Notes": {"type": "textarea", "label": "Notes", "custom": true},
-          "Slack_Shared": {"type": "boolean", "label": "Slack Shared", "custom": true},
-          "Confluence_URL": {"type": "website", "label": "Confluence URL", "custom": true}
+          "Notes": {"type": "textarea", "label": "Notes"},
+          "Slack_Shared": {"type": "boolean", "label": "Slack Shared"},
+          "Confluence_URL": {"type": "website", "label": "Confluence URL"}
         }
       }
     },
@@ -322,20 +321,20 @@
       "id": "645926000009179002",
       "label": "ISM Skill Health",
       "fields": {
-        "Domain": {"type": "picklist", "label": "Domain", "custom": true},
-        "Version": {"type": "text", "label": "Version", "custom": true},
-        "Quality_Score": {"type": "double", "label": "Quality Score", "custom": true},
-        "Maturity_Level": {"type": "picklist", "label": "Maturity Level", "custom": true},
-        "Trigger_Accuracy": {"type": "double", "label": "Trigger Accuracy", "custom": true},
-        "Health_Band": {"type": "picklist", "label": "Health Band", "custom": true},
-        "Standards_Passed": {"type": "integer", "label": "Standards Passed", "custom": true},
-        "Standards_Failed": {"type": "integer", "label": "Standards Failed", "custom": true},
-        "Violations": {"type": "textarea", "label": "Violations", "custom": true},
-        "Upstream": {"type": "textarea", "label": "Upstream", "custom": true},
-        "Downstream": {"type": "textarea", "label": "Downstream", "custom": true},
-        "Last_Audited": {"type": "date", "label": "Last Audited", "custom": true},
-        "Audit_Notes": {"type": "textarea", "label": "Audit Notes", "custom": true},
-        "Source_System": {"type": "text", "label": "Source System", "custom": true}
+        "Domain": {"type": "picklist", "label": "Domain"},
+        "Version": {"type": "text", "label": "Version"},
+        "Quality_Score": {"type": "double", "label": "Quality Score"},
+        "Maturity_Level": {"type": "picklist", "label": "Maturity Level"},
+        "Trigger_Accuracy": {"type": "double", "label": "Trigger Accuracy"},
+        "Health_Band": {"type": "picklist", "label": "Health Band"},
+        "Standards_Passed": {"type": "integer", "label": "Standards Passed"},
+        "Standards_Failed": {"type": "integer", "label": "Standards Failed"},
+        "Violations": {"type": "textarea", "label": "Violations"},
+        "Upstream": {"type": "textarea", "label": "Upstream"},
+        "Downstream": {"type": "textarea", "label": "Downstream"},
+        "Last_Audited": {"type": "date", "label": "Last Audited"},
+        "Audit_Notes": {"type": "textarea", "label": "Audit Notes"},
+        "Source_System": {"type": "text", "label": "Source System"}
       }
     }
   },
@@ -343,18 +342,17 @@
   "bigin": {
     "module": "Pipelines",
     "product_launch_fields": {
-      "_note": "111 fields available. Key custom fields listed. Full field list from Bigin_getFieldsMetadata.",
-      "CRM_Record_ID": {"type": "text", "label": "CRM Launch ID", "custom": true},
-      "Opportunity_Score": {"type": "integer", "label": "Opportunity Score", "custom": true},
-      "Target_Selling_Price": {"type": "currency", "label": "Target Selling Price", "custom": true},
-      "Landed_Cost_Per_Unit": {"type": "currency", "label": "Landed Cost Per Unit", "custom": true},
-      "Selling_Price_Confirmed": {"type": "currency", "label": "Selling Price Confirmed", "custom": true},
-      "Product_Compliance_Status": {"type": "picklist", "label": "Product Compliance Status", "custom": true},
-      "Test_Sourcing_Complete": {"type": "boolean", "label": "Test Sourcing Complete", "custom": true},
-      "Test_Listing_Complete": {"type": "boolean", "label": "Test Listing Complete", "custom": true},
-      "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete", "custom": true},
-      "Vendor_Score": {"type": "integer", "label": "Vendor Score", "custom": true},
-      "Vendor_Grade": {"type": "text", "label": "Vendor Grade", "custom": true}
+      "CRM_Record_ID": {"type": "text", "label": "CRM Launch ID"},
+      "Opportunity_Score": {"type": "integer", "label": "Opportunity Score"},
+      "Target_Selling_Price": {"type": "currency", "label": "Target Selling Price"},
+      "Landed_Cost_Per_Unit": {"type": "currency", "label": "Landed Cost Per Unit"},
+      "Selling_Price_Confirmed": {"type": "currency", "label": "Selling Price Confirmed"},
+      "Product_Compliance_Status": {"type": "picklist", "label": "Product Compliance Status"},
+      "Test_Sourcing_Complete": {"type": "boolean", "label": "Test Sourcing Complete"},
+      "Test_Listing_Complete": {"type": "boolean", "label": "Test Listing Complete"},
+      "Scale_Decision_Complete": {"type": "boolean", "label": "Scale Decision Complete"},
+      "Vendor_Score": {"type": "integer", "label": "Vendor Score"},
+      "Vendor_Grade": {"type": "text", "label": "Vendor Grade"}
     }
   }
 }

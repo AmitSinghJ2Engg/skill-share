@@ -36,7 +36,6 @@ runtime_context:
   - "ppc-test-campaign-config.ctx.json"
   - "crm-field-mappings.ctx.json"
   - "amazon-ads-campaign-fields.ctx.json"
-  - "campaign-plans-module-design.ctx.json"
 
 runtime_paths:
   dev: "skills/{capability}/{skill}/"

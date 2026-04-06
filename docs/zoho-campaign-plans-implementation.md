@@ -1,7 +1,7 @@
 # Zoho CRM & Bigin — Campaign_Plans Implementation Plan
 
 **Date:** 2026-04-06
-**DL-016 reference:** Phase 1 design in `context/product-pipeline/campaign-plans-module-design.ctx.json`
+**DL-016 reference:** Phase 1 design in `docs/campaign-plans-module-design.json`
 **Status:** Plan — not yet implemented in Zoho
 
 ---

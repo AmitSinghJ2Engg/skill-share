@@ -10,7 +10,20 @@ Ismokraft's market testing and scale decision hub. Covers Domain 2.5: test listi
 
 ## Artifact Purpose
 
-**market-testing-v1.0.artifact.tsx** — Unified testing interface combining campaign planner (test setup, budget allocation, keyword targeting) with scale decision workbench (performance analysis, Gate 2 criteria, scale/kill recommendation). Merges the planned campaign-planner and scale-decision-workbench artifacts.
+**market-testing-v1.0.artifact.tsx** — Unified testing interface with 5 views: Product Intake (listing parse + keyword import), Campaign Planner (scenario generation + comparison), Performance Monitor (daily metrics + trends + anomalies), Keyword Analyzer (4-bucket classification + bid recommendations), Scale Decision (Gate 2 analysis + cost comparison).
+
+## Skills Referenced
+
+| Prefix | Skill | Modes Used | Purpose |
+|--------|-------|------------|---------|
+| PD | product-discover | LISTING_PARSE | Extract product data from Amazon listing URL |
+| KI | ikraft-keyword-intelligence | IMPORT | Normalize Helium10/Jungle Scout keyword CSV |
+| AO | ads-ops | SCENARIO, TEST, LIVE | Campaign planning, test analysis, optimization |
+| MC | margin-calculator | COMPARISON | Pre-test vs actual vs test economics |
+| FO | fulfillment-ops | SAMPLE | FBA dispatch verification |
+| PM | product-monitor | MONITOR | BSR, reviews, listing health during test |
+| ZO | zoho-data-ops | WRITE | CRM read/write for Campaign_Plans, Product_Launches |
+| SM | slack-messaging | (auto) | Formatted Slack messages |
 
 ## Data Integrity Rules
 
@@ -29,15 +42,26 @@ Read from project context files:
 - Gate 2 Path B: >= 500 impressions AND CTR >= 0.3%
 - Target ACoS (test phase): <= 40%
 - DQ thresholds per ppc-test-campaign-config.ctx.json
+- Scenario templates per ppc-test-campaign-config.ctx.json
 
 ## CRM Configuration
 
 - Module: Product_Launches (ID: 645926000008511067)
-- Field mappings: see crm-field-mappings.ctx.json, ppc-test-campaign-config.ctx.json
+- Module: Campaign_Plans (lookup to Product_Launches) — campaign plans with Amazon Ads fields, forecast, actuals
+- Field mappings: see crm-field-mappings.ctx.json
+- Campaign config: see ppc-test-campaign-config.ctx.json
+- Amazon Ads fields: see amazon-ads-campaign-fields.ctx.json
+- Campaign_Plans design: see campaign-plans-module-design.ctx.json
+
+## Tasks
+
+- `tasks/product-pipeline/test-campaign/` — Event-triggered after FBA + sample confirmation. Full D2.5 workflow with campaign scenarios.
+- `tasks/product-pipeline/daily-ads-analysis/` — Scheduled daily. Active campaign monitoring, CRM updates, Slack digest.
 
 ## Integrations
 
-- Zoho CRM: read/write Product_Launches
+- Zoho CRM: read/write Product_Launches, Campaign_Plans
 - Zoho Bigin: Product Launch Factory stages 4-6 (Test Listing, Paid Testing, Scale Decision)
 - Amazon Seller Central: campaign data (manual import via clipboard)
+- Helium10 / Jungle Scout: keyword research CSV (manual import)
 - Slack: #ism-launch-alerts, #ism-launch-reports

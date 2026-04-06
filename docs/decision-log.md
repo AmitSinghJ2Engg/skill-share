@@ -507,4 +507,12 @@ from projects, JSX/TSX mismatch, no artifact creation workflow.
 - `context/product-pipeline/crm-field-mappings.ctx.json` — Campaign_Plans module added
 - `plugins.yaml` — product-discovery 1.1.0, product-testing 1.2.0
 
-**Phase 2 (next session):** Task bundles (daily-ads-analysis, test-campaign updates), artifact-prompt rewrite, Chat/Cowork project updates
+**Phase 2 (same session):**
+- `tasks/product-pipeline/daily-ads-analysis/` (new) — daily campaign monitoring task (config.yaml, description.md, prompt.md, references/README.md)
+- `tasks/product-pipeline/test-campaign/config.yaml` — v2.0.0, added PD LISTING_PARSE, KI IMPORT, AO SCENARIO skill invocations
+- `tasks/product-pipeline/test-campaign/prompt.md` — added Steps 0, 0.5, 1.5, 1.6 (listing parse, keyword import, scenario generation, CRM save)
+- `projects/chat/ism-market-testing/artifact-prompt.md` — rewritten with 5 views (Product Intake, Campaign Planner, Performance Monitor, Keyword Analyzer, Scale Decision), AI Insights panel, action buttons
+- `projects/chat/ism-market-testing/instructions.md` — added PD, KI skill references, Campaign_Plans CRM module, daily-ads-analysis task
+- `projects/cowork/test-campaign/project.yaml` — added product-discovery plugin, PD + KI skills, daily-ads-analysis task
+- `projects/cowork/test-campaign/instructions.md` — added PD LISTING_PARSE, KI IMPORT, AO SCENARIO to active skills, Campaign_Plans CRM, daily-ads-analysis task
+- `docs/zoho-campaign-plans-implementation.md` (new) — Zoho CRM module creation, workflow rules, Bigin sync, MCP integration, implementation checklist

@@ -24,6 +24,28 @@ If any prerequisite is missing, state exactly what is needed and from which doma
 
 ## Steps
 
+### Step 0: Parse Amazon listing URL
+
+Invoke **PD- product-discover LISTING_PARSE mode**:
+- User provides the Amazon listing URL for the test product
+- The skill extracts: ASIN, title, bullets, price, brand, category, BSR, rating, review count, implicit keywords, competitor ASINs, review themes
+- Output: `ListingRecord` with confidence per field
+
+**Guard:** If URL not provided or extraction yields incomplete data (data_completeness_pct < 50%), ask user to provide missing fields manually (ASIN, title, category at minimum). Continue with available data.
+
+### Step 0.5: Import Helium10 keywords (optional)
+
+If user has Helium10 or Jungle Scout keyword research data:
+
+Invoke **KI- ikraft-keyword-intelligence IMPORT mode**:
+- User provides CSV data (file content or paste) and source_type (helium10_cerebro, helium10_magnet, jungle_scout, generic_csv)
+- The skill normalizes columns, classifies keywords by intent (brand/competitor/generic/long_tail), deduplicates, and scores
+- Output: `KeywordSet[]` with per-keyword metrics (demand, competition, intent_class, h10_score, organic_rank)
+
+**Guard:** If CSV parsing fails, log error and continue to Step 1 without keyword data. Campaign planning can proceed with implicit keywords from LISTING_PARSE.
+
+If user does not have keyword research data, skip this step. Note in the workflow that SCENARIO mode will use only implicit keywords from the ListingRecord.
+
 ### Step 1: Verify FBA dispatch and listing readiness
 
 Invoke **FO- fulfillment-ops SAMPLE mode** to verify:
@@ -39,13 +61,39 @@ Invoke **FO- fulfillment-ops SAMPLE mode** to verify:
 
 If listing is not ready, output checklist of remaining items. Do not proceed to Step 2 until listing basics are confirmed.
 
+### Step 1.5: Generate campaign scenarios
+
+Invoke **AO- ads-ops SCENARIO mode** with:
+- `listing_record`: ListingRecord from Step 0
+- `keyword_sets`: KeywordSet[] from Step 0.5 (or empty if skipped)
+- `budget_constraints`: total_budget_inr, daily_budget_max_inr, duration_max_days from user or CRM (Amazon_PPC_Budget, Test_Budget_Allocated)
+- `breakeven_acos_pct` and `target_acos_pct` from MarginRecord
+
+The skill reads `ppc-test-campaign-config.ctx.json` for scenario templates and generates 3-5 campaign flavors (Conservative, Balanced, Aggressive, Keyword-focused, Custom). Each scenario is a complete Amazon Ads-compliant CampaignPlan with campaigns, ad groups, targeting, bids, and forecasts.
+
+Output: `CampaignScenario[]` with comparison table and recommendation.
+
+### Step 1.6: Select scenario and save to CRM
+
+Present the scenario comparison table to the user. The table includes: scenario type, total budget, duration, expected data quality, risk level, and recommendation.
+
+**Human gate:** User selects a scenario. This is the campaign plan commitment.
+
+After selection:
+- Invoke **ZO- zoho-data-ops WRITE mode** to create a `Campaign_Plans` record in CRM with Plan_Status = "Draft"
+- Populate all campaign settings, bidding details, ad group, keywords, and forecast fields from the selected scenario
+- Set Scenario_Type to the selected flavor
+
+**Human gate:** User reviews the CRM record and approves (Plan_Status -> "Approved"). The approved plan becomes the TestPlan for Phase 1/2 execution.
+
 ### Step 2: Plan Phase 1 discovery campaign
 
 Invoke **AO- ads-ops TEST mode** with phase = `plan_discovery`:
 - Product name, ASIN, selling price, category from CRM record
 - breakeven_acos_pct and target_acos_pct from MarginRecord
+- Campaign parameters from the approved Campaign_Plans record (budget, bid strategy, duration)
 
-The skill reads `ppc-test-campaign-config.ctx.json` for budget, bid, and duration defaults. It outputs a **TestPlan** with campaign name, type (auto), bid strategy, budget, duration, and success criteria.
+The skill reads `ppc-test-campaign-config.ctx.json` for defaults and the Campaign_Plans record for approved overrides. It outputs a **TestPlan** aligned with the selected scenario.
 
 **Human gate:** TestPlan requires explicit approval before any ad spend is committed. Present the plan clearly and wait for approval.
 

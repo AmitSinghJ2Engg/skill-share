@@ -164,6 +164,7 @@ Generate 3-5 Amazon Ads-compliant campaign plan flavors from product data + keyw
 | File | Purpose |
 |---|---|
 | `references/ads-metrics.md` | Metric formulas, health thresholds, campaign taxonomy, keyword action rules |
-| `references/schemas-and-steps.md` | Input/output schemas for TEST and LIVE modes |
-| `ppc-test-campaign-config.ctx.json` (project) | Phase durations, budgets, bid defaults, data quality thresholds |
+| `references/schemas-and-steps.md` | Input/output schemas for TEST, LIVE, and SCENARIO modes |
+| `ppc-test-campaign-config.ctx.json` (project) | Phase durations, budgets, bid defaults, scenario templates, column mappings |
+| `amazon-ads-campaign-fields.ctx.json` (project) | Amazon Create Campaign field reference for SCENARIO mode |
 | `amazon-fee-table.ctx.md` (project) | Fee reference for margin context |

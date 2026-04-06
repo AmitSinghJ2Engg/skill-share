@@ -1,0 +1,44 @@
+name: daily-ads-analysis
+version: "1.0.0"
+type: scheduled
+schedule: "Daily, 10:00 AM IST (after Seller Central data refreshes)"
+trigger: "Active Campaign_Plans exist in CRM (Plan_Status = Active)"
+project: Product Pipeline
+
+skills_invoked:
+  - skill: ads-ops
+    mode: TEST
+    prefix: AO
+    note: "analyze_discovery or analyze_validation depending on campaign phase"
+  - skill: ads-ops
+    mode: LIVE
+    prefix: AO
+    note: "health_check for campaigns past validation phase"
+  - skill: product-monitor
+    mode: MONITOR
+    prefix: PM
+  - skill: zoho-data-ops
+    mode: WRITE
+    prefix: ZO
+  - skill: slack-messaging
+    mode: auto
+    prefix: SM
+
+working_directories:
+  context:
+    path: "context/product-pipeline/"
+    description: "Runtime business config — thresholds, CRM field mappings, campaign config"
+  output:
+    path: "context/pending-updates/"
+    description: "Staged outputs for human review before git commit"
+
+runtime_context:
+  - "ppc-test-campaign-config.ctx.json"
+  - "crm-field-mappings.ctx.json"
+  - "amazon-ads-campaign-fields.ctx.json"
+  - "campaign-plans-module-design.ctx.json"
+
+runtime_paths:
+  dev: "skills/{capability}/{skill}/"
+  deployed: "~/.claude/skills/{skill}/"
+  plugin: "{plugin-name}:{skill-name}"

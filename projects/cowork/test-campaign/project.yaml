@@ -3,7 +3,10 @@ type: cowork
 chat_project: ism-market-testing
 plugins:
   - product-testing
+  - product-discovery
 skills_available:
+  - product-discover
+  - ikraft-keyword-intelligence
   - fulfillment-ops
   - ads-ops
   - margin-calculator
@@ -17,3 +20,4 @@ mcp_connections:
 working_directory: "C:/Users/amits/ClaudeMain/Claude-Cowork/Git-Skill-Share/skill-share"
 tasks:
   - test-campaign
+  - daily-ads-analysis

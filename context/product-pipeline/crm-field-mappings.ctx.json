@@ -246,6 +246,77 @@
       }
     },
 
+    "Campaign_Plans": {
+      "api_name": "Campaign_Plans",
+      "label": "Campaign Plans",
+      "lookup": "Product_Launches",
+      "_note": "Custom module for Amazon PPC campaign plans. Design spec in campaign-plans-module-design.ctx.json.",
+      "fields": {
+        "identity": {
+          "Plan_Name": {"type": "text", "label": "Plan Name", "custom": true},
+          "Plan_Version": {"type": "integer", "label": "Plan Version", "custom": true},
+          "Plan_Status": {"type": "picklist", "label": "Plan Status", "custom": true},
+          "Scenario_Type": {"type": "picklist", "label": "Scenario Type", "custom": true},
+          "Approved_By": {"type": "userlookup", "label": "Approved By", "custom": true},
+          "Approved_Date": {"type": "date", "label": "Approved Date", "custom": true}
+        },
+        "campaign_settings": {
+          "Campaign_Name": {"type": "text", "label": "Campaign Name", "custom": true},
+          "Start_Date": {"type": "date", "label": "Start Date", "custom": true},
+          "End_Date": {"type": "date", "label": "End Date", "custom": true},
+          "Country": {"type": "picklist", "label": "Country", "custom": true},
+          "Daily_Budget_INR": {"type": "currency", "label": "Daily Budget (INR)", "custom": true},
+          "Total_Budget_Estimate_INR": {"type": "currency", "label": "Total Budget Estimate (INR)", "custom": true},
+          "Bidding_Strategy": {"type": "picklist", "label": "Bidding Strategy", "custom": true}
+        },
+        "bidding_details": {
+          "Top_of_Search_Adjustment_Pct": {"type": "percent", "label": "Top of Search Adjustment %", "custom": true},
+          "Product_Pages_Adjustment_Pct": {"type": "percent", "label": "Product Pages Adjustment %", "custom": true},
+          "Rest_of_Search_Adjustment_Pct": {"type": "percent", "label": "Rest of Search Adjustment %", "custom": true}
+        },
+        "ad_groups": {
+          "Ad_Group_Name": {"type": "text", "label": "Ad Group Name", "custom": true},
+          "Targeting_Type": {"type": "picklist", "label": "Targeting Type", "custom": true},
+          "Default_Bid_INR": {"type": "currency", "label": "Default Bid (INR)", "custom": true},
+          "Product_ASINs": {"type": "textarea", "label": "Product ASINs", "custom": true}
+        },
+        "keywords": {
+          "Target_Keywords_JSON": {"type": "textarea", "label": "Target Keywords", "custom": true},
+          "Negative_Keywords_JSON": {"type": "textarea", "label": "Negative Keywords", "custom": true},
+          "Excluded_ASINs": {"type": "textarea", "label": "Excluded ASINs", "custom": true},
+          "Keyword_Source": {"type": "picklist", "label": "Keyword Source", "custom": true}
+        },
+        "forecast": {
+          "Est_Impressions": {"type": "integer", "label": "Est. Impressions", "custom": true},
+          "Est_Clicks": {"type": "integer", "label": "Est. Clicks", "custom": true},
+          "Est_Orders_Low": {"type": "integer", "label": "Est. Orders (Low)", "custom": true},
+          "Est_Orders_High": {"type": "integer", "label": "Est. Orders (High)", "custom": true},
+          "Est_Total_Spend_INR": {"type": "currency", "label": "Est. Total Spend (INR)", "custom": true},
+          "Est_ACoS_Low_Pct": {"type": "percent", "label": "Est. ACoS Low %", "custom": true},
+          "Est_ACoS_High_Pct": {"type": "percent", "label": "Est. ACoS High %", "custom": true},
+          "Risk_Level": {"type": "picklist", "label": "Risk Level", "custom": true}
+        },
+        "actuals": {
+          "Actual_Impressions": {"type": "integer", "label": "Actual Impressions", "custom": true},
+          "Actual_Clicks": {"type": "integer", "label": "Actual Clicks", "custom": true},
+          "Actual_Orders": {"type": "integer", "label": "Actual Orders", "custom": true},
+          "Actual_Spend_INR": {"type": "currency", "label": "Actual Spend (INR)", "custom": true},
+          "Actual_Revenue_INR": {"type": "currency", "label": "Actual Revenue (INR)", "custom": true},
+          "Actual_ACoS_Pct": {"type": "percent", "label": "Actual ACoS %", "custom": true},
+          "Actual_CVR_Pct": {"type": "percent", "label": "Actual CVR %", "custom": true},
+          "Actual_CTR_Pct": {"type": "percent", "label": "Actual CTR %", "custom": true},
+          "Actual_CPC_INR": {"type": "currency", "label": "Actual CPC (INR)", "custom": true},
+          "Phase": {"type": "picklist", "label": "Phase", "custom": true},
+          "Data_Quality": {"type": "picklist", "label": "Data Quality", "custom": true}
+        },
+        "meta": {
+          "Notes": {"type": "textarea", "label": "Notes", "custom": true},
+          "Slack_Shared": {"type": "boolean", "label": "Slack Shared", "custom": true},
+          "Confluence_URL": {"type": "website", "label": "Confluence URL", "custom": true}
+        }
+      }
+    },
+
     "ISM_SkillHealth": {
       "api_name": "ISM_SkillHealth",
       "id": "645926000009179002",

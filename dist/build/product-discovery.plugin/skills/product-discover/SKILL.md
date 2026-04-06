@@ -4,7 +4,7 @@ description: >
   PD- Discovers wooden premium product opportunities via three modes. BATCH: crawls
   marketplaces with seed keywords into ProductCandidate[]. SINGLE: deep research on one
   product into ResearchRecord. TRENDS: scans zone signals into TrendSignal[].
-version: "2.2.0"
+version: "2.3.0"
 lifecycle: active
 ---
 
@@ -19,6 +19,7 @@ Discovers and researches product opportunities across Amazon India, Amazon US, E
 | **BATCH** | seed_keywords (+ optional zone) | `ProductCandidate[]` + `BatchRunSummary` | product-screen |
 | **SINGLE** | product_name + category | `ResearchRecord` | product-evaluate |
 | **TRENDS** | zone_name | `TrendSignal[]` | BATCH or product-evaluate |
+| **LISTING_PARSE** | amazon_url | `ListingRecord` | ads-ops SCENARIO |
 
 **Boundary:** This skill discovers and researches. It does not score (product-screen), evaluate gates (product-evaluate), or calculate margins (margin-calculator).
 
@@ -59,6 +60,30 @@ Note: `niche_score` is a research indicator only. `Opportunity_Score` in CRM is 
 
 **Output:** Ranked `TrendSignal[]` by signal_strength desc.
 
+## MODE: LISTING_PARSE
+
+Extract structured product data from an Amazon listing URL for campaign planning.
+
+1. Read the product page (user provides URL; Claude fetches or user pastes HTML).
+2. Extract core fields: ASIN, title, bullets[], description, price, brand, category, parent_asin, variation_count, main_image_url.
+3. Extract competitor signals: rating, review_count, BSR, BSR_category.
+4. Parse title + bullets for implicit keywords (product-type + material + use-case + modifier tokens).
+5. Extract "Customers also viewed" ASINs (competitor_asins[]) if visible.
+6. Mine review themes: top 3 positive mentions, top 3 negative/complaint patterns (from visible reviews).
+7. Output `ListingRecord` with all fields, confidence per field (HIGH if extracted, LOW if inferred).
+
+**Output:** `ListingRecord` — structured JSON:
+```json
+{
+  "asin": "string", "title": "string", "bullets": ["string"],
+  "price_inr": "number", "brand": "string", "category": "string",
+  "bsr": "number|null", "rating": "number|null", "review_count": "number|null",
+  "implicit_keywords": ["string"], "competitor_asins": ["string"],
+  "review_themes": { "positive": ["string"], "negative": ["string"] },
+  "data_completeness_pct": "number"
+}
+```
+
 ## Input Validation
 
 | Mode | Required | Block if missing |
@@ -66,6 +91,7 @@ Note: `niche_score` is a research indicator only. `Opportunity_Score` in CRM is 
 | BATCH | >=1 seed_keyword or zone | No search target |
 | SINGLE | product_name + category | Incomplete research |
 | TRENDS | zone in project context | List valid zones |
+| LISTING_PARSE | amazon_url | No listing to parse |
 
 ## Halt Conditions
 
@@ -84,4 +110,4 @@ Note: `niche_score` is a research indicator only. `Opportunity_Score` in CRM is 
 
 ## Trigger Phrases
 
-PD-, start discovery, crawl products, discover products, research this product, is there demand, find opportunities, what's trending, run seed keywords, batch mode, single mode, trends mode.
+PD-, start discovery, crawl products, discover products, research this product, is there demand, find opportunities, what's trending, run seed keywords, batch mode, single mode, trends mode, parse listing, listing parse, extract listing data, LISTING_PARSE.

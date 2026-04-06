@@ -8,7 +8,7 @@ description: >
   harvesting", "search term report", "ACoS", "ROAS", "ad performance", "bid strategy",
   "campaign analysis", "scale or kill", "ad spend", "sponsored products".
 metadata:
-  version: 1.0.0
+  version: 2.0.0
   domain: marketing
   prefix: AO-
 ---
@@ -29,6 +29,7 @@ Seller Central actions (team does that manually). Does not calculate margins (ma
 |---|---|---|
 | New product at FBA, no campaign data | Test campaign plan + analysis | TEST |
 | Running campaigns, performance data | Optimization + scale decisions | LIVE |
+| Product data + keywords + budget, needs campaign plan | Scenario comparison + plan selection | SCENARIO |
 
 ---
 
@@ -102,6 +103,31 @@ CampaignHealthReport: {campaigns[], blended_metrics, action_items[], budget_reco
 
 ---
 
+## Mode: SCENARIO (Domain 2.5 — Campaign Planning)
+
+**Trigger:** "campaign scenarios", "plan campaign flavors", "budget scenarios", "what campaigns should I run"
+
+Generate 3-5 Amazon Ads-compliant campaign plan flavors from product data + keyword intelligence + budget constraints. Full schema in `references/schemas-and-steps.md`.
+
+**Input:** ListingRecord (from PD LISTING_PARSE), KeywordSet[] (from KI IMPORT or GENERATE), budget_constraints (total_budget_inr, daily_budget_max_inr, duration_max_days), breakeven_acos_pct, target_acos_pct.
+
+**Steps:**
+1. Read `ppc-test-campaign-config.ctx.json` for scenario templates + defaults
+2. Read `references/ads-metrics.md` for health thresholds
+3. Generate scenario flavors:
+   - **Conservative**: Auto SP only, low budget, Dynamic Bids Down Only, no placement adjustments
+   - **Balanced**: Auto SP + Manual Exact (top 10 keywords), medium budget, mixed bid strategies
+   - **Aggressive**: Auto + Manual Exact + Manual Broad, high budget, placement adjustments (Top of Search +25%)
+   - **Keyword-focused**: Manual Exact only (top keywords by volume), skip auto discovery
+   - **Custom**: User-configured from any combination
+4. For each scenario, output a complete `CampaignPlan` per Amazon Ads field structure (see `references/schemas-and-steps.md`)
+5. Rank scenarios by budget efficiency, risk level, alignment with Gate 2 criteria
+6. Present comparison table + recommendation
+
+**Output:** `CampaignScenario[]` — array of CampaignPlan objects, each Amazon Ads-compliant. Human selects a scenario -> it becomes the TestPlan for Phase 1/2 execution.
+
+---
+
 ## Session Protocol
 
 1. Read this SKILL.md
@@ -138,6 +164,7 @@ CampaignHealthReport: {campaigns[], blended_metrics, action_items[], budget_reco
 | File | Purpose |
 |---|---|
 | `references/ads-metrics.md` | Metric formulas, health thresholds, campaign taxonomy, keyword action rules |
-| `references/schemas-and-steps.md` | Input/output schemas for TEST and LIVE modes |
-| `ppc-test-campaign-config.ctx.json` (project) | Phase durations, budgets, bid defaults, data quality thresholds |
+| `references/schemas-and-steps.md` | Input/output schemas for TEST, LIVE, and SCENARIO modes |
+| `ppc-test-campaign-config.ctx.json` (project) | Phase durations, budgets, bid defaults, scenario templates, column mappings |
+| `amazon-ads-campaign-fields.ctx.json` (project) | Amazon Create Campaign field reference for SCENARIO mode |
 | `amazon-fee-table.ctx.md` (project) | Fee reference for margin context |

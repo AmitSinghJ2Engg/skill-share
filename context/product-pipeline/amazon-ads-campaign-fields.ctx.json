@@ -1,0 +1,67 @@
+{
+  "_generated": "2026-04-06",
+  "_source": "Amazon Seller Central — Create Sponsored Products Campaign form",
+  "_note": "Structured reference of Amazon Create Campaign fields. Used by ads-ops SCENARIO mode and market-testing artifact for field alignment.",
+
+  "campaign_settings": {
+    "fields": ["campaign_name", "start_date", "end_date", "country", "daily_budget", "bidding_strategy"],
+    "country_options": ["IN", "US"]
+  },
+
+  "bidding_strategy": {
+    "options": ["dynamic_up_and_down", "dynamic_down_only", "fixed"],
+    "description": {
+      "dynamic_up_and_down": "Amazon raises bids up to 100% for top-of-search and product pages when likely to convert, lowers when not",
+      "dynamic_down_only": "Amazon lowers bids when click is less likely to convert. Conservative default.",
+      "fixed": "Amazon uses exact bids. No dynamic adjustment."
+    }
+  },
+
+  "bid_adjustments": {
+    "placements": {
+      "top_of_search_pct": { "range": [0, 900], "description": "% increase for top-of-search placement" },
+      "rest_of_search_pct": { "range": [0, 900], "description": "% increase for rest of search results" },
+      "product_pages_pct": { "range": [0, 900], "description": "% increase for product detail pages" }
+    }
+  },
+
+  "ad_groups": {
+    "fields": ["ad_group_name", "products", "targeting_type", "default_bid"],
+    "product_add_methods": ["search", "enter_list", "upload", "your_listings"],
+    "targeting_types": ["automatic", "manual"]
+  },
+
+  "targeting": {
+    "automatic": {
+      "targeting_groups": ["close_match", "loose_match", "substitutes", "complements"],
+      "description": "Amazon chooses keywords and products to target based on product listing"
+    },
+    "manual": {
+      "options": ["keyword_targeting", "product_targeting"],
+      "keyword_match_types": ["broad", "phrase", "exact"],
+      "product_targeting_options": ["individual_products", "categories"]
+    }
+  },
+
+  "negative_targeting": {
+    "keyword": {
+      "match_types": ["negative_exact", "negative_phrase"]
+    },
+    "product": {
+      "methods": ["exclude_brands", "exclude_products"]
+    }
+  },
+
+  "automations": {
+    "rule_fields": ["rule_name", "description", "schedule", "action_type"],
+    "action_types": ["pause_campaign", "adjust_budget", "adjust_bid"]
+  },
+
+  "campaign_types": {
+    "sponsored_products": { "abbreviation": "SP", "ad_group_limit": 1000 },
+    "sponsored_brands": { "abbreviation": "SB", "requires_brand_registry": true },
+    "sponsored_display": { "abbreviation": "SD", "requires_brand_registry": true }
+  },
+
+  "forecast_fields": ["cost_type_cpc", "estimated_clicks", "estimated_orders", "estimated_impressions"]
+}

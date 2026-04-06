@@ -472,3 +472,39 @@ from projects, JSX/TSX mismatch, no artifact creation workflow.
 - Artifact files renamed from .jsx to .tsx
 - docs/03-implementation-standards.md updated with hierarchy, TSX format, enhanced task schema
 - Shared artifact-prompt-template.md provides consistent artifact generation standards
+
+---
+
+## DL-016: Amazon PPC Campaign Planning System Expansion (2026-04-06)
+
+**Status:** Implemented (Phase 1)
+**Trigger:** Business needs richer campaign planning beyond the single linear auto->manual workflow: Amazon listing URL parsing, Helium10 keyword imports, multi-scenario campaign generation, structured CRM storage, and daily ads analysis.
+
+**Decisions:**
+
+1. **product-discover: LISTING_PARSE mode** (v2.2.0 -> v2.3.0) — New mode extracts structured product data from Amazon listing URLs into `ListingRecord` schema. Feeds into ads-ops SCENARIO mode for campaign planning. Rationale: reuses the existing product-discover skill (which already handles product data extraction) rather than creating a new skill. MINOR version bump — additive mode, no breaking changes.
+
+2. **ikraft-keyword-intelligence: IMPORT mode** (v2.0.0 -> v3.0.0) — New mode intakes external keyword research CSV (Helium10 Cerebro, Jungle Scout), normalizes into KeywordSet[] schema with intent classification (brand/competitor/generic/long_tail) and deduplication. Column mappings stored in `ppc-test-campaign-config.ctx.json`. MAJOR version bump — new output field extensions (h10_score, organic_rank, sponsored_rank, intent_class).
+
+3. **ads-ops: SCENARIO mode** (v1.0.0 -> v2.0.0) — New mode generates 3-5 Amazon Ads-compliant campaign plan flavors (Conservative, Balanced, Aggressive, Keyword-focused, Custom) from ListingRecord + KeywordSet[] + budget constraints. Each scenario outputs complete CampaignPlan objects with Amazon Ads field structure. Full schemas added to `references/schemas-and-steps.md`. MAJOR version bump — new mode + new output schemas.
+
+4. **Campaign_Plans CRM module** — New Zoho CRM custom module designed with fields mirroring Amazon Create Campaign form + forecast + actuals tracking. Design spec in `campaign-plans-module-design.ctx.json`. CRM field mappings added to `crm-field-mappings.ctx.json`. Lookup to Product_Launches.
+
+5. **Amazon Ads campaign field reference** — New context file `amazon-ads-campaign-fields.ctx.json` formalizes the Amazon Create Campaign form fields into a structured reference for skills and artifacts.
+
+6. **Scenario templates in config** — `ppc-test-campaign-config.ctx.json` extended with scenario_templates (defaults per flavor), helium10_column_mapping (CSV -> internal field mapping), amazon_campaign_naming (naming patterns), and placement_defaults.
+
+**Phase split rationale:** Phase 1 (skills + CRM design) establishes the data contracts and mode interfaces. Phase 2 (tasks + artifact + project updates) builds the orchestration and UI on top of these stable contracts. This prevents a brittle all-at-once change and allows verification of each layer independently.
+
+**Files modified (Phase 1):**
+- `skills/research/product-discover/SKILL.md` — LISTING_PARSE mode, v2.3.0
+- `skills/research/ikraft-keyword-intelligence/SKILL.md` — IMPORT mode, v3.0.0
+- `skills/marketing/ads-ops/SKILL.md` — SCENARIO mode, v2.0.0
+- `skills/marketing/ads-ops/references/schemas-and-steps.md` — CampaignPlan + CampaignScenario schemas
+- `context/product-pipeline/ppc-test-campaign-config.ctx.json` — scenario templates, column mappings
+- `context/product-pipeline/amazon-ads-campaign-fields.ctx.json` (new) — Amazon Ads field reference
+- `context/product-pipeline/campaign-plans-module-design.ctx.json` (new) — CRM module design spec
+- `context/product-pipeline/crm-field-mappings.ctx.json` — Campaign_Plans module added
+- `plugins.yaml` — product-discovery 1.1.0, product-testing 1.2.0
+
+**Phase 2 (next session):** Task bundles (daily-ads-analysis, test-campaign updates), artifact-prompt rewrite, Chat/Cowork project updates

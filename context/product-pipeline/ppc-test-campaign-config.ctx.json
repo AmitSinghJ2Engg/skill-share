@@ -71,5 +71,85 @@
       "compliance_timeline": "ComplianceRecord.expectedCompletionDate <= ScaleDecision.launchTimeline"
     },
     "_note": "Detailed thresholds in gate-criteria.ctx.json"
+  },
+
+  "scenario_templates": {
+    "conservative": {
+      "label": "Conservative — Pure Discovery",
+      "campaign_types": ["auto_sp"],
+      "daily_budget_range_inr": [300, 500],
+      "duration_range_days": [7, 10],
+      "bid_strategy": "dynamic_down_only",
+      "default_bid_inr": 5,
+      "placement_adjustments": { "top_of_search_pct": 0, "product_pages_pct": 0 },
+      "goal": "Pure keyword discovery at minimal spend"
+    },
+    "balanced": {
+      "label": "Balanced — Discovery + Validation",
+      "campaign_types": ["auto_sp", "manual_exact"],
+      "daily_budget_range_inr": [500, 1000],
+      "duration_range_days": [10, 14],
+      "bid_strategy_auto": "dynamic_down_only",
+      "bid_strategy_manual": "dynamic_up_and_down",
+      "default_bid_inr_auto": 5,
+      "default_bid_inr_manual": 8,
+      "manual_keyword_count": 10,
+      "placement_adjustments": { "top_of_search_pct": 0, "product_pages_pct": 0 },
+      "goal": "Balanced data collection + early conversion signal"
+    },
+    "aggressive": {
+      "label": "Aggressive — Maximum Data",
+      "campaign_types": ["auto_sp", "manual_exact", "manual_broad"],
+      "daily_budget_range_inr": [1000, 2000],
+      "duration_range_days": [14, 21],
+      "bid_strategy": "dynamic_up_and_down",
+      "default_bid_inr": 10,
+      "placement_adjustments": { "top_of_search_pct": 25, "product_pages_pct": 0 },
+      "goal": "Maximize data across placements"
+    },
+    "keyword_focused": {
+      "label": "Keyword-Focused — Validate Specific Keywords",
+      "campaign_types": ["manual_exact"],
+      "daily_budget_range_inr": [800, 1500],
+      "duration_range_days": [10, 14],
+      "bid_strategy": "dynamic_up_and_down",
+      "default_bid_inr": 8,
+      "placement_adjustments": { "top_of_search_pct": 0, "product_pages_pct": 0 },
+      "goal": "Validate specific keyword economics fast, skip auto discovery"
+    }
+  },
+
+  "helium10_column_mapping": {
+    "_note": "Maps Helium10 Cerebro CSV columns to internal KeywordSet fields",
+    "Keyword": "keyword",
+    "Search Volume": "demand_estimate",
+    "Competing Products": "competition_estimate",
+    "H10 KW Score": "h10_score",
+    "Organic Rank": "organic_rank",
+    "Sponsored ASINs": "sponsored_rank",
+    "CPR": "cpr_estimate",
+    "Search Volume Trend": "trend_signal"
+  },
+
+  "amazon_campaign_naming": {
+    "pattern": "Test_[ProductName]_SP_[Type]_v[Version]",
+    "type_codes": {
+      "auto": "Auto",
+      "manual_exact": "Manual_Exact",
+      "manual_phrase": "Manual_Phrase",
+      "manual_broad": "Manual_Broad"
+    },
+    "examples": [
+      "Test_WoodenPenHolder_SP_Auto_v1",
+      "Test_WoodenPenHolder_SP_Manual_Exact_v1"
+    ]
+  },
+
+  "placement_defaults": {
+    "_note": "Default placement adjustment percentages per scenario type",
+    "conservative": { "top_of_search_pct": 0, "product_pages_pct": 0, "rest_of_search_pct": 0 },
+    "balanced": { "top_of_search_pct": 0, "product_pages_pct": 0, "rest_of_search_pct": 0 },
+    "aggressive": { "top_of_search_pct": 25, "product_pages_pct": 0, "rest_of_search_pct": 0 },
+    "keyword_focused": { "top_of_search_pct": 0, "product_pages_pct": 0, "rest_of_search_pct": 0 }
   }
 }

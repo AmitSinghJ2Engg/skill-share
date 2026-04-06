@@ -1,0 +1,82 @@
+{
+  "_generated": "2026-04-06",
+  "_source": "DL-016 — Amazon PPC campaign planning system expansion",
+  "_note": "Design spec for Zoho CRM custom module Campaign_Plans. Fields mirror Amazon Create Campaign form + forecast + actuals tracking.",
+
+  "module": "Campaign_Plans",
+  "api_name": "Campaign_Plans",
+  "lookup": "Product_Launches",
+
+  "field_groups": {
+    "identity": {
+      "Plan_Name": { "type": "text", "label": "Plan Name", "description": "Test_[ProductName]_SP_Auto_v1" },
+      "Plan_Version": { "type": "integer", "label": "Plan Version", "description": "Incremental version number" },
+      "Plan_Status": { "type": "picklist", "label": "Plan Status", "values": ["Draft", "Approved", "Active", "Completed", "Archived"] },
+      "Scenario_Type": { "type": "picklist", "label": "Scenario Type", "values": ["Conservative", "Balanced", "Aggressive", "Keyword_Focused", "Custom"] },
+      "Created_By": { "type": "userlookup", "label": "Created By" },
+      "Approved_By": { "type": "userlookup", "label": "Approved By" },
+      "Approved_Date": { "type": "date", "label": "Approved Date" }
+    },
+
+    "campaign_settings": {
+      "Campaign_Name": { "type": "text", "label": "Campaign Name", "description": "Amazon campaign name as it appears in Seller Central" },
+      "Start_Date": { "type": "date", "label": "Start Date" },
+      "End_Date": { "type": "date", "label": "End Date" },
+      "Country": { "type": "picklist", "label": "Country", "values": ["IN", "US"] },
+      "Daily_Budget_INR": { "type": "currency", "label": "Daily Budget (INR)" },
+      "Total_Budget_Estimate_INR": { "type": "currency", "label": "Total Budget Estimate (INR)" },
+      "Bidding_Strategy": { "type": "picklist", "label": "Bidding Strategy", "values": ["Dynamic_Up_Down", "Dynamic_Down_Only", "Fixed"] }
+    },
+
+    "bidding_details": {
+      "Top_of_Search_Adjustment_Pct": { "type": "percent", "label": "Top of Search Adjustment %" },
+      "Product_Pages_Adjustment_Pct": { "type": "percent", "label": "Product Pages Adjustment %" },
+      "Rest_of_Search_Adjustment_Pct": { "type": "percent", "label": "Rest of Search Adjustment %" }
+    },
+
+    "ad_groups": {
+      "Ad_Group_Name": { "type": "text", "label": "Ad Group Name" },
+      "Targeting_Type": { "type": "picklist", "label": "Targeting Type", "values": ["Auto", "Manual_Exact", "Manual_Phrase", "Manual_Broad"] },
+      "Default_Bid_INR": { "type": "currency", "label": "Default Bid (INR)" },
+      "Product_ASINs": { "type": "textarea", "label": "Product ASINs", "description": "JSON array of ASINs" }
+    },
+
+    "keywords": {
+      "Target_Keywords_JSON": { "type": "textarea", "label": "Target Keywords", "description": "JSON: [{keyword, match_type, bid_inr}]" },
+      "Negative_Keywords_JSON": { "type": "textarea", "label": "Negative Keywords", "description": "JSON: [{keyword, match_type}]" },
+      "Excluded_ASINs": { "type": "textarea", "label": "Excluded ASINs", "description": "JSON array" },
+      "Keyword_Source": { "type": "picklist", "label": "Keyword Source", "values": ["Helium10", "Auto_Harvested", "Manual", "Mixed"] }
+    },
+
+    "forecast": {
+      "Est_Impressions": { "type": "integer", "label": "Est. Impressions" },
+      "Est_Clicks": { "type": "integer", "label": "Est. Clicks" },
+      "Est_Orders_Low": { "type": "integer", "label": "Est. Orders (Low)" },
+      "Est_Orders_High": { "type": "integer", "label": "Est. Orders (High)" },
+      "Est_Total_Spend_INR": { "type": "currency", "label": "Est. Total Spend (INR)" },
+      "Est_ACoS_Low_Pct": { "type": "percent", "label": "Est. ACoS Low %" },
+      "Est_ACoS_High_Pct": { "type": "percent", "label": "Est. ACoS High %" },
+      "Risk_Level": { "type": "picklist", "label": "Risk Level", "values": ["LOW", "MEDIUM", "HIGH"] }
+    },
+
+    "actuals": {
+      "Actual_Impressions": { "type": "integer", "label": "Actual Impressions" },
+      "Actual_Clicks": { "type": "integer", "label": "Actual Clicks" },
+      "Actual_Orders": { "type": "integer", "label": "Actual Orders" },
+      "Actual_Spend_INR": { "type": "currency", "label": "Actual Spend (INR)" },
+      "Actual_Revenue_INR": { "type": "currency", "label": "Actual Revenue (INR)" },
+      "Actual_ACoS_Pct": { "type": "percent", "label": "Actual ACoS %" },
+      "Actual_CVR_Pct": { "type": "percent", "label": "Actual CVR %" },
+      "Actual_CTR_Pct": { "type": "percent", "label": "Actual CTR %" },
+      "Actual_CPC_INR": { "type": "currency", "label": "Actual CPC (INR)" },
+      "Phase": { "type": "picklist", "label": "Phase", "values": ["Discovery", "Validation", "Scale"] },
+      "Data_Quality": { "type": "picklist", "label": "Data Quality", "values": ["HIGH", "MEDIUM", "LOW"] }
+    },
+
+    "meta": {
+      "Notes": { "type": "textarea", "label": "Notes" },
+      "Slack_Shared": { "type": "boolean", "label": "Slack Shared" },
+      "Confluence_URL": { "type": "website", "label": "Confluence URL" }
+    }
+  }
+}

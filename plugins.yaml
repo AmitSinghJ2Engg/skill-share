@@ -9,7 +9,7 @@ plugins:
 
   product-discovery:
     description: "Domain 1 discovery stages -- keyword intelligence, product discovery, screening, market intelligence."
-    version: "1.0.0"
+    version: "1.1.0"
     project: "Product Pipeline"
     skills:
       - skill: ikraft-keyword-intelligence
@@ -51,7 +51,7 @@ plugins:
 
   product-testing:
     description: "Domain 2.5 -- test campaigns, monitoring, FBA dispatch, compliance tracking."
-    version: "1.1.0"
+    version: "1.2.0"
     project: "Product Pipeline"
     skills:
       - skill: ads-ops

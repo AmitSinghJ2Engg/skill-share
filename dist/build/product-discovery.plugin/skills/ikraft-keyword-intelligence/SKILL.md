@@ -4,7 +4,7 @@ description: >
   KI- Generates daily seed keywords and scans rising search signals. GENERATE:
   3-layer keyword model into KeywordSet[]. SCAN: search velocity and emerging
   category signals into TrendSignal[].
-version: "2.0.0"
+version: "3.0.0"
 lifecycle: prototype
 ---
 
@@ -20,6 +20,7 @@ Generates structured, prioritised keywords for daily product discovery and scans
 |---|---|---|---|
 | **GENERATE** | zone_id + date | `KeywordSet[]` (5-30 keywords) | product-discover BATCH |
 | **SCAN** | zone_id or category | `TrendSignal[]` | GENERATE (refinement), product-discover TRENDS |
+| **IMPORT** | csv_data + source_type | `KeywordSet[]` | ads-ops SCENARIO, ads-ops TEST |
 
 ## MODE: GENERATE
 
@@ -46,20 +47,35 @@ Detect rising search velocity and emerging category signals for keyword refineme
 
 **Output:** Ranked `TrendSignal[]` by signal_strength desc. Feed into GENERATE for learning signal updates.
 
+## MODE: IMPORT
+
+Intake external keyword research CSV (Helium10, Jungle Scout), normalize into KeywordSet schema.
+
+1. **Parse CSV** — auto-detect column mapping from header row. Fall back to `ppc-test-campaign-config.ctx.json` column maps if ambiguous.
+2. **Map columns** — Helium10 Cerebro: `Keyword` -> keyword, `Search Volume` -> demand_estimate, `Competing Products` -> competition_estimate, `H10 KW Score` -> h10_score, `Organic Rank` -> organic_rank, `Sponsored ASINs` -> sponsored_rank, `CPR` -> cpr_estimate, `Search Volume Trend` -> trend_signal.
+3. **Classify by intent** — `brand` (contains known brand names), `competitor` (contains competitor brand/ASIN), `generic` (product-type terms), `long_tail` (4+ words).
+4. **Score** using existing scoring framework (demand_estimate, competition_estimate, intent_signal). Tag source: `"helium10_import"` + timestamp.
+5. **Deduplicate** — exact match + near-match (80% similarity).
+6. **Validate** — at least 1 keyword passes validation; flag rows with missing required fields.
+
+**Output:** `KeywordSet[]` with per-keyword: keyword, source, source_type, demand_estimate, competition_estimate, intent_class, h10_score, organic_rank, sponsored_rank, confidence (MEDIUM — external tool data). Metadata: source_file, import_date, total_rows, valid_rows, skipped_rows, dedup_count.
+
 ## Input Validation
 
 | Mode | Required | Block if missing |
 |---|---|---|
 | GENERATE | zone_id (1-7) + date | No zone data to load |
 | SCAN | zone_id or category name | No search target |
+| IMPORT | csv_data + source_type | No CSV data to import |
 
-Both modes require opportunity map accessible in project context.
+GENERATE and SCAN require opportunity map accessible in project context.
 
 ## Halt Conditions
 
 - GENERATE: all Layer 1 seeds suppressed (zero-yield 3+ runs) -> halt, request manual keyword review
 - GENERATE: zero keywords pass validation -> halt, return empty set with reason
 - SCAN: all signals UNKNOWN -> return with UNKNOWN confidence, never invent trends
+- IMPORT: CSV parse failure or zero valid rows -> halt, return parse error with column mapping attempted
 
 ## Rules
 
@@ -71,4 +87,4 @@ Both modes require opportunity map accessible in project context.
 
 ## Trigger Phrases
 
-KI-, generate keywords, seed keywords, keyword intelligence, daily keywords, expand keywords, keyword for zone, what keywords should I use, scan trends, search velocity, rising keywords.
+KI-, generate keywords, seed keywords, keyword intelligence, daily keywords, expand keywords, keyword for zone, what keywords should I use, scan trends, search velocity, rising keywords, import keywords, import CSV, helium10 import, jungle scout import, IMPORT.

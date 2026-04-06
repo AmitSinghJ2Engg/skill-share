@@ -245,7 +245,7 @@
 
     "Campaigns": {
       "api_name": "Campaigns",
-      "id": "645926000004114076",
+      "id": "645926000000000055",
       "label": "Campaigns",
       "note": "Built-in module — strategy/round level. Parent of Amazon_Ad_Campaigns.",
       "lookup": "Product_Launches",
@@ -283,6 +283,7 @@
 
     "Amazon_Ad_Campaigns": {
       "api_name": "Amazon_Ad_Campaigns",
+      "id": "645926000009971002",
       "label": "Amazon Ad Campaigns",
       "note": "Custom module — 1:1 with Seller Central campaign. Child of Campaigns.",
       "lookups": ["Campaigns", "Product_Launches"],
@@ -302,9 +303,9 @@
           "Start_Date": {"type": "date"},
           "End_Date": {"type": "date"},
           "Country": {"type": "picklist"},
-          "Top_of_Search_Adjustment_Pct": {"type": "percent"},
-          "Product_Pages_Adjustment_Pct": {"type": "percent"},
-          "Rest_of_Search_Adjustment_Pct": {"type": "percent"}
+          "Top_Search_Adj_Pct": {"type": "percent"},
+          "Product_Pages_Adj_Pct": {"type": "percent"},
+          "Rest_Search_Adj_Pct": {"type": "percent"}
         },
         "ad_group_keywords": {
           "Ad_Group_Name": {"type": "text"},
@@ -339,7 +340,7 @@
           "Data_Quality": {"type": "picklist"}
         },
         "meta": {
-          "Notes": {"type": "textarea"},
+          "Campaign_Notes": {"type": "textarea"},
           "Slack_Shared": {"type": "boolean"},
           "Confluence_URL": {"type": "website"}
         }

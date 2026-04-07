@@ -11,6 +11,7 @@ The MCP endpoints are standard HTTP servers. Call them directly via `curl` + JSO
 zoho-crm:           https://temp-zohocrm-code-60067027941.zohomcp.in/mcp/<token>/message
 zoho-bigin:         https://bigin-pipeline-product-launch-manager-60067027941.zohomcp.in/mcp/<token>/message
 zoho-crm-workflow:  https://crm-workflow-mcp-60067027941.zohomcp.in/mcp/<token>/message
+crm-module-admin-ops: https://crm-module-admin-ops-60067027941.zohomcp.in/mcp/<token>/message
 ```
 **Note:** The `temp-` prefix on zoho-crm URL suggests temporary/session-based URLs. Check Zoho Developer Console > MCP Connections if URLs expire.
 
@@ -86,6 +87,16 @@ for c in content:
 - `slack_notifications` is inline (non-associate) but needs Slack channel ID from integration config — easier to create in Zoho UI
 - `field_updates`, `webhooks`, `functions` are associate actions — need pre-creation via separate API, then referenced by ID
 - Deluge custom functions can only be created in Zoho CRM Developer Space (UI), not via MCP
+
+## CRM Module Admin Ops Tools (4 — crm-module-admin-ops endpoint)
+**CRUD:** createValidationRule, getValidationRules, getValidationRule, updateValidationRule
+
+### Validation Rule Gotchas
+- `createValidationRule` needs `query_params.module` + `query_params.layout_id`
+- `sub_conditions` fail on create — create base rule first, then update to add sub_conditions
+- Parent condition `alert_type: "allow_by_alert"` must NOT have `alert_preference` (causes DEPENDENT_MISMATCH)
+- Field-to-field date comparison not supported — create date rules in Zoho UI
+- Validation rules only enforce in CRM UI, NOT via API (API is trusted)
 
 ## Bigin MCP Tools (19 — zoho-bigin endpoint)
 **Read:** getModules, getModulesMetadata, getFieldsMetadata, getLayoutsMetadata, getRecords, getSpecificRecord, getRelatedListRecords, getRecordsFromSpecificTeamPipeline, getNotesFromSpecificRecord, recordsCount, getRecordCountForSpecificTag, searchRecords, getRecordsUsingCoqlQuery

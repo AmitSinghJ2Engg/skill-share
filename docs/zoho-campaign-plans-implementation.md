@@ -199,50 +199,37 @@ Created via MCP `ZohoCRM_createModules` on 2026-04-06:
 
 ---
 
-## 3. Validation Rules (MANUAL — Zoho UI)
+## 3. Validation Rules
 
-> **Why manual:** No MCP tool for creating validation rules. Must be done in Zoho CRM UI.
+> Validation rules enforce in the **Zoho CRM UI only** (not via API — API is trusted). They protect manual data entry.
 
-### Rule 1: Budget Check (Amazon_Ad_Campaigns)
+### Rule 1: Budget Check — DONE (ID: 645926000010011018)
 
-**Navigate:** Setup > Customization > Modules > Amazon Ad Campaigns > Validation Rules > + New Rule
+Created via MCP `crm-module-admin-ops` endpoint.
 
 | Setting | Value |
 |---------|-------|
 | **Rule Name** | Budget Required Before Approval |
 | **Module** | Amazon Ad Campaigns |
-| **Description** | Ensures daily budget is set before campaign approval |
+| **Primary field** | Status |
+| **Primary condition** | Status equals "Approved" |
+| **Sub-condition** | Daily_Budget_INR <= 0 |
+| **Alert** | "Daily budget must be positive before approval" |
+| **Alert type** | Stop saving records |
 
-**Rule criteria (execute rule when):**
-```
-Status equals "Approved"
-AND Daily_Budget_INR is null OR Daily_Budget_INR equals 0
-```
+### Rule 2: Date Sequence Check (MANUAL — Zoho UI)
 
-**Alert:**
-- Message: "Daily budget must be positive before approval"
-- Field to highlight: Daily_Budget_INR
+> API doesn't support field-to-field date comparison. Create in Zoho UI.
 
-### Rule 2: Date Sequence Check (Amazon_Ad_Campaigns)
-
-**Navigate:** Same module > Validation Rules > + New Rule
+**Navigate:** Setup > Customization > Modules > Amazon Ad Campaigns > Validation Rules > + New Rule
 
 | Setting | Value |
 |---------|-------|
 | **Rule Name** | End Date After Start Date |
-| **Module** | Amazon Ad Campaigns |
-| **Description** | Prevents end date before start date |
-
-**Rule criteria (execute rule when):**
-```
-End_Date is not null
-AND Start_Date is not null
-AND End_Date is before Start_Date
-```
-
-**Alert:**
-- Message: "End date must be after start date"
-- Field to highlight: End_Date
+| **Primary field** | End_Date |
+| **Primary condition** | End_Date is less than Start_Date (use field picker) |
+| **Alert** | "End date must be after start date" |
+| **Alert type** | Stop saving records |
 
 ---
 
@@ -425,9 +412,9 @@ else
 
 ---
 
-## 5. Zoho Bigin: One-Way Sync (MCP — task-side, replaces Zoho Flow)
+## 5. Zoho Bigin: One-Way Sync (CRM → Bigin)
 
-> **Revised approach:** Instead of Zoho Flow rules, the `daily-ads-analysis` task pushes campaign data to Bigin in the same MCP run that updates CRM. This is simpler, debuggable (logged in ISM_ExecutionLogs), and has no async delays.
+> **Pattern:** Tasks only update CRM. CRM → Bigin sync is a **separate concern** — either a dedicated sync task or triggered after CRM updates. This keeps task logic focused on CRM and makes the Bigin sync independently testable and debuggable.
 
 ### 5.1 Bigin Pipeline Fields — DONE
 
@@ -558,9 +545,9 @@ ZohoCRM_createRecords  path_variables.module="ISM_ExecutionLogs"
 - [ ] Add validation rules (budget, dates)
 - [ ] Record module ID in crm-field-mappings.ctx.json
 
-### Validation Rules (MANUAL — Zoho UI, see §3)
-- [ ] Create rule: Budget Required Before Approval (Amazon_Ad_Campaigns)
-- [ ] Create rule: End Date After Start Date (Amazon_Ad_Campaigns)
+### Validation Rules (see §3)
+- [x] Rule 1: Budget Required Before Approval (MCP-created, ID: 645926000010011018)
+- [ ] Rule 2: End Date After Start Date (manual — API doesn't support field-to-field date comparison)
 
 ### Workflow Rules (see §4 — all use native Slack instant actions)
 - [x] 4.1: Strategy Activated → Slack (MCP rule ID: 645926000010000003, Slack action configured in UI)

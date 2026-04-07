@@ -8,8 +8,9 @@ The MCP endpoints are standard HTTP servers. Call them directly via `curl` + JSO
 
 ### Connection Config (from `.mcp.json`)
 ```
-zoho-crm:  https://temp-zohocrm-code-60067027941.zohomcp.in/mcp/<token>/message
-zoho-bigin: https://bigin-pipeline-product-launch-manager-60067027941.zohomcp.in/mcp/<token>/message
+zoho-crm:           https://temp-zohocrm-code-60067027941.zohomcp.in/mcp/<token>/message
+zoho-bigin:         https://bigin-pipeline-product-launch-manager-60067027941.zohomcp.in/mcp/<token>/message
+zoho-crm-workflow:  https://crm-workflow-mcp-60067027941.zohomcp.in/mcp/<token>/message
 ```
 **Note:** The `temp-` prefix on zoho-crm URL suggests temporary/session-based URLs. Check Zoho Developer Console > MCP Connections if URLs expire.
 
@@ -57,6 +58,7 @@ for c in content:
 - Bash tool uses Unix syntax but runs on Windows Git Bash
 
 ## Available Zoho CRM MCP Tools (29 as of 2026-04-06)
+## + Workflow (13 tools) + Bigin (19 tools)
 **Read:** getModules, getFields, getFieldsWithID, getLayouts, getLayoutById, getLayoutRules, getLayoutRulesById, getRelatedLists, getRelatedRecords, getRelatedRecord, getRecord, getPipeline, getPipelines, getPickListValues, getPickListValuesAssociations, getCustomViews, getCustomViewById, getNotes, getNotesModule, getNoteById, getDuplicateCheckPreference
 **Write:** createFields (max 5/call), createRecords, createModules, createDuplicateCheckPreference
 **Update:** updateRecord, updateRecords, updateModules
@@ -73,6 +75,28 @@ for c in content:
 - `getRelatedRecords` needs `path_variables.parentRecordModule`, `parentRecord`, `relatedList` + `query_params.fields` (mandatory)
 - Related list API name ≠ module API name. Use `getRelatedLists` to discover. E.g. Amazon_Ad_Campaigns appears as `Ad_Campaigns` related list on Campaigns.
 - Large responses may truncate — save to `$TEMP` file and parse from disk
+
+## Workflow MCP Tools (13 — zoho-crm-workflow endpoint)
+**Read:** getWorkflowRules, getWorkflowRuleById, getWorkflowRulesCount, getWorkflowRulesActionsCount, getWorkflowRuleUsage, getWorkflowConfigurations, getWorkflowTasks
+**Write:** postWorkflowRule, createWorkflowTasks
+**Update:** updateWorkflowRule, updateWorkflowRuleById, updateWorkflowTaskById, reorderWorkflowRules
+
+### Workflow Gotchas
+- `postWorkflowRule` requires `execute_when.details.repeat` field (even if false)
+- `slack_notifications` is inline (non-associate) but needs Slack channel ID from integration config — easier to create in Zoho UI
+- `field_updates`, `webhooks`, `functions` are associate actions — need pre-creation via separate API, then referenced by ID
+- Deluge custom functions can only be created in Zoho CRM Developer Space (UI), not via MCP
+
+## Bigin MCP Tools (19 — zoho-bigin endpoint)
+**Read:** getModules, getModulesMetadata, getFieldsMetadata, getLayoutsMetadata, getRecords, getSpecificRecord, getRelatedListRecords, getRecordsFromSpecificTeamPipeline, getNotesFromSpecificRecord, recordsCount, getRecordCountForSpecificTag, searchRecords, getRecordsUsingCoqlQuery
+**Write:** addRecords, upsertRecords, addNotes, addNotesToSpecificRecord, addTagsToSpecificRecord
+**Update:** updateSpecificRecord
+
+### Bigin Gotchas
+- `searchRecords` needs `path_variables.module_api_name` (not query_params)
+- `updateSpecificRecord` path variable is `id` (not `record_id`)
+- Bigin record lookup by CRM_Record_ID: `criteria="(CRM_Record_ID:equals:{crm_product_launch_id})"`
+- Bigin Pipelines module ID: 677677000000000043
 
 ## Module IDs (confirmed 2026-04-06)
 | Module | ID |

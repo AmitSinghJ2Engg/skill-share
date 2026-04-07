@@ -246,12 +246,12 @@ AND End_Date is before Start_Date
 
 ---
 
-## 4. Workflow Rules (MANUAL — Zoho UI)
+## 4. Workflow Rules
 
-> **Why manual:** No MCP tool for workflow rule creation. Must be done in Zoho CRM UI.
-> **Navigate for all rules:** Setup > Automation > Workflow Rules > + Create Rule
+> **Navigate:** Setup > Automation > Workflow Rules > + Create Rule
+> All rules use native Zoho CRM **Instant Slack Notification** actions. Channel: `#marketing-ops-alerts` (Slack ID: C081MG4HXK6). Requires Zoho CRM Slack integration to be authorized (Setup > Channels > Chat > Slack).
 
-### 4.1 Campaign Strategy Activation → Slack
+### 4.1 Campaign Strategy Activation → Slack — DONE (workflow ID: 645926000010000003)
 
 | Setting | Value |
 |---------|-------|
@@ -260,76 +260,112 @@ AND End_Date is before Start_Date
 | **When** | On a record action — Edit |
 | **Condition** | Status is modified AND Status equals "Active" |
 
-**Instant Action → Webhook:**
+**Instant Action → Slack Notification** to `#marketing-ops-alerts`:
 
-| Setting | Value |
-|---------|-------|
-| **Name** | Slack ISM Launch Alert — Strategy |
-| **URL** | *(your #ism-launch-alerts Slack webhook URL)* |
-| **Method** | POST |
-| **Body (JSON)** | See below |
-
-```json
-{
-  "text": "Campaign strategy '${Campaigns.Campaign Name}' activated.\nScenario: ${Campaigns.Scenario Type}\nBudget: INR ${Campaigns.Total Budget INR}\nProduct: ${Campaigns.Product Launch}"
-}
+```
+📊 Campaign Strategy Activated
+Strategy: ${Campaigns.Campaign Name}
+Scenario: ${Campaigns.Scenario Type}
+Phase: ${Campaigns.Test Phase}
+Total Budget: INR ${Campaigns.Total Budget INR}
+Product: ${Campaigns.Product Launch}
 ```
 
-### 4.2 Ad Campaign Start Date Auto-Set
+> Rule created via MCP on 2026-04-07. Slack action configured manually in Zoho UI.
+
+### ~~4.2 Ad Campaign Start Date Auto-Set~~ — REMOVED
+
+> Start_Date should be set by the caller (MCP / daily-ads-analysis) in the same API call that sets Status to "Active". No server-side workflow needed.
+
+### 4.3 ACoS Update Alert → Slack
 
 | Setting | Value |
 |---------|-------|
-| **Rule Name** | ISM: Auto-Set Start Date on Activation |
-| **Module** | Amazon Ad Campaigns |
-| **When** | On a record action — Edit |
-| **Condition** | Status is modified AND Status equals "Active" AND Start_Date is empty |
-
-**Instant Action → Field Update:**
-
-| Field | Value |
-|-------|-------|
-| Start_Date | Current Date (use `${CURRENTDATE}`) |
-
-### 4.3 ACoS Breakeven Alert
-
-| Setting | Value |
-|---------|-------|
-| **Rule Name** | ISM: ACoS Breakeven Alert |
+| **Rule Name** | ISM: ACoS Update Alert |
 | **Module** | Amazon Ad Campaigns |
 | **When** | On a record action — Edit |
 | **Condition** | Actual_ACoS_Pct is modified AND Actual_ACoS_Pct > 0 |
 
+**Instant Action → Slack Notification** to `#marketing-ops-alerts`:
+
+```
+⚠️ ACoS Update — Review Required
+Campaign: ${Amazon Ad Campaigns.Name}
+Type: ${Amazon Ad Campaigns.Campaign Type} | Targeting: ${Amazon Ad Campaigns.Targeting Type}
+Actual ACoS: ${Amazon Ad Campaigns.Actual ACoS Pct}%
+Breakeven ACoS: ${Amazon Ad Campaigns.Lookup:Product Launch.Break even ACoS}%
+Actual Spend: INR ${Amazon Ad Campaigns.Actual Spend INR}
+Revenue: INR ${Amazon Ad Campaigns.Actual Revenue INR}
+Strategy: ${Amazon Ad Campaigns.Lookup:Campaign Strategy.Campaign Name}
+```
+
+> **Design note:** Uses native Slack notification with lookup merge fields instead of Deluge custom function + Zoho Flow webhook. Both actual ACoS and breakeven ACoS are shown side-by-side so the team can assess at a glance. No programmatic comparison needed — human reads the alert.
+
+### 4.5 Aggregate Rollup to Strategy (MANUAL — Deluge Custom Function)
+
+| Setting | Value |
+|---------|-------|
+| **Rule Name** | ISM: Rollup Actuals to Strategy |
+| **Module** | Amazon Ad Campaigns |
+| **When** | On a record action — Create or Edit |
+| **Condition** | Any — match all records (no criteria filter) |
+
 **Instant Action → Custom Function (Deluge):**
 
-> A workflow field update can't cross-reference Product_Launches.Break_even_ACoS directly. Use a Custom Function instead:
+Function arguments (configure in Zoho UI):
+- `int Campaign_Strategy` — mapped to Amazon_Ad_Campaigns.Campaign_Strategy
 
 ```deluge
-// Get the linked Product Launch's Break-even ACoS
-product_launch_id = input.Product_Launch;
-if (product_launch_id != null)
+// ISM: Rollup Actuals to Strategy
+// Sums actuals from all child Amazon_Ad_Campaigns and updates parent Campaigns record
+info "Rollup: checking strategy_id=" + Campaign_Strategy;
+
+if (Campaign_Strategy != null && Campaign_Strategy != 0)
 {
-    product = zoho.crm.getRecordById("Product_Launches", product_launch_id);
-    breakeven = ifnull(product.get("Break_even_ACoS"), 0.0);
-    actual = ifnull(input.Actual_ACoS_Pct, 0.0);
-    if (actual > breakeven && breakeven > 0)
+    siblings = zoho.crm.getRelatedRecords("Ad_Campaigns", "Campaigns", Campaign_Strategy);
+    total_imp = 0;
+    total_clicks = 0;
+    total_orders = 0;
+    total_spend = 0.0;
+    total_rev = 0.0;
+
+    for each rec in siblings
     {
-        // Post to Slack
-        slack_payload = Map();
-        slack_payload.put("text", "ACoS ALERT: " + input.Name + " at " + actual + "% exceeds breakeven " + breakeven + "%. Campaign: " + input.Campaign_Strategy);
-        response = invokeurl
-        [
-            url: "<your-slack-webhook-url>"
-            type: POST
-            parameters: slack_payload.toString()
-            content-type: "application/json"
-        ];
+        total_imp = total_imp + ifnull(rec.get("Actual_Impressions"), 0).toLong();
+        total_clicks = total_clicks + ifnull(rec.get("Actual_Clicks"), 0).toLong();
+        total_orders = total_orders + ifnull(rec.get("Actual_Orders"), 0).toLong();
+        total_spend = total_spend + ifnull(rec.get("Actual_Spend_INR"), 0.0).toDecimal();
+        total_rev = total_rev + ifnull(rec.get("Actual_Revenue_INR"), 0.0).toDecimal();
     }
+
+    // Compute derived ratios
+    acos = if(total_rev > 0, (total_spend / total_rev * 100).round(2), 0.0);
+    cvr = if(total_clicks > 0, (total_orders.toDecimal() / total_clicks * 100).round(2), 0.0);
+    ctr = if(total_imp > 0, (total_clicks.toDecimal() / total_imp * 100).round(2), 0.0);
+
+    info "Rollup: imp=" + total_imp + " clicks=" + total_clicks + " orders=" + total_orders + " spend=" + total_spend + " rev=" + total_rev;
+    info "Rollup: acos=" + acos + "% cvr=" + cvr + "% ctr=" + ctr + "%";
+
+    update_map = Map();
+    update_map.put("Agg_Impressions", total_imp);
+    update_map.put("Agg_Clicks", total_clicks);
+    update_map.put("Agg_Orders", total_orders);
+    update_map.put("Agg_Spend_INR", total_spend);
+    update_map.put("Agg_Revenue_INR", total_rev);
+    update_map.put("Agg_ACoS_Pct", acos);
+    update_map.put("Agg_CVR_Pct", cvr);
+    update_map.put("Agg_CTR_Pct", ctr);
+
+    result = zoho.crm.updateRecord("Campaigns", Campaign_Strategy, update_map);
+    info "Rollup: updated strategy, result=" + result;
+}
+else
+{
+    info "Rollup: SKIPPED — no Campaign_Strategy linked";
 }
 ```
 
-**Note:** Replace `<your-slack-webhook-url>` with the actual #ism-launch-alerts Slack incoming webhook URL.
-
-### 4.4 Strategy Completion Auto-Transition
+### 4.4 Strategy Completion Auto-Transition — DONE (workflow ID: 645926000010005071)
 
 | Setting | Value |
 |---------|-------|
@@ -340,95 +376,111 @@ if (product_launch_id != null)
 
 **Instant Action → Custom Function (Deluge):**
 
+Function arguments (configure in Zoho UI):
+- `int Campaign_Strategy` — mapped to Amazon_Ad_Campaigns.Campaign_Strategy
+
 ```deluge
-// Check if ALL sibling Amazon_Ad_Campaigns under the same strategy are Completed
-strategy_id = input.Campaign_Strategy;
-if (strategy_id != null)
+// ISM: Strategy Auto-Complete
+// When all child Amazon_Ad_Campaigns are Completed, auto-complete the parent Campaigns record
+info "Strategy AutoComplete: checking strategy_id=" + Campaign_Strategy;
+
+if (Campaign_Strategy != null && Campaign_Strategy != 0)
 {
-    siblings = zoho.crm.getRelatedRecords("Ad_Campaigns", "Campaigns", strategy_id);
+    siblings = zoho.crm.getRelatedRecords("Ad_Campaigns", "Campaigns", Campaign_Strategy);
+    total = siblings.size();
+    completed_count = 0;
     all_complete = true;
+
     for each rec in siblings
     {
-        if (rec.get("Status") != "Completed")
+        status = rec.get("Status");
+        info "Strategy AutoComplete: sibling " + rec.get("Name") + " status=" + status;
+        if (status != "Completed")
         {
             all_complete = false;
         }
+        else
+        {
+            completed_count = completed_count + 1;
+        }
     }
-    if (all_complete && siblings.size() > 0)
+
+    info "Strategy AutoComplete: " + completed_count + "/" + total + " completed, all_complete=" + all_complete;
+
+    if (all_complete && total > 0)
     {
         update_map = Map();
         update_map.put("Status", "Complete");
-        zoho.crm.updateRecord("Campaigns", strategy_id, update_map);
+        result = zoho.crm.updateRecord("Campaigns", Campaign_Strategy, update_map);
+        info "Strategy AutoComplete: updated strategy to Complete, result=" + result;
     }
+}
+else
+{
+    info "Strategy AutoComplete: SKIPPED — no Campaign_Strategy linked";
 }
 ```
 
-**Note:** The related list API name is confirmed as `Ad_Campaigns` (verified via `getRelatedLists` on Campaigns, 2026-04-06).
+**Note:** Related list API name confirmed as `Ad_Campaigns` (verified 2026-04-06).
 
 ---
 
-## 5. Zoho Bigin: One-Way Sync (MANUAL — Zoho UI + Zoho Flow)
+## 5. Zoho Bigin: One-Way Sync (MCP — task-side, replaces Zoho Flow)
 
-> **Why manual:** No MCP tool for Bigin field creation or Zoho Flow rules. Must be done in Zoho Bigin UI and Zoho Flow.
+> **Revised approach:** Instead of Zoho Flow rules, the `daily-ads-analysis` task pushes campaign data to Bigin in the same MCP run that updates CRM. This is simpler, debuggable (logged in ISM_ExecutionLogs), and has no async delays.
 
-### 5.1 Add Fields to Product Launch Factory Pipeline
+### 5.1 Bigin Pipeline Fields — DONE
 
-**Navigate:** Bigin > Settings > Pipelines > Product Launch Factory > Fields > + New Field
+All 5 fields created on Product Launch Factory pipeline (as single-line text/double/currency — values sourced from CRM):
 
-Create these 5 fields (all read-only in practice — only updated by Zoho Flow, never manually):
+| Field | API Name | Bigin Type | Confirmed |
+|-------|----------|-----------|-----------|
+| Active Campaign Strategy | Active_Campaign_Strategy | text | verified 2026-04-07 |
+| Campaign Status | Campaign_Status | text | verified 2026-04-07 |
+| Campaign ACoS Current | Campaign_ACoS_Current | double | verified 2026-04-07 |
+| Campaign Spend Total | Campaign_Spend_Total | currency | verified 2026-04-07 |
+| Gate 2 Verdict | Gate_2_Verdict | text | verified 2026-04-07 |
 
-| # | Field Label | API Name | Type | Picklist Values (if applicable) |
-|---|-------------|----------|------|---------------------------------|
-| 1 | Active Campaign Strategy | Active_Campaign_Strategy | Single Line | — |
-| 2 | Campaign Status | Campaign_Status | Pick List | Planning, Active, Inactive, Complete |
-| 3 | Campaign ACoS Current | Campaign_ACoS_Current | Percent | — |
-| 4 | Campaign Spend Total | Campaign_Spend_Total | Currency (INR) | — |
-| 5 | Gate 2 Verdict | Gate_2_Verdict | Pick List | Scale, Kill, Pivot, Pending |
+### 5.2 MCP Sync Pattern (CRM → Bigin)
 
-### 5.2 Create Zoho Flow Rules (CRM → Bigin only)
+**How it works:** After updating Campaigns aggregates in CRM, the task finds the corresponding Bigin record and pushes the campaign fields.
 
-**Navigate:** flow.zoho.com > + Create Flow
+**Record lookup chain:**
+```
+Campaign.Product_Launch (CRM lookup) → Product_Launch record ID
+  → Bigin_searchRecords(criteria="CRM_Record_ID:equals:{product_launch_id}")
+  → Bigin record ID
+  → Bigin_updateSpecificRecord with campaign fields
+```
 
-#### Flow 1: Campaign Status Sync
+**Verified MCP calls (tested 2026-04-07):**
 
-| Setting | Value |
-|---------|-------|
-| **Flow Name** | ISM: Campaign Status → Bigin |
-| **Trigger** | Zoho CRM > Module: Campaigns > When: Record edited |
-| **Trigger Filter** | Status is modified OR Campaign_Name is modified |
+```bash
+BIGIN_URL="<from .mcp.json zoho-bigin endpoint>"
 
-**Actions (in order):**
+# 1. Find Bigin record by CRM Product_Launch ID
+Bigin_searchRecords
+  path_variables.module_api_name="Pipelines"
+  query_params.criteria="(CRM_Record_ID:equals:{PRODUCT_LAUNCH_ID})"
+  → returns Bigin record with id
 
-1. **Fetch Bigin record** — Custom Function or Zoho CRM lookup:
-   - Get the Product_Launch linked to this Campaign
-   - Use Product_Launch.Bigin_Record_ID to find the Bigin deal
-2. **Update Bigin record:**
-   - Active_Campaign_Strategy = `${CRM.Campaigns.Campaign_Name}`
-   - Campaign_Status = `${CRM.Campaigns.Status}`
-
-**If no Bigin record found:** Log warning, skip update (don't fail).
-
-#### Flow 2: Campaign Metrics Sync
-
-| Setting | Value |
-|---------|-------|
-| **Flow Name** | ISM: Campaign Metrics → Bigin |
-| **Trigger** | Zoho CRM > Module: Campaigns > When: Record edited |
-| **Trigger Filter** | Any of: Agg_ACoS_Pct, Agg_Spend_INR, Gate_2_Verdict is modified |
-
-**Actions (in order):**
-
-1. **Fetch Bigin record** (same pattern as Flow 1)
-2. **Update Bigin record:**
-   - Campaign_ACoS_Current = `${CRM.Campaigns.Agg_ACoS_Pct}`
-   - Campaign_Spend_Total = `${CRM.Campaigns.Agg_Spend_INR}`
-   - Gate_2_Verdict = `${CRM.Campaigns.Gate_2_Verdict}`
+# 2. Update Bigin record with campaign data
+Bigin_updateSpecificRecord
+  path_variables.module_api_name="Pipelines"  id={BIGIN_RECORD_ID}
+  body.data: [{
+    Active_Campaign_Strategy: campaign_name,
+    Campaign_Status: campaign_status,
+    Campaign_ACoS_Current: agg_acos_pct,
+    Campaign_Spend_Total: agg_spend_inr,
+    Gate_2_Verdict: gate_2_verdict
+  }]
+```
 
 ### 5.3 Important: No Reverse Sync
 
-- **Never** create a Bigin → CRM flow for these fields
+- **Never** update CRM from Bigin for these fields
 - Bigin is a read-only visibility layer for campaign data
-- All writes happen in CRM (via MCP / daily-ads-analysis task)
+- All writes happen in CRM first, then push to Bigin via MCP
 
 ---
 
@@ -510,16 +562,16 @@ ZohoCRM_createRecords  path_variables.module="ISM_ExecutionLogs"
 - [ ] Create rule: Budget Required Before Approval (Amazon_Ad_Campaigns)
 - [ ] Create rule: End Date After Start Date (Amazon_Ad_Campaigns)
 
-### Workflow Rules (MANUAL — Zoho UI, see §4)
-- [ ] Create workflow 4.1: Strategy Activated → Slack webhook
-- [ ] Create workflow 4.2: Auto-Set Start Date on Activation
-- [ ] Create workflow 4.3: ACoS Breakeven Alert (Custom Function + Slack)
-- [ ] Create workflow 4.4: Strategy Auto-Complete (Custom Function)
+### Workflow Rules (see §4 — all use native Slack instant actions)
+- [x] 4.1: Strategy Activated → Slack (MCP rule ID: 645926000010000003, Slack action configured in UI)
+- [x] ~~4.2: Auto-Set Start Date~~ — REMOVED (caller sets Start_Date in same API call)
+- [ ] 4.3: ACoS Update Alert → Slack (native Slack notification — no Deluge/Flow needed, see §4.3 for message template)
+- [x] 4.4: Strategy Auto-Complete (Deluge, ID: 645926000010005071, tested — auto-completes strategy)
 
-### Zoho Bigin (MANUAL — Bigin UI + Zoho Flow, see §5)
-- [ ] Add 5 new fields to Product Launch Factory pipeline (§5.1)
-- [ ] Create Zoho Flow: Campaign Status → Bigin (§5.2 Flow 1)
-- [ ] Create Zoho Flow: Campaign Metrics → Bigin (§5.2 Flow 2)
+### Zoho Bigin (MCP sync, see §5)
+- [x] Add 5 fields to Product Launch Factory pipeline (§5.1) — all created as text/double/currency
+- [x] MCP sync pattern verified: search by CRM_Record_ID + update (§5.2, tested 2026-04-07)
+- [x] ~~Zoho Flow rules~~ — REPLACED by task-side MCP sync (no Flow needed)
 
 ### Validation (MCP verified 2026-04-06)
 - [x] MCP: create Campaigns record + 2 linked Amazon_Ad_Campaigns, verify lookups

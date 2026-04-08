@@ -115,6 +115,16 @@ plugins:
       - skill: slack-messaging
         from: platform
 
+  # ── Platform (Shared I/O) ────────────────────────────────────────
+
+  platform-io:
+    description: "Platform I/O layer -- Zoho read/write/sync across CRM, Bigin, Books, Inventory, Desk, Analytics via MCP."
+    version: "1.0.0"
+    project: "Platform"
+    skills:
+      - skill: zoho-data-ops
+        from: platform
+
   # ── System Ops (Governance) ───────────────────────────────────────
 
   governance-audit:

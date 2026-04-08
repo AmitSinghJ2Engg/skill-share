@@ -16,12 +16,14 @@ TSX artifact files for Claude.ai conversations. One file per artifact, versioned
 | Live Ops | ism-live-ops | ops-dashboard-v1.0.artifact.tsx | D4 | Not built |
 | Procurement | ism-procurement | source-to-pay-v1.0.artifact.tsx | S2P | Not built |
 
-**Existing artifacts (pre-merge, to be consolidated into Market Testing module):**
+**Deprecated artifacts (pre-DL-016, superseded by market-testing-v1.0):**
 
-| File | Domain | Status |
-|------|--------|--------|
-| `campaign-planner-v1.0.artifact.tsx` | D2.5 (Plan + Run) | Built |
-| `scale-decision-workbench-v1.0.artifact.tsx` | D2.5 (Analyze + Decide) | Built |
+| File | Domain | Status | Note |
+|------|--------|--------|------|
+| `campaign-planner-v1.0.artifact.tsx` | D2.5 (Plan + Run) | Deprecated | JSX, pre-DL-015 TSX mandate. Functionality merged into market-testing 5-view spec. |
+| `scale-decision-workbench-v1.0.artifact.tsx` | D2.5 (Analyze + Decide) | Deprecated | JSX, pre-DL-015 TSX mandate. Functionality merged into market-testing 5-view spec. |
+
+These files are retained for reference. The consolidated `market-testing-v1.0.artifact.tsx` (specified in `projects/chat/ism-market-testing/artifact-prompt.md`) replaces both.
 
 Build artifacts using the artifact prompt in the corresponding Chat project directory.
 See `docs/03-implementation-standards.md` section 3 for artifact standards.

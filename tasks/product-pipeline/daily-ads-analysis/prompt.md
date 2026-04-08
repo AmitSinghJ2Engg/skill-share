@@ -64,6 +64,7 @@ Flag anomalies:
 - ACoS jump: daily ACoS > breakeven ACoS + 20pp
 - CTR drop: daily CTR < 50% of cumulative CTR
 - Zero orders: clicks > 20 but orders = 0 today
+- Budget overpacing: if (cumulative spend / total budget) > (elapsed days / total duration) + 0.20, flag "overpacing — {spend_pct}% of budget spent in {duration_pct}% of time"
 
 ### Step 5: Update Amazon_Ad_Campaigns actuals
 
@@ -91,6 +92,32 @@ For each Campaigns (strategy) record, sum across all its child Amazon_Ad_Campaig
 - Agg_CVR_Pct = Agg_Orders / Agg_Clicks (blended)
 - Agg_CTR_Pct = Agg_Clicks / Agg_Impressions (blended)
 - Data_Quality = MIN across children (worst quality wins)
+
+### Step 5.55: Gate 2 readiness check
+
+After aggregation, check if the Campaigns record's aggregate metrics now meet Gate 2 criteria (from `gate-criteria.ctx.json`):
+- **Path A:** Agg_Orders >= 10 AND Agg_CVR_Pct >= 5%
+- **Path B:** Agg_Impressions >= 500 AND Agg_CTR_Pct >= 0.3%
+
+If either path is met AND Gate_2_Verdict is still "Pending":
+- Post proactive alert to **#ism-launch-alerts** via `slack-messaging` skill: "Gate 2 data sufficient for {product_name} — Path {A/B} criteria met. Ready for scale decision review."
+- Do NOT auto-update Gate_2_Verdict — this remains a human decision.
+
+### Step 5.6: Sync campaign data to Bigin
+
+For each Campaigns record updated in Step 5.5, invoke **ZO- zoho-data-ops SYNC mode** to push campaign fields to the corresponding Bigin Product Launch Factory record:
+
+1. Find the Bigin record: read `Product_Launches.Bigin_Record_ID` from the linked Product_Launches record, then search Bigin by `CRM_Record_ID`
+2. Update 5 Bigin fields from Campaigns:
+   - `Active_Campaign_Strategy` <- `Campaigns.Campaign_Name`
+   - `Campaign_Status` <- `Campaigns.Status`
+   - `Campaign_ACoS_Current` <- `Campaigns.Agg_ACoS_Pct`
+   - `Campaign_Spend_Total` <- `Campaigns.Agg_Spend_INR`
+   - `Gate_2_Verdict` <- `Campaigns.Gate_2_Verdict`
+
+**One-way sync only:** CRM -> Bigin. Never write back from Bigin to CRM.
+
+**Guard:** If Bigin record not found (no CRM_Record_ID match), log warning and continue. Do not block the daily run.
 
 ### Step 6: Update Product_Launches test fields
 

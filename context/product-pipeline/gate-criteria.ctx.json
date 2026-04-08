@@ -1,6 +1,5 @@
 {
-  "_generated": "2026-03-30",
-  "_source": "docs/02-business-domain-map.md gate definitions",
+  "_source": "02-business-domain-map.md gate definitions (DL-018 full_criteria added)",
 
   "gate_1": {
     "name": "Market Research Gate",
@@ -41,7 +40,13 @@
         "min_ctr_pct": 0.3
       }
     },
-    "pass_condition": "Meet Path A OR Path B, plus keyword-level bottom-line validation complete",
+    "pass_condition": "Meet Path A OR Path B, plus full_criteria below",
+    "full_criteria": {
+      "keyword_margin_min_positive": 3,
+      "blended_acos_lte": "breakeven_acos_pct",
+      "data_quality_required": ["HIGH", "MEDIUM"],
+      "compliance": "PASS or WARNING"
+    },
     "approval_fields": {
       "verdict": "Scale_Verdict",
       "complete": "Scale_Decision_Complete"

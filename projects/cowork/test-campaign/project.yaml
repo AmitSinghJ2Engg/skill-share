@@ -4,6 +4,8 @@ chat_project: ism-market-testing
 plugins:
   - product-testing
   - product-discovery
+  - product-evaluation
+  - platform-io
 skills_available:
   - product-discover
   - ikraft-keyword-intelligence

@@ -123,6 +123,11 @@ Invoke **AO- ads-ops TEST mode** with phase = `analyze_discovery`:
 
 The skill analyzes keyword performance, classifies into 4 buckets (winner/learner/loser/no_data), rates data quality, and outputs **TestResults** with harvested keywords and negative keywords.
 
+**Persist TestResults:** Write an ISM_ExecutionLogs entry via **ZO- zoho-data-ops WRITE mode**:
+- Skill_Name: "test-campaign-phase1-analysis"
+- Output_Summary: full TestResults JSON (keyword buckets, harvested keywords, data quality rating, blended metrics)
+- Input_Fingerprint: "product={product_name},asin={asin},phase=discovery"
+
 **Decision point based on data quality:**
 - HIGH/MEDIUM -> proceed to Phase 2 (Step 5)
 - LOW + extend_recommended -> present extension option to team. If approved, extend Phase 1 by config `max_extension_days`. If rejected, proceed with available data.
@@ -146,6 +151,11 @@ Invoke **AO- ads-ops TEST mode** with phase = `analyze_validation`:
 - Phase 1 TestResults for context
 
 The skill outputs TestResults with per-keyword margin viability assessment and blended metrics.
+
+**Persist TestResults:** Write an ISM_ExecutionLogs entry via **ZO- zoho-data-ops WRITE mode**:
+- Skill_Name: "test-campaign-phase2-analysis"
+- Output_Summary: full TestResults JSON (per-keyword margin viability, blended ACoS/ROAS, viable keyword count, recommendation)
+- Input_Fingerprint: "product={product_name},asin={asin},phase=validation"
 
 ### Step 7: Cost comparison and costing scenarios
 
@@ -191,6 +201,12 @@ Present all evidence for the human to make the commit/don't-commit decision:
 **If PASS:** Output ScaleDecision with quantity, target landed cost, max MOQ, launch timeline. This triggers Domain 3 (bulk order initiation + Source to Pay pipeline).
 
 **If FAIL:** Output kill/park recommendation with full rationale. Log to CRM. Post kill/park alert to Slack via `slack-messaging` skill.
+
+**Dual-write (both verdicts):** After human decides, invoke **ZO- zoho-data-ops WRITE mode** to update BOTH:
+1. `Campaigns.Gate_2_Verdict` = PASS/FAIL/CONDITIONAL, `Gate_2_Date` = today, `Gate_2_Rationale` = summary
+2. `Product_Launches.Scale_Verdict` = same verdict, `Scale_Decision_Complete` = true
+
+These two fields must always be in sync. Campaigns is the operational record; Product_Launches is the pipeline-level record read by Bigin and downstream domains.
 
 ### Step 10: Write execution log
 

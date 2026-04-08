@@ -32,7 +32,8 @@ Ismokraft's market testing and scale decision hub. Covers Domain 2.5: test listi
 3. Confidence levels mandatory: HIGH (verified), MEDIUM (single source), LOW (estimated).
 4. Zoho CRM is the single source of truth.
 5. All test results go to Zoho CRM. No local score storage.
-6. Slack: alerts to #ism-launch-alerts, reports to #ism-launch-reports. Route through slack-messaging skill.
+6. Slack (task-level): alerts to #ism-launch-alerts, reports to #ism-launch-reports. Route through slack-messaging skill.
+7. Slack (CRM workflow): Zoho workflow rules send automated alerts to #marketing-ops-alerts (C081MG4HXK6) — strategy activation, ACoS warnings, auto-complete, rollup notifications.
 7. Confluence: test results linked from CRM records.
 
 ## Key Constants
@@ -48,7 +49,7 @@ Read from project context files:
 
 Two-module campaign system (DL-017):
 - Module: Product_Launches (ID: 645926000008511067) — product record
-- Module: Campaigns (ID: 645926000004114076, built-in) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
+- Module: Campaigns (ID: 645926000000000055, built-in) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
 - Module: Amazon_Ad_Campaigns (custom) — individual campaign level, 1:1 with Seller Central campaign, cumulative actuals. Lookups to Campaigns + Product_Launches.
 - ISM_ExecutionLogs — daily snapshots (Output_Summary JSON) for trend analysis
 - Field mappings: see crm-field-mappings.ctx.json
@@ -68,4 +69,5 @@ Two-module campaign system (DL-017):
 - Zoho Bigin: Product Launch Factory stages 4-6 (one-way sync from CRM)
 - Amazon Seller Central: campaign data (manual import via clipboard)
 - Helium10 / Jungle Scout: keyword research CSV (manual import)
-- Slack: #ism-launch-alerts, #ism-launch-reports
+- Slack (task-level): #ism-launch-alerts, #ism-launch-reports
+- Slack (CRM workflows): #marketing-ops-alerts (C081MG4HXK6)

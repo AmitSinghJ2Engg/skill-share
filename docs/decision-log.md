@@ -595,3 +595,62 @@ Executed via direct HTTP JSON-RPC to Zoho MCP endpoints (zoho-crm, zoho-crm-work
 **Remaining TODOs:**
 - Validation Rule 2: Date sequence check (Deluge validation function — template in §3)
 - §5.2: CRM → Bigin sync as dedicated sync task
+
+---
+
+## DL-018: Test Campaign Workflow Review — Findings & Remediation
+
+**Date:** 2026-04-08
+**Status:** Accepted
+
+**Context:** Full review of Domain 2.5 product market testing capabilities built in DL-016 and DL-017. Review scope: 8 skills, 2 plugins, 2 tasks, 1 chat project, 1 cowork project, 9 context files, 5 CRM modules, 4 MCP servers, 2 existing artifacts.
+
+**Critical findings (3):**
+1. Plugin skill gaps — `margin-calculator` not in installed plugins; `zoho-data-ops` not in ANY plugin. Steps 1.6, 7, 10, 11 could not function.
+2. Slack channel mismatch — Zoho workflow rules target `#marketing-ops-alerts`, all docs reference `#ism-launch-alerts`. Channel IDs unfilled in pipeline-config.
+3. Missing artifact — `market-testing-v1.0.artifact.tsx` specified but never generated.
+
+**Standards violations (4):**
+- Campaigns module ID wrong in 2 instruction files (645926000004114076 vs correct 645926000000000055)
+- Hardcoded business values in artifact-prompt.md
+- Gate 2 criteria inconsistency between task prompt and gate-criteria.ctx.json
+- Existing artifacts are JSX not TSX (deprecated, superseded)
+
+**Data integrity gaps (3):**
+- Gate 2 verdict stored in two places (Campaigns + Product_Launches) with no sync rule
+- TestResults from Steps 4/6 not persisted to CRM
+- No CRM-to-Bigin sync (DL-017 §5.2 still deferred)
+
+**Decision: Plugin architecture**
+- Created `platform-io` plugin (zoho-data-ops, ~10KB) — shared I/O layer for all cowork projects
+- Added `product-evaluation` (has margin-calculator) as 3rd plugin to test-campaign cowork
+- 4 plugins total: product-testing (50KB), product-discovery (68KB), product-evaluation (55KB), platform-io (10KB)
+- Rationale: ZO is platform infrastructure used by every workflow; jamming it into a domain plugin locks it in. platform-io has room for future platform skills (confluence-ops, jira-ops).
+
+**Decision: Slack dual-channel routing**
+- Zoho workflow rules stay on `#marketing-ops-alerts` (CRM-native automated alerts)
+- Task-level Slack posts go to `#ism-launch-alerts` (system standard via slack-messaging skill)
+- Documented in both chat and cowork project instructions
+
+**Remediation applied:**
+- plugins.yaml: platform-io plugin created
+- Cowork project: 4 plugins, fixed Campaigns ID, dual-channel Slack docs
+- Chat project: fixed Campaigns ID, dual-channel Slack docs
+- artifact-prompt.md: Config Defaults reframed as fallbacks with authoritative source note
+- gate-criteria.ctx.json: full_criteria section added (keyword margin, blended ACoS, data quality, compliance)
+- test-campaign prompt: Gate 2 dual-write (Campaigns + Product_Launches), TestResults persistence (Steps 4, 6)
+- daily-ads-analysis prompt: Bigin sync (Step 5.6), Gate 2 readiness check (Step 5.55), budget pacing anomaly
+- artifacts/README.md: deprecation note for campaign-planner and scale-decision-workbench
+- All 12 plugins build successfully
+
+**Intelligence roadmap (future, not implemented):**
+- ISM_Learnings consumer task — read past gate decisions to calibrate scenario ranking and threshold adjustments
+- Cross-product pattern detection — compare keyword profiles and campaign outcomes across products
+- Scenario performance feedback loop — track which scenario types (Conservative/Balanced/Aggressive) lead to Gate 2 passes
+- Automated gate outcome prediction from historical ISM_ExecutionLogs data
+
+**Consequences:**
+- 12 plugins (was 11) — all build under 70KB
+- Test-campaign cowork project installs 4 plugins (was 2)
+- DL-017 §5.2 (Bigin sync) resolved — embedded in daily-ads-analysis Step 5.6
+- Slack channel IDs still need retrieval via MCP (pipeline-config.ctx.json)

@@ -13,6 +13,8 @@ ISM Market Testing (claude.ai) — owns the market-testing artifact and full D2.
 Install these plugins in Claude Desktop:
 - **product-testing** — AO (ads ops), PM (product monitor), FO (fulfillment ops), CO (compliance ops), SM (slack messaging)
 - **product-discovery** — PD (product discover), KI (keyword intelligence)
+- **product-evaluation** — MC (margin calculator), product-evaluate, product-market-intelligence, CO (compliance ops)
+- **platform-io** — ZO (zoho data ops)
 
 ## Active Skills
 
@@ -53,7 +55,7 @@ Read from `context/product-pipeline/`:
 
 Two-module campaign system (DL-017):
 - Module: Product_Launches — product record, test metrics, Gate 2 decision
-- Module: Campaigns (built-in, ID: 645926000004114076) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
+- Module: Campaigns (built-in, ID: 645926000000000055) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
 - Module: Amazon_Ad_Campaigns (custom) — individual campaign level, 1:1 with Seller Central campaign, cumulative actuals. Lookups to Campaigns + Product_Launches.
 - Write to: Campaigns (strategy creation, aggregates), Amazon_Ad_Campaigns (campaign creation, daily cumulative actuals), Product_Launches (test summary fields), ISM_ExecutionLogs (daily snapshots + summary), ISM_Learnings
 - Dedup: check ISM_ExecutionLogs before running daily-ads-analysis
@@ -64,4 +66,5 @@ Two-module campaign system (DL-017):
 - Zoho Bigin: stages 4-6 (one-way sync from CRM)
 - Helium10 / Jungle Scout: keyword CSV import
 - Amazon Seller Central: listing URL, Search Term Report CSV
-- Slack: #ism-launch-alerts, #ism-launch-reports
+- Slack (task-level posts): #ism-launch-alerts, #ism-launch-reports — routed through slack-messaging skill
+- Slack (CRM workflow alerts): #marketing-ops-alerts (C081MG4HXK6) — Zoho-native instant actions (4.1 strategy activated, 4.3 ACoS alert, 4.4 auto-complete, 4.5 rollup)

@@ -1,0 +1,8 @@
+{
+  "name": "platform-io",
+  "description": "Platform I/O layer -- Zoho read/write/sync across CRM, Bigin, Books, Inventory, Desk, Analytics via MCP.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ismokraft"
+  }
+}

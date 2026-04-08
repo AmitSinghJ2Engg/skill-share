@@ -46,7 +46,14 @@ Build a unified Market Testing artifact for Ismokraft covering Domain 2.5 (Test 
 - `ism4_p:{productId}:campaigns` — Amazon_Ad_Campaigns records + daily metrics per campaign
 - `ism4_p:{productId}:scale-decision` — Gate 2 analysis data
 
-### Config Defaults
+### Config Loading
+
+Load configuration from `ism:config:market-testing` storage key (seeded from project context files). Authoritative sources:
+- Gate 2 criteria: `gate-criteria.ctx.json`
+- PPC config, scenario templates, thresholds: `ppc-test-campaign-config.ctx.json`
+- Financial constants: `financial-constants.ctx.json`
+
+If storage key is empty (first load), use these **fallback defaults** until context is seeded:
 
 ```json
 {
@@ -72,6 +79,8 @@ Build a unified Market Testing artifact for Ismokraft covering Domain 2.5 (Test 
   }
 }
 ```
+
+These are fallback values only. Always prefer context-seeded storage when available.
 
 ### Generate
 

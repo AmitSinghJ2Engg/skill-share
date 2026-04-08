@@ -217,19 +217,37 @@ Created via MCP `crm-module-admin-ops` endpoint.
 | **Alert** | "Daily budget must be positive before approval" |
 | **Alert type** | Stop saving records |
 
-### Rule 2: Date Sequence Check (MANUAL — Zoho UI)
+### Rule 2: Date Sequence Check — DEFERRED (TODO)
 
-> API doesn't support field-to-field date comparison. Create in Zoho UI.
+> Neither API nor UI field-picker supports field-to-field date comparison for validation rules. Requires a **Deluge validation function** (Setup > Customization > Modules > Amazon Ad Campaigns > Validation Rules > + New Rule > choose "Function" type).
 
-**Navigate:** Setup > Customization > Modules > Amazon Ad Campaigns > Validation Rules > + New Rule
+**Deluge validation function template:**
 
-| Setting | Value |
-|---------|-------|
-| **Rule Name** | End Date After Start Date |
-| **Primary field** | End_Date |
-| **Primary condition** | End_Date is less than Start_Date (use field picker) |
-| **Alert** | "End date must be after start date" |
-| **Alert type** | Stop saving records |
+```deluge
+map validation_rule.DateSequenceCheck(string crmAPIRequest)
+{
+    entityMap = crmAPIRequest.toMap().get("record");
+    start_date = entityMap.get("Start_Date");
+    end_date = entityMap.get("End_Date");
+
+    response = Map();
+
+    if (start_date != null && end_date != null)
+    {
+        if (end_date.toDate() < start_date.toDate())
+        {
+            response.put("status", "error");
+            response.put("message", "End date must be after start date");
+            return response;
+        }
+    }
+
+    response.put("status", "success");
+    return response;
+}
+```
+
+**To implement later:** Create validation rule with type "Function", associate this Deluge function, configure for the Amazon Ad Campaigns module.
 
 ---
 
@@ -534,46 +552,44 @@ ZohoCRM_createRecords  path_variables.module="ISM_ExecutionLogs"
 - [x] Add "Amazon PPC Test" to Campaign Type picklist (accepted via API; add to UI dropdown manually)
 - [x] Add lookup field to Product_Launches (field ID: 645926000009961001)
 - [x] Create custom fields — 17 fields: strategy, aggregates, gate_2 sections (all SUCCESS)
-- [ ] Configure layout and list view (manual — arrange sections in Zoho UI)
+- [x] Configure layout sections (done in Zoho UI)
 - [x] Verify MCP access — full CRUD confirmed via direct HTTP JSON-RPC
 
 ### Zoho CRM — Amazon_Ad_Campaigns Module
 - [x] Create custom module (module ID: 645926000009971002)
 - [x] Add lookup fields to Campaigns (645926000009973001) + Product_Launches (645926000009973026)
 - [x] Create all field groups — 43 custom fields across identity, settings, ad_group_keywords, forecast, actuals, meta (all SUCCESS)
-- [ ] Configure layout and list view (manual — arrange sections in Zoho UI)
-- [ ] Add validation rules (budget, dates)
-- [ ] Record module ID in crm-field-mappings.ctx.json
+- [x] Configure layout sections (done in Zoho UI)
+- [x] Record module ID in crm-field-mappings.ctx.json
 
 ### Validation Rules (see §3)
 - [x] Rule 1: Budget Required Before Approval (MCP-created, ID: 645926000010011018)
-- [ ] Rule 2: End Date After Start Date (manual — API doesn't support field-to-field date comparison)
+- [ ] **TODO:** Rule 2: End Date After Start Date (Deluge validation function — deferred, see §3)
 
-### Workflow Rules (see §4 — all use native Slack instant actions)
-- [x] 4.1: Strategy Activated → Slack (MCP rule ID: 645926000010000003, Slack action configured in UI)
+### Workflow Rules (see §4 — native Slack instant actions)
+- [x] 4.1: Strategy Activated → Slack (MCP rule ID: 645926000010000003)
 - [x] ~~4.2: Auto-Set Start Date~~ — REMOVED (caller sets Start_Date in same API call)
-- [ ] 4.3: ACoS Update Alert → Slack (native Slack notification — no Deluge/Flow needed, see §4.3 for message template)
-- [x] 4.4: Strategy Auto-Complete (Deluge, ID: 645926000010005071, tested — auto-completes strategy)
+- [x] 4.3: ACoS Update Alert → Slack (MCP-created + trigger fixed, ID: 645926000010005165)
+- [x] 4.4: Strategy Auto-Complete (Deluge, ID: 645926000010005071)
+- [x] 4.5: Aggregate Rollup to Strategy (Deluge, ID: 645926000010005202)
 
-### Zoho Bigin (MCP sync, see §5)
-- [x] Add 5 fields to Product Launch Factory pipeline (§5.1) — all created as text/double/currency
-- [x] MCP sync pattern verified: search by CRM_Record_ID + update (§5.2, tested 2026-04-07)
-- [x] ~~Zoho Flow rules~~ — REPLACED by task-side MCP sync (no Flow needed)
+### Zoho Bigin (see §5)
+- [x] Add 5 fields to Product Launch Factory pipeline (§5.1)
+- [x] MCP sync pattern verified: search by CRM_Record_ID + update (tested 2026-04-07)
+- [ ] **TODO:** Implement CRM → Bigin sync as dedicated sync task (§5.2)
 
-### Validation (MCP verified 2026-04-06)
-- [x] MCP: create Campaigns record + 2 linked Amazon_Ad_Campaigns, verify lookups
-  - Strategy: 645926000009962086, Ad campaigns: 645926000009973216, 645926000009973217
-  - Related list API name on Campaigns: `Ad_Campaigns` (not Amazon_Ad_Campaigns)
-  - Lookups verified: Campaign_Strategy → Campaigns, Product_Launch → Product_Launches
-- [x] MCP: update cumulative actuals, verify aggregates on Campaigns
-  - Set actuals on both campaigns, aggregated to strategy: 8300 imp, 201 clicks, 14 orders, INR 2256 spend
-- [x] MCP: create ISM_ExecutionLogs entry with daily snapshot JSON (id: 645926000009970087)
-- [ ] Workflow: status transitions trigger Slack (requires manual workflow setup first)
-- [ ] Bigin: verify one-way sync updates fields (requires manual Zoho Flow setup first)
+### Verification (MCP verified 2026-04-06 through 2026-04-08)
+- [x] Create Campaigns record + 2 linked Amazon_Ad_Campaigns, verify lookups
+- [x] Update cumulative actuals, verify aggregates on Campaigns (4.5 rollup working)
+- [x] Create ISM_ExecutionLogs entry with daily snapshot JSON
+- [x] Workflow 4.1: Strategy → Active triggers Slack alert
+- [x] Workflow 4.3: ACoS update triggers Slack alert
+- [x] Workflow 4.4: All campaigns Completed → strategy auto-completes
+- [x] Bigin: search by CRM_Record_ID + update campaign fields verified
 
 ### Cleanup
 - [ ] Delete test record 645926000009961103 (__DELETE_ME_TEST_RECORD__)
-- [ ] Optionally delete test strategy 645926000009962086 + ad campaigns after workflow verification
+- [ ] Optionally delete test strategy 645926000009962086 + ad campaigns after full verification
 
 ---
 

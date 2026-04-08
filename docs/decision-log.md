@@ -522,7 +522,8 @@ from projects, JSX/TSX mismatch, no artifact creation workflow.
 ## DL-017: CRM Architecture — Two-Module Campaign System
 
 **Date:** 2026-04-06
-**Status:** Accepted
+**Implemented:** 2026-04-06 through 2026-04-08
+**Status:** Implemented
 **Context:** DL-016 review found no standards violations, but the `Campaign_Plans` single-module design has a structural gap: AO SCENARIO produces 1-3 campaigns per test round (Conservative=1, Balanced=2, Aggressive=3, future SB/SD=5-6). Gate 2 decisions aggregate across all campaigns, but the single-table design has no natural place for this aggregation. One record does not equal one test.
 
 **Options considered:**
@@ -565,3 +566,32 @@ from projects, JSX/TSX mismatch, no artifact creation workflow.
 - `projects/chat/ism-market-testing/artifact-prompt.md` — CRM module refs, storage keys updated
 - `projects/chat/ism-market-testing/instructions.md` — two-module CRM config, integrations
 - `projects/cowork/test-campaign/instructions.md` — two-module CRM config, integrations
+
+**Implementation summary (2026-04-06 to 2026-04-08):**
+
+Executed via direct HTTP JSON-RPC to Zoho MCP endpoints (zoho-crm, zoho-crm-workflow, crm-module-admin-ops, zoho-bigin). Native MCP client tools didn't load — direct curl approach documented in `docs/zoho-mcp-connection.md`.
+
+*Step 1 — Inspect Campaigns module:* Confirmed built-in module (ID: 645926000000000055) supports all required field types. 37 existing fields, 10+ existing records. No blockers — proceeded with Option 2.
+
+*Step 2 — Customize Campaigns:* 17 custom fields created (strategy: Product_Launch lookup, Scenario_Type, Test_Phase, Total_Budget_INR; aggregates: Agg_Impressions/Clicks/Orders/Spend/Revenue/ACoS/CVR/CTR; gate_2: Verdict, Date, Rationale, Risk_Level, Data_Quality). "Amazon PPC Test" accepted as Type value via API.
+
+*Step 3 — Create Amazon_Ad_Campaigns:* Custom module created (ID: 645926000009971002) with 43 fields across 6 groups (identity, settings, ad_group_keywords, forecast, actuals, meta). Both lookups (→Campaigns, →Product_Launches) verified. Notes field renamed to Campaign_Notes (Notes is Zoho reserved keyword).
+
+*Step 4 — Workflow rules:*
+- 4.1 Strategy Activated → Slack: Created via MCP `postWorkflowRule` (ID: 645926000010000003). Slack action configured in UI to `#marketing-ops-alerts`.
+- 4.2 Auto-Set Start Date: Removed — caller sets Start_Date in same API call.
+- 4.3 ACoS Update Alert → Slack: Created via MCP, trigger fixed from `field_update` to `edit` with `repeat:true` (ID: 645926000010005165). Native Slack instant action shows actual + breakeven ACoS side-by-side.
+- 4.4 Strategy Auto-Complete: Deluge custom function (ID: 645926000010005071). Tested — both campaigns → Completed triggers strategy → Complete.
+- 4.5 Aggregate Rollup (new): Deluge function auto-sums actuals from child campaigns, computes ACoS/CVR/CTR, updates parent Campaigns record. All 8 aggregate fields verified correct.
+
+*Step 5 — Bigin sync:* Replaced Zoho Flow approach with MCP-based pattern. 5 fields confirmed created on Bigin Product Launch Factory pipeline. Lookup chain verified: Campaign.Product_Launch → CRM_Record_ID → Bigin search → update. CRM → Bigin sync to be implemented as dedicated sync task (not embedded in daily-ads-analysis).
+
+*Validation rules:*
+- Rule 1 (Budget Required Before Approval): Created via MCP `crm-module-admin-ops` endpoint (ID: 645926000010011018). Sub-conditions added via update call.
+- Rule 2 (End Date After Start Date): Deferred — neither API, UI, nor field-picker supports field-to-field date comparison. Deluge validation function template documented for future.
+
+*Step 7 — Verification:* Test strategy + 2 linked ad campaigns created, actuals set, aggregates verified, ISM_ExecutionLogs snapshot created, all 3 Slack workflows fired, Bigin record updated. Campaigns module ID corrected from 645926000004114076 to 645926000000000055.
+
+**Remaining TODOs:**
+- Validation Rule 2: Date sequence check (Deluge validation function — template in §3)
+- §5.2: CRM → Bigin sync as dedicated sync task

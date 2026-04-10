@@ -760,3 +760,102 @@ Today, every task in `tasks/{workflow}/{name}/` has exactly one trigger: a human
 - When Slack MCP is added (DL-018 follow-up), update `slack-messaging` skill so cron-triggered tasks can post natively. Currently they format-only.
 - When the first webhook listener is built, it should reuse `tools/run-task.ps1` (or its equivalent) — same task bundle, different trigger.
 - Decide whether `config.yaml` grows an `execution_modes:` enum (`interactive`, `scheduled`, `webhook`, `hook`) once 3+ tasks are headless-ready — too early to formalize today.
+
+---
+
+## DL-021: ads-ops Audit + Split — Domain-Boundary Decomposition + Lossless Compression
+
+**Date:** 2026-04-10
+**Status:** Accepted (fix-and-split phase complete; eval phase deferred to next session)
+
+**Context:** First end-to-end pilot of the D2.5 portfolio audit (test-campaign workflow). Per the scoping conversation:
+- **Q1** Scope = 4 core skills (ads-ops, product-monitor, margin-calculator, compliance-ops). Pilot = ads-ops only.
+- **Q2** Depth = full (audit → fix → eval → benchmark)
+- **Q3** Eval baseline = pre-fix version
+- **Q4** Audit evidence = standards file + DL-018 patterns; eval evidence = synthesized realistic fixtures
+- **Q5** Pilot ads-ops end-to-end before scaling to other 3 core skills
+
+**Audit findings (full detail in `extra files no commit/jobs/audit-skill-ads-ops.md`):** 26 findings across 5 categories. Top three problem classes:
+1. Forecast and ranking math missing (SCENARIO mode produces forecasts and ranks scenarios but never says how — violates skill's own Rule 4)
+2. Daily incremental analysis isn't a documented pattern, but `daily-ads-analysis` task uses it that way (skill assumes one-shot phase-end analysis; task calls it daily; no `MID_TEST_ON_TRACK` recommendation existed)
+3. Hardcoded magic numbers in `ads-metrics.md` (₹500, ₹100, ×1.5, ×2, "5 orders", 10%, 25%) violating Rule 3
+
+**Fixes applied (the intelligence gains):**
+- New `references/forecast-model.md` with explicit formulas for `estimated_impressions/clicks/orders_low/high/total_spend_inr/acos_low/high_pct` plus `forecast_confidence` and a `computed_via` traceability field. Generic Amazon India SP baselines per Q1 (no Ismokraft historical data yet).
+- New `references/tuning-constants.md` with all named tunable values: §1 health thresholds, §2 keyword action thresholds, §3 bid adjustment magnitudes, §4 verdict thresholds, §5 anomaly thresholds, §6 SCENARIO ranking weights + competition adjustments, §7 forecast baselines.
+- `references/ads-metrics.md` rewritten to reference named constants instead of hardcoded magic numbers.
+- New `daily_check` sub-phase in TEST mode for mid-test status snapshots — uses cumulative metrics for keyword classification (a keyword with 0 orders today but 5 cumulative is a winner, not a loser). Outputs `MID_TEST_ON_TRACK` or `MID_TEST_ANOMALY`, never phase-end recommendations.
+- New `gate_2_readiness` block in TestResults output schema — populated by `analyze_validation` always and `daily_check` from `day_n >= ceil(day_k/2)`. Matches `gate-criteria.ctx.json#gate_2` full_criteria + Path A/B exactly so the test-campaign task can present it at Gate 2 without recomputing.
+- New ANOMALY sub-mode (5 detection types: spend_spike, acos_jump, ctr_drop, zero_orders, budget_overpacing) — was previously hardcoded in `daily-ads-analysis` task prompt, now in the skill where it belongs (architecture: tasks orchestrate, skills compute).
+- Explicit SCENARIO ranking formula with weights (0.4 budget_efficiency + 0.3 data_quality + 0.2 risk_inverse + 0.1 keyword_coverage) plus competition adjustment plus tiebreaker rule.
+- Bid recommendations now include explicit `recommended_bid_inr` magnitudes — "bid_up" alone was incomplete advice the team couldn't act on.
+- CRM field mapping (CampaignPlan → Amazon_Ad_Campaigns) documented inline in references.
+- SCENARIO → TEST handoff precedence rule (if `selected_scenario_id` provided, use CRM-stored values over config defaults).
+- TEST → LIVE transition rule (when `Campaigns.Status` flips from Active to Scale, switch from ads-ops-plan to ads-ops-live).
+- Ghost reference to `ism-learning-engine` removed.
+- Fixed CampaignPlan schema: `keywords` and `negative_keywords` now nest **inside** `ad_groups[]` per real Amazon Ads structure (was flat).
+
+**Key architectural decision: SPLIT, not trim.** The audit additions grew ads-ops from 28.8 KB (pre-audit) to 66.3 KB (post-additions), pushing both `product-testing` plugin (88,632 bytes) and `product-ops` plugin (79,774 bytes) over the 70 KB budget. Two paths:
+
+1. **Trim ads-ops back to fit one plugin** — would lose ~20 KB of the audit's intelligence gains, defeating the purpose of the audit
+2. **Split ads-ops along the natural domain boundary** — D2.5 (market testing) vs D4 (ongoing management), mirroring the plugin split (product-testing = D2.5, product-ops = D4)
+
+**Decision: option 2 — split.** Per Amit's guidance: "trimming can lead to loss of info." The split is the correct architectural move because:
+- The seam was always there — D2.5 market validation and D4 ongoing management are different domains glued together in one skill
+- Plugin boundaries already encode the same split (product-testing vs product-ops), so the skill split mirrors infrastructure
+- Rule B from DL-019 applies: search for capability overlap before *creating* a new skill — but splitting an *overloaded* skill across domain boundaries is the inverse pattern, and is correct
+- Each split skill has a single-domain focus; the original ads-ops was two responsibilities glued together
+
+**Split structure:**
+- **`ads-ops-plan` (D2.5):** SCENARIO + TEST (plan/analyze/daily_check) + ANOMALY. Ships in `product-testing` plugin. Used by `test-campaign` task and `daily-ads-analysis` task when campaign is in Discovery/Validation phase.
+- **`ads-ops-live` (D4):** LIVE (health_check, bid optimization, scale guardrails, keyword expansion, negative management). Ships in `product-ops` plugin. Used by `daily-ads-analysis` task when campaign is in Scale phase.
+
+**Shared content (duplicated):** `ads-metrics.md` (~6 KB metric formulas, health classification, CSV mapping, keyword action rules) and §1-§4 of `tuning-constants.md` (~4 KB health/keyword/bid/verdict thresholds). Total duplication ~10 KB. Acceptable cost — the duplicated content is stable and the alternative (gutting one skill) was worse. If a future change needs to propagate, it must go to both; the file headers note this.
+
+**Lossless compression decision:** After the split, `product-ops` fit comfortably (36,640 bytes) but `product-testing` was still 6 KB over (76,151 bytes). Two options:
+1. Split ads-ops-plan again (into ads-ops-scenario + ads-ops-test) — more duplication, more plugins
+2. Lossless compression — convert verbose JSON Schema blocks to compact pseudo-schema notation
+
+**Decision: lossless compression.** Per Amit's question "trim vs divide?", the right answer was: compression is not info loss when it's converting JSON Schema boilerplate (`{"type": "object", "properties": {...}, "description": "..."}`) to compact pseudo-schema notation (`field: type | "enum1" | "enum2"`). Both convey the same type info; the compact form is just byte-efficient. Applied to `schemas-and-steps.md`: 24,663 → 15,385 bytes (saved ~9 KB). Zero information loss.
+
+**If lossless compression had not been enough,** the fallback was option 1 (further split). It wasn't needed.
+
+**Final sizes:**
+
+| Plugin | Before audit | After audit, before split | After split + compression | Budget | Status |
+|---|---|---|---|---|---|
+| product-testing | ~51 KB | 88,632 (FAIL) | **66,166 (95%)** | 70 KB | ✅ |
+| product-ops | ~43 KB | 79,774 (FAIL) | **36,640 (52%)** | 70 KB | ✅ |
+
+| Skill | Before | After |
+|---|---|---|
+| ads-ops (single) | 28.8 KB | (deleted) |
+| ads-ops-plan | — | 44.6 KB |
+| ads-ops-live | — | 23.6 KB |
+
+**Tunable values: in references/, not context/.** New tuning values (forecast baselines, anomaly thresholds, ranking weights, bid magnitudes) live in `skills/marketing/ads-ops-plan/references/tuning-constants.md` and `skills/marketing/ads-ops-live/references/tuning-constants.md`, NOT in `context/product-pipeline/`. Rationale: the product-pipeline context budget is at 49,992 / 50,000 bytes (per DL-018 note) — adding new keys would have broken Validate. The DL-005 architectural rule for "thresholds in `context/`" assumes shared values across skills; ads-ops-specific tuning knobs legitimately live in the skill's own references because no other skill consumes them. If a value later needs to be shared (e.g., margin-calculator starts reading ad bid thresholds), promote it to context at that point. The context-budget pressure is a known systemic issue; solving it is a separate project.
+
+**Tasks updated:**
+- `test-campaign/prompt.md` + `config.yaml`: `AO- ads-ops` → `AO- ads-ops-plan`
+- `daily-ads-analysis/prompt.md` + `config.yaml`: split conditional — D2.5 phase campaigns invoke `ads-ops-plan TEST mode daily_check`, Scale phase campaigns invoke `ads-ops-live LIVE mode health_check`. Task config carries both skills.
+
+**What's NOT done in this DL (deferred to next session):**
+- Wooden pen holder test fixtures (per Q5 product choice)
+- 5 eval test cases per §8 of the audit file (SCENARIO traceable forecast, daily_check MID_TEST_ON_TRACK correctness, gate_2_readiness population, anomaly detection in skill output, bid magnitude in keyword recommendations)
+- Subagent fan-out: baseline (pre-fix snapshot at `skills/marketing/ads-ops-workspace/skill-snapshot/`) vs with-fixes (`ads-ops-plan`)
+- Static eval viewer via `generate_review.py --static`
+- Benchmark aggregation and §8 success-target verification
+- Eventually: scale audit pattern to product-monitor, margin-calculator, compliance-ops (the other 3 core D2.5 skills)
+
+**Consequences:**
+- 29 skills with SKILL.md (was 28). 12 plugins still. All 12 build clean under 70 KB.
+- ads-ops-plan and ads-ops-live each have a single-domain focus. Future changes to D4 management don't touch D2.5 testing logic and vice versa.
+- Shared `ads-metrics.md` content lives in two places. Any future change to metric formulas, health classification, or keyword action rules must be propagated to both files. File headers note this.
+- The "Sibling — handles D[X] ..." note in each Related Skills table is the discoverability link between them.
+- DL-019 Rule B unchanged: still applies to *creating new* skills. Splitting an overloaded skill across domain boundaries is the inverse pattern (not duplication, decomposition) and is correct when the original was carrying two responsibilities.
+- The pre-fix snapshot at `skills/marketing/ads-ops-workspace/skill-snapshot/` is preserved (gitignored) for the eval baseline in the next session.
+
+**Open questions / future work:**
+- Eval phase (next session) will validate whether the audit fixes actually move the needle. If they do, scale the audit-fix-eval pattern to product-monitor, margin-calculator, compliance-ops.
+- Once 5+ Ismokraft test campaigns provide real data via ISM_ExecutionLogs, replace generic Amazon India baselines in `forecast-model.md` and `tuning-constants.md §7` with category-specific calibrated values (forecast model v2.0).
+- Context budget pressure (49,992 / 50,000 bytes) is a systemic issue that will eventually force a decision (split context, raise limit, or aggressive trim of `crm-field-mappings.ctx.json` which is 21.6 KB). Not blocking ads-ops work today.

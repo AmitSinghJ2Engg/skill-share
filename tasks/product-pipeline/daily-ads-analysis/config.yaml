@@ -6,14 +6,14 @@ trigger: "Active Campaigns exist in CRM (Status = Active, Type = Amazon PPC Test
 project: Product Pipeline
 
 skills_invoked:
-  - skill: ads-ops
+  - skill: ads-ops-plan
     mode: TEST
     prefix: AO
-    note: "analyze_discovery or analyze_validation depending on campaign phase"
-  - skill: ads-ops
+    note: "daily_check sub-phase for in-progress D2.5 campaigns (Campaigns.Status = Active). Returns cumulative status, anomalies, and gate_2_readiness from halfway point."
+  - skill: ads-ops-live
     mode: LIVE
     prefix: AO
-    note: "health_check for campaigns past validation phase"
+    note: "health_check for post-Gate-2 Scale campaigns (Campaigns.Status = Scale). Returns CampaignHealthReport with bid magnitudes."
   - skill: product-monitor
     mode: MONITOR
     prefix: PM

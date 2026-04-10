@@ -41,14 +41,14 @@ Request daily ad metrics from user. Accept either:
 
 For each active Amazon_Ad_Campaigns record:
 
-**If campaign is in Discovery or Validation phase:**
-- Invoke **AO- ads-ops TEST mode** with phase = `analyze_discovery` or `analyze_validation`
-- Compute: daily ACoS, CTR, CVR, CPC, spend vs budget
-- Classify keywords into 4 buckets (winner/learner/loser/no_data)
-- Rate data quality (HIGH/MEDIUM/LOW)
+**If campaign is in Discovery or Validation phase (Campaigns.Status = Active, D2.5 testing):**
+- Invoke **AO- ads-ops-plan TEST mode** with `phase = daily_check` and `cumulative_metrics`, `day_n`, `day_k` from the campaign record
+- The skill uses cumulative metrics for keyword classification, runs anomaly detection inline via ANOMALY sub-mode, and populates `gate_2_readiness` once `day_n >= ceil(day_k / 2)`
+- Outputs `MID_TEST_ON_TRACK` or `MID_TEST_ANOMALY` — never phase-end recommendations (those come from analyze_discovery/analyze_validation at phase end, not from daily checks)
 
-**If campaign is past validation (Scale phase):**
-- Invoke **AO- ads-ops LIVE mode** for health_check
+**If campaign is past validation (Campaigns.Status = Scale, D4 post-Gate-2 PASS):**
+- Invoke **AO- ads-ops-live LIVE mode** for health_check
+- The skill computes per-campaign health, flags scale eligibility (stability check + min orders), emits bid recommendations with explicit `recommended_bid_inr` magnitudes, and returns overall health verdict
 - Compute: campaign health, wasted spend, bid optimization recommendations
 
 ### Step 4: Compare trends

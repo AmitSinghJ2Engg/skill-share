@@ -37,3 +37,6 @@ __pycache__/
 # Scheduled task run logs (DL-020) — keep the directory, ignore the log files
 /logs/scheduled/*.log
 tasks/product-pipeline/daily-discovery/output/2026-04-04-zone2-report.md
+
+# Skill audit workspaces (DL-021) — snapshot, iterations, fixtures
+/skills/*/*-workspace/

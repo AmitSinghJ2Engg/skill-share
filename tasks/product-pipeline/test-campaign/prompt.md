@@ -63,7 +63,7 @@ If listing is not ready, output checklist of remaining items. Do not proceed to 
 
 ### Step 1.5: Generate campaign scenarios
 
-Invoke **AO- ads-ops SCENARIO mode** with:
+Invoke **AO- ads-ops-plan SCENARIO mode** with:
 - `listing_record`: ListingRecord from Step 0
 - `keyword_sets`: KeywordSet[] from Step 0.5 (or empty if skipped)
 - `budget_constraints`: total_budget_inr, daily_budget_max_inr, duration_max_days from user or CRM (Amazon_PPC_Budget, Test_Budget_Allocated)
@@ -96,7 +96,7 @@ After selection, create two levels of CRM records:
 
 ### Step 2: Plan Phase 1 discovery campaign
 
-Invoke **AO- ads-ops TEST mode** with phase = `plan_discovery`:
+Invoke **AO- ads-ops-plan TEST mode** with phase = `plan_discovery`:
 - Product name, ASIN, selling price, category from CRM record
 - breakeven_acos_pct and target_acos_pct from MarginRecord
 - Campaign parameters from the approved Amazon_Ad_Campaigns record (budget, bid strategy, duration)
@@ -117,7 +117,7 @@ After Phase 1 duration completes (per config), team exports the Search Term Repo
 
 ### Step 4: Analyze Phase 1 results
 
-Invoke **AO- ads-ops TEST mode** with phase = `analyze_discovery`:
+Invoke **AO- ads-ops-plan TEST mode** with phase = `analyze_discovery`:
 - Provide Search Term Report CSV or manual metrics summary
 - breakeven_acos_pct from MarginRecord
 
@@ -134,7 +134,7 @@ The skill analyzes keyword performance, classifies into 4 buckets (winner/learne
 
 ### Step 5: Plan Phase 2 validation campaign
 
-Invoke **AO- ads-ops TEST mode** with phase = `plan_validation`:
+Invoke **AO- ads-ops-plan TEST mode** with phase = `plan_validation`:
 - Harvested keywords from Step 4
 - Negative keywords from Step 4
 
@@ -146,7 +146,7 @@ The skill outputs a TestPlan for manual exact-match campaigns targeting Phase 1 
 
 After Phase 2 completes, team exports Search Term Report again.
 
-Invoke **AO- ads-ops TEST mode** with phase = `analyze_validation`:
+Invoke **AO- ads-ops-plan TEST mode** with phase = `analyze_validation`:
 - Phase 2 Search Term Report CSV
 - Phase 1 TestResults for context
 

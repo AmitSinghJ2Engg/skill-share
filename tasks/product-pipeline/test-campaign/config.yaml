@@ -16,11 +16,11 @@ skills_invoked:
   - skill: fulfillment-ops
     mode: SAMPLE
     prefix: FO
-  - skill: ads-ops
+  - skill: ads-ops-plan
     mode: SCENARIO
     prefix: AO
     note: "Generate campaign scenarios from ListingRecord + KeywordSet + budget"
-  - skill: ads-ops
+  - skill: ads-ops-plan
     mode: TEST
     prefix: AO
   - skill: margin-calculator

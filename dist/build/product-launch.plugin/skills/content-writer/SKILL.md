@@ -3,14 +3,18 @@ name: content-writer
 description: >
   Full-cycle content production in three modes. RESEARCH: researches topics
   via live web, returns ResearchBrief JSON. WRITE: produces articles, blog posts,
-  LinkedIn posts, social posts, landing page copy, newsletters. LISTING: generates
-  Amazon India product listing copy (title, bullets, description, A+ brief,
-  backend keywords) and Shopify descriptions.
+  LinkedIn posts, social posts, landing page copy, newsletters. LISTING: creates
+  or audits Amazon India and Shopify product listings — title, bullets, description,
+  A+ brief / PDP body, backend keywords, variants, FAQ, image-copy callouts.
+  Two listing sub-modes: CREATE (write from specs) and AUDIT (score, diff, and
+  rewrite an existing draft).
   ALWAYS trigger for: "research this topic", "content brief", "write an article",
   "blog post", "LinkedIn post", "newsletter", "landing page copy", "SEO content",
   "write a listing", "listing copy", "product title", "bullet points",
-  "Amazon listing", "optimize listing", "Shopify product description", "CW-".
-  If the task involves content research or writing — trigger.
+  "Amazon listing", "optimize listing", "audit listing", "improve listing",
+  "rewrite listing", "audit my Amazon listing", "improve my Shopify PDP",
+  "Shopify product description", "CW-".
+  If the task involves content research, writing, or listing optimization — trigger.
 metadata:
   version: "1.1.1"
   domain: marketing
@@ -26,7 +30,8 @@ Three-mode content production: research, write, listing. Modes can chain in a si
 |---|---|---|
 | **RESEARCH** | Research topics via web, return ResearchBrief | "research this topic", "content brief" |
 | **WRITE** | Articles, posts, landing pages, newsletters | "write an article", "blog post" |
-| **LISTING** | Amazon/Shopify product listing copy | "write a listing", "Amazon listing" |
+| **LISTING / CREATE** | Write Amazon or Shopify listing from product specs | "write a listing", "Amazon listing" |
+| **LISTING / AUDIT** | Score, diff, and rewrite an existing listing draft | "audit listing", "improve listing", "rewrite listing" |
 
 **No auto-publish. All output is draft. Operator reviews and publishes.**
 
@@ -74,13 +79,21 @@ No invented statistics. Flag any stat needing verification.
 
 ## Mode: LISTING
 
-Read `references/schemas-and-steps.md` before generating listing copy.
+Two sub-modes: **CREATE** (write from specs) and **AUDIT** (improve an existing draft).
 
-**Components:** Title (200 chars max), 5 bullet points (Feature/Benefit/Proof), description (2000 chars), A+ brief, backend keywords (250 bytes).
+Read `references/schemas-and-steps.md` before either sub-mode — it has channel rules for both Amazon India and Shopify, the Amazon banned-term list, I/O schemas for CREATE and AUDIT, execution steps, and the self-verification checklist.
 
-**Never invent specs.** Dimensions, materials, certifications — ask if not provided.
+**Channel selection is mandatory.** Amazon India and Shopify follow materially different rules (char limits, banned terms, structure, SEO model). Set `channel: amazon_india` or `channel: shopify` before any work. If unclear, ask.
 
-See `references/schemas-and-steps.md` for full I/O schemas, execution steps, and Amazon India listing rules.
+**Components by channel:**
+- *Amazon India:* Title (≤200 chars), 5 bullet points (Feature/Benefit/Proof), description (≤2000 chars), A+ brief modules, backend keywords (≤250 bytes), search terms.
+- *Shopify:* Title (50–70 chars SERP), optional highlights (3–6 bullets), PDP body (story-driven, longer form), meta description, variants, FAQ block, image-copy callouts.
+
+**AUDIT sub-mode** delivers in addition to the rewritten listing: an `audit_summary` (element-by-element score: good / fix / rewrite, with issues flagged) and a `change_list` table (before / after / rationale for every material edit).
+
+**Never invent specs.** Dimensions, materials, certifications, country of origin — ask if not provided. Mark unknowns `[VERIFY]` rather than guessing.
+
+**Run the self-verification checklist** in `references/schemas-and-steps.md` before delivering any CREATE or AUDIT output.
 
 ---
 

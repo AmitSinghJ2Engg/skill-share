@@ -654,3 +654,109 @@ Executed via direct HTTP JSON-RPC to Zoho MCP endpoints (zoho-crm, zoho-crm-work
 - Test-campaign cowork project installs 4 plugins (was 2)
 - DL-017 §5.2 (Bigin sync) resolved — embedded in daily-ads-analysis Step 5.6
 - Slack channel IDs still need retrieval via MCP (pipeline-config.ctx.json)
+
+---
+
+## DL-019: Subagents Are Not a Primitive — Domain Expertise Belongs in Skills
+
+**Date:** 2026-04-10
+**Status:** Accepted
+
+**Context:** A `listing-optimizer` subagent was created in `.claude/agents/` with a 250-line system prompt covering Amazon and Shopify listing optimization, including its own workflow, output format, guardrails, and a parallel `agent-memory/listing-optimizer/` directory. This raised the architectural question of whether subagents (Claude Code feature) should be treated as a sixth primitive in the Chat → Cowork → Task → Plugin → Skill hierarchy or as something more constrained.
+
+**Investigation found two issues:**
+1. **The agent duplicated `.claude/agents/` content with skill content.** The agent's system prompt (Amazon/Shopify rules, workflow, output format) is exactly what a SKILL.md contains. Hosting it as an agent put it outside the build pipeline, the plugin registry, the size budgets, the lifecycle metadata, the prefix routing, and the central `MEMORY.md` system. It would not be loaded by any Cowork project's plugins and would not be available in Chat projects (claude.ai has no subagents).
+2. **The agent also duplicated an existing skill.** `skills/marketing/content-writer` already had a LISTING mode handling Amazon India and Shopify. The "new" agent was reinventing a capability that lived in the system already, with marginal additions (audit-vs-create distinction, deeper Shopify rules, explicit banned-term list, change-list output).
+
+**Decision:** Two rules, applied retroactively to listing-optimizer.
+
+**Rule A — Subagents are an execution mode inside tasks, not a primitive.**
+- Subagents do exactly one thing skills cannot: provide an isolated Claude instance with its own context window. That niche has three legitimate uses inside tasks: **context isolation** (heavy reads that should not pollute parent context), **parallel fan-out** (e.g., one subagent per product zone in daily-discovery), and **independent grading** (a reviewer that hasn't seen the parent's reasoning).
+- All three are *task-internal implementation choices*, not user-facing capabilities. The expertise being applied still lives in a skill that the subagent loads.
+- Domain expertise — the kind of content that ends up in a system prompt with workflow, output format, and rules — must live in a skill, not a `.claude/agents/` file. This preserves the build pipeline, plugin distribution, size budgets, governance audit, lifecycle metadata, and Chat-project compatibility.
+- If a future task genuinely needs subagent-style execution, write it inline in the task's `prompt.md` ("spawn a subagent that loads skill X and does Y") rather than creating a standalone agent file.
+
+**Rule B — Before creating any new skill or agent, search for existing capability overlap.**
+- The listing-optimizer / content-writer overlap was caught only because the conversation paused to look. Standard practice when adding a skill: grep `skills/{capability}/` for the domain, read the closest existing SKILL.md, and ask "does this fit as a new mode or sub-mode of an existing skill?" before creating a parallel one.
+- A new skill is justified when it has a genuinely distinct trigger surface, a different lifecycle, or significantly different references. A new *mode* on an existing skill is justified when it shares ~70%+ of the rules, schemas, and references.
+
+**Remediation applied:**
+- `skills/marketing/content-writer/SKILL.md`: LISTING mode split into CREATE (existing behavior) and AUDIT (new — score, diff, rewrite). Description triggers extended with "audit listing", "improve listing", "rewrite listing", "audit my Amazon listing", "improve my Shopify PDP". Channel-selection mandate made explicit.
+- `skills/marketing/content-writer/references/schemas-and-steps.md`: AUDIT input/output schemas added, AUDIT execution steps added, Amazon banned-terms list added, full Shopify listing rules section added (PDP body, meta description, FAQ, image-copy callouts, SEO lens), self-verification checklist added (covers both CREATE and AUDIT, both channels).
+- `.claude/agents/listing-optimizer.md`: deleted.
+- `.claude/agent-memory/listing-optimizer/`: deleted.
+- `product-launch` plugin rebuilt: 53KB → 62KB. Under the 70KB budget. SKILL.md grew 4.6KB → 6.1KB (slightly over the 5KB soft target — accepted because the structural additions justify it).
+
+**Consequences:**
+- `.claude/agents/` is now empty and remains empty by default. Future agent files require an explicit decision-log justification that they are *not* domain expertise that belongs in a skill.
+- content-writer is the single source of truth for all listing copy work — create or audit, Amazon or Shopify. Any cowork project loading the `product-launch` plugin gets both sub-modes.
+- The "search before creating" rule (Rule B) should be added to ismokraft-standards as a soft pre-flight check for skill creation.
+- `agent-memory/` directory exists but unused — kept in repo so the convention is documented if a legitimate subagent role appears later.
+
+**Open questions / future work:**
+- If a real "context isolation" or "parallel fan-out" use case appears (e.g., daily-discovery fanning out per zone), document the pattern as "task spawns subagent that loads skill X" — the subagent is anonymous, the expertise stays in the skill.
+- ismokraft-standards.md should pick up Rule B as a pre-creation check.
+
+---
+
+## DL-020: Task Execution Modes — Tasks Are Reusable Across Triggers
+
+**Date:** 2026-04-10
+**Status:** Accepted
+
+**Context:** A follow-up to DL-019. The conversation that led to DL-019 surfaced a deeper question: where does autonomous behavior live in the system? The instinct was to invent "autonomous agents" as a new primitive. On reflection, the cleaner framing is that **task bundles are already the right primitive — what's missing is execution modes for them beyond "human in Claude Desktop."**
+
+Today, every task in `tasks/{workflow}/{name}/` has exactly one trigger: a human opens a Cowork project in Claude Desktop and runs the task interactively. There is no infrastructure for scheduled, headless, reactive, or hook-based execution. This means routine ops work that *could* be automated still requires Amit to be in front of Claude Desktop — daily ad analysis, daily discovery, compliance deadline checks, inventory watchers, morning briefings.
+
+**Decision:** Formalize **task execution modes** as a first-class architectural concept. A task bundle is the unit of work; the execution mode is *how the task gets triggered*. The same `prompt.md` runs unchanged across modes — only the trigger changes.
+
+**Five execution modes (initial set):**
+
+| Mode | Who triggers | Infra | Status | Use when |
+|---|---|---|---|---|
+| **Interactive** | Human in Claude Desktop opens Cowork project, runs task | None — Claude Desktop | ✅ Today | Workbench/exploratory work, gate decisions, anything needing judgment |
+| **Artifact button** | Human clicks button in TSX artifact | Artifact wired to invoke task/skill | ✅ Today (some artifacts) | Faster trigger when human is already in chat |
+| **Scheduled / cron** | Cron / Windows Task Scheduler invokes `claude -p` headless with task prompt | Scheduler config + headless wrapper script | 🔶 New (this DL) | Routine work that should run on a clock — daily reports, watchers, briefings |
+| **Webhook / event-driven** | Thin listener catches Bigin/Desk/Inventory webhook and runs the matching task | Hosted webhook listener (Cloudflare Worker, Vercel function, or local) | ⏳ Future | Reactive work — lead created, ticket arrived, stockout near |
+| **Hook-based** | Claude Code hook fires on PreToolUse/PostToolUse/etc. inside a session | `.claude/settings.json` hooks | ⏳ Future | Inline guardrails, audit trails, side-effects on specific tool calls |
+
+**Rationale:**
+
+1. **No new primitive.** Tasks remain the unit of work. Skills remain the unit of expertise. The hierarchy doesn't grow a sixth layer. We're recognizing something that was already implicit — that "human in Claude Desktop" was just *one* of many possible triggers, not the only one.
+2. **Task bundles are reusable across modes.** A task whose `prompt.md` is well-written runs identically whether triggered interactively or via cron. The headless wrapper just feeds the same prompt to `claude -p`. No task rewrite needed.
+3. **Avoids the autonomous-agents-as-new-primitive trap.** DL-019's discussion almost led to creating "agents" as a sixth layer alongside skills/plugins/tasks. That would have been wrong — it was reinventing what tasks already do, with a worse boundary. The right framing is "tasks have multiple triggers", not "agents are a new thing."
+4. **Aligns with the compilable-project metaphor.** Tasks are functions; execution modes are the call sites (REPL, cron, webhook, hook). Same function, multiple callers.
+
+**Constraints and honest limits:**
+
+- **Not every task is headless-ready.** Tasks that require live human input mid-run (e.g., `daily-ads-analysis` Step 2: "Request daily ad metrics from user") cannot be cron-triggered until the input is sourced from a watch folder, MCP, or upstream automated step. Each task should declare its execution-mode compatibility in its `config.yaml`.
+- **No Slack MCP today.** Per DL-018, the system has zoho-crm, zoho-bigin, zoho-crm-workflow, and crm-module-admin-ops MCPs. No Slack transport. A cron-triggered task can format messages via `slack-messaging` skill but cannot post them. Output must go to a file (or pending-updates folder) until Slack MCP is added — at which point cron-triggered tasks will post to Slack natively.
+- **Headless mode requires CRM-side dedup.** Step 0 of every existing task already does this via ISM_ExecutionLogs — good. Cron makes dedup non-optional, since the operator may also run the same task interactively.
+- **MCP working directory matters.** The headless `claude -p` invocation must `cd` into the repo root before running so `.mcp.json` is discovered. The wrapper script handles this.
+
+**Per-task compatibility (initial assessment):**
+
+| Task | Headless-ready? | Notes |
+|---|---|---|
+| `daily-discovery` | ✅ Yes | No human input required. Has dedup. Already declares `schedule: Daily, 7:00 AM IST`. Best first cron candidate. |
+| `daily-ads-analysis` | ❌ Not yet | Step 2 requires CSV from human. Needs watch-folder pattern or Amazon Ads MCP before cron is viable. |
+| `test-campaign` | ❌ No | Multi-day workflow with gate decisions. Inherently human-in-the-loop. Stays interactive. |
+
+**Remediation applied (this DL):**
+- `tools/run-task.ps1` created — generic headless task runner. Resolves task name → bundle path → reads `prompt.md` → invokes `claude -p` from repo root with logging. Cross-platform-friendly (PowerShell Core works on Linux/Mac too if needed later).
+- `tools/register-scheduled-task.ps1` created — Windows Task Scheduler registration helper. Registers a daily run of any task at a chosen time. Idempotent (safe to re-run).
+- `tools/README.md` updated with a "Task Execution" section documenting both scripts.
+- `logs/scheduled/` convention introduced — wrapper writes a per-run log here. Add to `.gitignore` (the log files, not the directory).
+- `daily-discovery/config.yaml` should grow an `execution_modes:` field (deferred — not blocking; can be added when more tasks become headless-ready and the schema is worth formalizing).
+
+**Consequences:**
+
+- Tasks now have a documented execution-mode story. Any task that's headless-ready can be scheduled with two PowerShell commands.
+- The "agents" door stays closed at the architectural level (DL-019 stands), but the autonomous-execution gap is addressed via execution modes — which is the right place for it.
+- Webhook and hook modes are documented as future work but not built. They become worth building when there's a clear "event X → action Y" loop the operator can articulate.
+- Future tasks should be authored with execution-mode compatibility in mind: avoid mid-run human input where possible, prefer file-drop or MCP-sourced inputs, always include CRM-side dedup at Step 0.
+
+**Open questions / future work:**
+- When Slack MCP is added (DL-018 follow-up), update `slack-messaging` skill so cron-triggered tasks can post natively. Currently they format-only.
+- When the first webhook listener is built, it should reuse `tools/run-task.ps1` (or its equivalent) — same task bundle, different trigger.
+- Decide whether `config.yaml` grows an `execution_modes:` enum (`interactive`, `scheduled`, `webhook`, `hook`) once 3+ tasks are headless-ready — too early to formalize today.

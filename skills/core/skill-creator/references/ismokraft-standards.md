@@ -11,7 +11,7 @@ standards, consult these repo docs before authoring skills:
 - `docs/01-system-constraints.md` — platform limits (plugin 70KB, artifact sandbox, MCP list)
 - `docs/02-business-domain-map.md` — domain definitions, skill-to-domain mapping, CRM architecture
 - `docs/03-implementation-standards.md` — build standards for skills, plugins, artifacts, projects, tasks
-- `docs/decision-log.md` — architectural decisions with rationale (DL-001 through DL-015)
+- `docs/decision-log.md` — architectural decisions with rationale (DL-001 through DL-019)
 
 These files live in the repo root and are NOT bundled into the skill-creator plugin.
 Read them from the working directory when authoring or auditing skills.
@@ -76,6 +76,40 @@ Move shared models and large reference data to `context/` to keep plugin size un
 Skills are organized by business capability, not by plugin:
 research, evaluation, finance, marketing, sourcing, operations, learning, platform, governance, core, founder.
 
+## Pre-Flight Check Before Creating a New Skill (DL-019 Rule B)
+
+A new skill is the heaviest unit of capability in this repo — it gets a SKILL.md, a `references/` folder, plugin slot(s), governance audit coverage, lifecycle metadata, and prefix routing. Creating one when an existing skill could absorb the work is the most common form of duplication in this system.
+
+Before creating a new skill, run this pre-flight check:
+
+1. **Identify the capability group** the new skill would live in (research, evaluation, marketing, etc.).
+2. **List the existing skills in that group.** `ls skills/{capability}/`. For each, read the `description` field in its SKILL.md frontmatter and the mode table at the top of the body.
+3. **Compare trigger surface and rules.** Ask: would the new skill share most of its rules, schemas, references, or trigger phrases with an existing skill? If ~70%+ overlap, it is a sub-mode of an existing skill, not a new skill.
+4. **Decide and document.**
+
+| Situation | Right answer |
+|---|---|
+| Same capability group, same domain, ~70%+ overlap in rules/schemas/triggers | Add a new **mode or sub-mode** to the existing skill. Extend its `description` triggers. Add to `references/`. Do NOT create a new skill directory. |
+| Same capability group, but distinct trigger surface, distinct lifecycle, or significantly different references | Create a new skill. Justify the split in the decision log if it's a non-obvious call. |
+| Different capability group | Create a new skill in its own group. |
+| The "skill" is really an execution pattern (parallel fan-out, context isolation, independent grading) | Not a skill at all — write it inline in a task's `prompt.md`. See "Subagents Are Not a Primitive" below. |
+
+**The listing-optimizer episode (DL-019) is the precedent.** A would-be new skill turned out to overlap ~80% with `content-writer` LISTING mode. The right move was a new AUDIT sub-mode + Shopify rules in the existing skill, not a parallel `skills/marketing/listing-optimizer/` directory.
+
+## Subagents Are Not a Primitive (DL-019 Rule A)
+
+Claude Code subagents (`.claude/agents/*.md`) are NOT a primitive in the Chat → Cowork → Task → Plugin → Skill hierarchy. They are an *execution mode* available inside tasks, with exactly three legitimate uses:
+
+1. **Context isolation** — heavy reads (large CRM pulls, big context files) that should not pollute the parent task's context window.
+2. **Parallel fan-out** — independent operations the parent could run sequentially but would benefit from running in parallel (e.g., one subagent per product zone in `daily-discovery`).
+3. **Independent grading** — a reviewer that hasn't seen the parent's reasoning, used for genuinely independent QA passes.
+
+**Domain expertise — workflow + output format + rules + system prompt content — must live in a skill, not in `.claude/agents/`.** Hosting expertise as an agent puts it outside the build pipeline, plugin registry, size budgets, lifecycle metadata, prefix routing, governance audit, and the central `MEMORY.md` system. It also makes the capability invisible to Chat projects (claude.ai has no subagents).
+
+If a task genuinely needs subagent-style execution, write the spawn inline in the task's `prompt.md` ("spawn a subagent that loads skill X and does Y") rather than creating a standalone agent file. The subagent is anonymous; the expertise stays in the skill.
+
+`.claude/agents/` is empty by default and should remain empty unless a new agent file carries an explicit decision-log justification that it is *not* domain expertise belonging in a skill.
+
 ## Slack Messaging Rule
 
 All Slack output in the Ismokraft system MUST route through the `slack-messaging` skill (prefix SM-). This applies to:
@@ -90,9 +124,10 @@ Skills and tasks that produce Slack output must include a step: "Format message 
 ## Plugin Definitions
 
 Plugins are defined in `plugins.yaml` (repo root). Skills can appear in multiple plugins.
-Plugin builds must stay under 70KB uncompressed. Currently 11 plugins:
+Plugin builds must stay under 70KB uncompressed. Currently 12 plugins:
 - Pipeline: product-discovery, product-evaluation, product-sourcing, product-testing, product-launch, product-ops
 - Standalone: supplier-research, revenue-analytics
+- Platform: platform-io
 - Governance: governance-audit, governance-architecture, governance-business
 
 ## Ghost Skill Prevention

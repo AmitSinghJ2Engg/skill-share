@@ -33,3 +33,7 @@ __pycache__/
 /docs/claude-code-specs/*
 !/docs/claude-code-specs/INDEX.md
 /context/product-pipeline/daily-discovery
+
+# Scheduled task run logs (DL-020) — keep the directory, ignore the log files
+/logs/scheduled/*.log
+tasks/product-pipeline/daily-discovery/output/2026-04-04-zone2-report.md

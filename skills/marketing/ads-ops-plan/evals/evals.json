@@ -1,0 +1,49 @@
+{
+  "skill_name": "ads-ops-plan",
+  "_purpose": "Validate the D2.5 audit fixes from DL-021: forecast model with traceable math, daily_check MID_TEST_ON_TRACK/ANOMALY, gate_2_readiness block matching gate-criteria.ctx.json, ANOMALY sub-mode in skill (not task), SCENARIO ranking formula, SCENARIO→TEST handoff. Baseline is the pre-split monolithic snapshot at ../../ads-ops-plan-workspace/skill-snapshot/.",
+  "fixtures_dir": "../../ads-ops-plan-workspace/fixtures/",
+  "workspace": "../../ads-ops-plan-workspace/",
+  "evals": [
+    {
+      "id": 1,
+      "name": "scenario-traceable-forecast",
+      "prompt": "Load ads-ops-plan-workspace/fixtures/listing-record.json (wooden pen holder ListingRecord) and ads-ops-plan-workspace/fixtures/keyword-sets.json (8 Helium10 keywords + budget constraints + breakeven_acos=38 + target_acos=28). Run ads-ops-plan SCENARIO mode: generate 3-5 campaign scenarios with forecasts, rank them, recommend one. Output CampaignScenario[] as JSON to scenarios.json. Every scenario's forecast.computed_via must cite 'references/forecast-model.md v1.0'. Show the top-ranked scenario's forecast math and ranking math inline in run-notes.md.",
+      "expected_output": "scenarios.json with 3-5 CampaignScenario objects, each with complete CampaignPlan, forecast block including computed_via, risk_assessment, rank, recommendation_reason citing score components.",
+      "files": [
+        "skills/marketing/ads-ops-plan-workspace/fixtures/listing-record.json",
+        "skills/marketing/ads-ops-plan-workspace/fixtures/keyword-sets.json"
+      ],
+      "tests_audit_findings": ["A5", "A15", "A11"]
+    },
+    {
+      "id": 2,
+      "name": "daily-check-mid-test-on-track",
+      "prompt": "Load ads-ops-plan-workspace/fixtures/daily-check-day5-clean.json (day 5 of a 10-day Discovery phase campaign, no anomalies, cumulative metrics healthy). Run ads-ops-plan TEST mode phase=daily_check. Write TestResults to daily-check-result.json. Classify keywords using CUMULATIVE metrics, rate data quality, invoke ANOMALY detection on the delta (should find none), emit recommendation=MID_TEST_ON_TRACK. Because day_n=5 >= ceil(day_k/2)=5, populate gate_2_readiness as early peek. Critical: must NOT emit phase-end recommendations (PROCEED_TO_VALIDATION, EXTEND_DISCOVERY, INSUFFICIENT_DATA) from a daily_check.",
+      "expected_output": "daily-check-result.json with phase='daily_check', recommendation='MID_TEST_ON_TRACK', empty anomalies[], gate_2_readiness populated, by_keyword classification based on cumulative totals.",
+      "files": [
+        "skills/marketing/ads-ops-plan-workspace/fixtures/daily-check-day5-clean.json"
+      ],
+      "tests_audit_findings": ["A3", "A12"]
+    },
+    {
+      "id": 3,
+      "name": "analyze-validation-gate2-readiness",
+      "prompt": "Load the Phase 2 Search Term Report at ads-ops-plan-workspace/fixtures/search-term-report-phase2.csv for a wooden pen holder Manual Exact Match campaign. breakeven_acos_pct=38, target_acos_pct=28, selling_price_inr=1299. Run ads-ops-plan TEST mode phase=analyze_validation. Write TestResults to analyze-validation-result.json. Output MUST contain gate_2_readiness block with all 16 fields (keyword_margin_positive_count, blended_acos_threshold_met, data_quality_threshold_met, all_full_criteria_met, path_a_orders/cvr/met, path_b_impressions/ctr/met, either_path_met, gate_2_recommendation). Logic: READY only if all_full_criteria_met AND either_path_met. Path A: orders>=10 AND cvr>=5. Path B: impressions>=500 AND ctr>=0.3.",
+      "expected_output": "analyze-validation-result.json with TestResults phase='validation', populated gate_2_readiness block matching gate-criteria.ctx.json#gate_2 full_criteria and Path A/B logic.",
+      "files": [
+        "skills/marketing/ads-ops-plan-workspace/fixtures/search-term-report-phase2.csv"
+      ],
+      "tests_audit_findings": ["A21"]
+    },
+    {
+      "id": 4,
+      "name": "anomaly-detection-spend-spike",
+      "prompt": "Load ads-ops-plan-workspace/fixtures/daily-check-day6-anomaly.json (day 6 of 14-day Validation, daily_spend=875 on 500/day budget = 175% > 150% threshold). Run ads-ops-plan TEST mode phase=daily_check. Write TestResults to anomaly-result.json. Critical: must detect spend_spike anomaly in anomalies[] with full context (anomaly_type, severity, metric_value, threshold, context), set recommendation=MID_TEST_ANOMALY. Cite named tunable spend_spike_pct_of_daily_budget from tuning-constants.md §5, not hardcoded 150.",
+      "expected_output": "anomaly-result.json with recommendation='MID_TEST_ANOMALY', anomalies[] containing at least one spend_spike object with all required fields.",
+      "files": [
+        "skills/marketing/ads-ops-plan-workspace/fixtures/daily-check-day6-anomaly.json"
+      ],
+      "tests_audit_findings": ["A13"]
+    }
+  ]
+}

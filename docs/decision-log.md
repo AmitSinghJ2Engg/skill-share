@@ -859,3 +859,59 @@ Today, every task in `tasks/{workflow}/{name}/` has exactly one trigger: a human
 - Eval phase (next session) will validate whether the audit fixes actually move the needle. If they do, scale the audit-fix-eval pattern to product-monitor, margin-calculator, compliance-ops.
 - Once 5+ Ismokraft test campaigns provide real data via ISM_ExecutionLogs, replace generic Amazon India baselines in `forecast-model.md` and `tuning-constants.md §7` with category-specific calibrated values (forecast model v2.0).
 - Context budget pressure (49,992 / 50,000 bytes) is a systemic issue that will eventually force a decision (split context, raise limit, or aggressive trim of `crm-field-mappings.ctx.json` which is 21.6 KB). Not blocking ads-ops work today.
+
+### DL-021 Postscript: Iteration 1 Eval Results + Structural Cleanup
+
+**Date:** 2026-04-11
+
+**Eval phase (iteration 1) — complete.** 5 subagent runs per configuration (with_skill vs without_skill baseline using the pre-split snapshot). Results:
+
+| Workspace | Pass rate (with_skill) | Pass rate (baseline) | Delta |
+|---|---|---|---|
+| ads-ops-plan-workspace | 22/22 (100.0%) | 9/19 (47.4%) | **+52.6 pp** |
+| ads-ops-live-workspace | 5/5 (100.0%) | 3/5 (60.0%) | **+40.0 pp** |
+
+**Time:** with_skill averaged 142 s, baseline 161 s. **Faster despite doing more structural work** — the audit's explicit references eliminated the baseline's need to invent missing structure on the fly.
+
+**Every audit finding validated independently by the subagents.** Most notable: the eval-5 baseline subagent explicitly *refused* to fabricate bid magnitudes, citing Rule 4 ("Show the math"). That's the strongest possible validation of finding A16 — the old schema made it impossible to give complete advice without violating the skill's own rule.
+
+**Structural cleanup applied (strict per-skill convention enforced):**
+
+Per Amit's direction — "lets not share skill workspace, we remain strict" — the shared `ads-ops-workspace/` was split into two per-skill workspaces:
+
+- `skills/marketing/ads-ops-plan-workspace/` — fixtures 1-5 (listing record, keyword sets, phase 2 STR, day-5-clean, day-6-anomaly), 4 evals, iteration-1, grade.py, build_benchmark.py, README.md
+- `skills/marketing/ads-ops-live-workspace/` — live-health-check.json fixture, 1 eval, iteration-1, grade.py, build_benchmark.py, README.md
+
+Both workspaces contain their own copy of `skill-snapshot/` (pre-split monolithic ads-ops v2.0.0) as the eval baseline. The ~28 KB of duplication is an acceptable cost for strict convention compliance — workspaces are gitignored anyway.
+
+**evals/ inside skill dir: now excluded from plugin build AND budget calculation.**
+
+Per the skill-creator spec, `evals/evals.json` lives inside the skill directory alongside SKILL.md and references/. But evals are **dev-time test scaffolding**, not runtime content — they contain assertions and test prompts the model doesn't need at invocation time.
+
+Before this postscript, the builder AND validator both counted `evals/` toward the 70 KB plugin budget. This meant adding test coverage to a skill consumed its plugin budget, penalizing the very behavior we want to encourage.
+
+**Fix applied to both tools:**
+- `tools/build-plugin.py` — `get_skill_dir_size()` and the file-copy walk both prune `evals` from `dirnames[:]` so it's neither counted nor packaged
+- `tools/validate-system.py` — `get_dir_size()` now takes an `exclude_dirs` parameter; `check_context_budget()` passes `{"evals"}` for plugin size calculations
+- Both changes land in the same commit so builder and validator stay in sync
+
+**Consequence:** evals can now grow without affecting plugin budgets. Every future audit-fix-eval cycle gets this as free infrastructure — adding test coverage no longer pressures the 70 KB ceiling.
+
+**Per-eval `eval_metadata.json` added.** The skill-creator spec says each eval run directory should contain an `eval_metadata.json` with id, name, prompt, tests, fixtures, and assertions. The iteration-1 eval dirs now have these files so the workflow is reproducible and self-describing.
+
+**Grader and benchmark scripts are iteration-aware.** `grade.py` and `build_benchmark.py` moved from `iteration-1/` to workspace root and accept `--iteration N` so future iterations (iteration-2, iteration-3...) reuse the same scripts unchanged.
+
+**README per workspace.** Documents the structure, how to run the grader + benchmark builder + static viewer, iteration history with pass-rate progression, and the context of the DL-021 audit pilot.
+
+**Final plugin sizes (re-verified post-cleanup):**
+
+| Plugin | Built size | Budget | % |
+|---|---|---|---|
+| product-testing | 66,166 | 70,000 | 95% |
+| product-ops | 36,640 | 70,000 | 52% |
+
+All 12 plugins build clean.
+
+**Still pending (deferred to the next commit):** 4 skill content findings surfaced by reading subagent transcripts — forecast-model.md §3 clarity, competition factor in expected_cpc (v1.1 enhancement), daily_check fallback when per-keyword data is absent (schemas-and-steps.md doc update), fixture enrichment (per-keyword cumulative data). None of them broke the 100% pass rate; they're quality-of-life improvements for reproducibility and forecast precision. They'll land as a separate commit so the structural + infra work reviewable standalone.
+
+**Open question resolved:** Q3 from the scoping conversation ("since ads-ops-workspace itself is not a skill, how does claude would recommend the directory structure?") — answer is **strict per-skill**, no shared workspaces, duplication of snapshot + fixtures is acceptable because workspaces are gitignored. The shared-workspace path was briefly defensible as a "joint audit" exception but the user (correctly) rejected it for consistency. Future skill audits should follow the same per-skill convention.

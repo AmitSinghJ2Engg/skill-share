@@ -405,11 +405,19 @@ def discover_tasks(repo_root):
     return tasks
 
 
-def get_dir_size(dirpath):
-    """Get total file size of directory, excluding .gitkeep."""
+def get_dir_size(dirpath, exclude_dirs=None):
+    """Get total file size of directory, excluding .gitkeep.
+
+    exclude_dirs: iterable of directory names to prune from the walk (not
+    counted toward size). Used to exclude dev-time dirs like `evals/` that
+    the plugin builder also excludes — keeps validator and builder in sync.
+    """
+    exclude = set(exclude_dirs or [])
     total = 0
     count = 0
-    for dp, _, fnames in os.walk(dirpath):
+    for dp, dnames, fnames in os.walk(dirpath):
+        # Prune excluded dirs in-place so os.walk doesn't descend into them
+        dnames[:] = [d for d in dnames if d not in exclude]
         for f in fnames:
             if f == ".gitkeep":
                 continue
@@ -655,7 +663,8 @@ def check_context_budget(repo_root, registry, skills):
             pkg = skill_entry.get("package", plugin_name)
             skill_dir = os.path.join(repo_root, "skills", pkg, sname)
             if os.path.isdir(skill_dir):
-                size, count = get_dir_size(skill_dir)
+                # Exclude evals/ — dev-time test scaffolding, not packaged by build-plugin.py
+                size, count = get_dir_size(skill_dir, exclude_dirs={"evals"})
                 total += size
                 skill_details.append({"name": sname, "size": size, "files": count})
 

@@ -113,11 +113,18 @@ def find_skill_path(repo_root, skill_name, package):
 
 
 def get_skill_dir_size(repo_root, skill_name, package):
-    """Get total size of skill directory (SKILL.md + supporting files), excluding .gitkeep."""
+    """Get total size of skill directory (SKILL.md + supporting files).
+
+    Excludes .gitkeep and evals/ — evals/ is dev-time scaffolding (test
+    assertions and fixtures) and is NOT packaged into the built plugin.
+    Excluding it here keeps the pre-build check in sync with what the
+    actual file copy (below) does."""
     skill_dir = os.path.join(repo_root, "skills", package, skill_name)
     total = 0
     file_count = 0
     for dirpath, dirnames, filenames in os.walk(skill_dir):
+        # Prune dev-time directories from the walk
+        dirnames[:] = [d for d in dirnames if d != "evals"]
         for f in filenames:
             if f == ".gitkeep":
                 continue
@@ -317,6 +324,11 @@ def build_plugin(repo_root, plugin_name, plugin_def, shared_skills, output_dir, 
         os.makedirs(dest_dir, exist_ok=True)
 
         for dirpath, dirnames, filenames in os.walk(src_dir):
+            # Prune dev-time directories — they're not runtime content and shouldn't
+            # count toward the plugin's 70 KB budget. evals/ holds test assertions;
+            # skill-creator spec puts it alongside the skill for organization, but
+            # it's scaffolding, not runtime.
+            dirnames[:] = [d for d in dirnames if d != "evals"]
             for f in filenames:
                 if f == ".gitkeep":
                     continue

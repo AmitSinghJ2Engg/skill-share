@@ -1,0 +1,18 @@
+{
+  "skill_name": "ads-ops-live",
+  "_purpose": "Validate the D4 (LIVE mode) audit fix from DL-021: bid recommendations must include explicit recommended_bid_inr magnitudes (finding A16). Baseline is the pre-split monolithic snapshot at ../../ads-ops-live-workspace/skill-snapshot/.",
+  "fixtures_dir": "../../ads-ops-live-workspace/fixtures/",
+  "workspace": "../../ads-ops-live-workspace/",
+  "evals": [
+    {
+      "id": 1,
+      "name": "bid-magnitude-live-health-check",
+      "prompt": "Load ads-ops-live-workspace/fixtures/live-health-check.json (14-day period, post-Gate-2 Scale phase, wooden pen holder, 2 campaigns with 5 keywords in Manual_Exact). Run ads-ops-live LIVE mode. Write the CampaignHealthReport output to health-check-result.json. Critical: for every keyword where action is bid_up, bid_down, or promote_to_exact, the by_keyword output MUST include a numeric recommended_bid_inr value, not just an action label. Use bid_up_pct=20% and bid_down_pct=15% from tuning-constants.md §3. Floor bid_down at min_bid_inr=2. Check scale eligibility per §5: Manual_Exact has days_at_target_or_better=11 and 62 orders so scale_eligible=true; Auto has last_scaled_date within 7-day cooldown so scale_eligible=false. health_verdict per ads-metrics.md §7 should be 'healthy'.",
+      "expected_output": "health-check-result.json with CampaignHealthReport containing by_keyword[] where every bid_up/bid_down/promote_to_exact action has numeric recommended_bid_inr, by_campaign[] with scale_eligible boolean per campaign, health_verdict='healthy', at least one recommendation naming a specific campaign or keyword.",
+      "files": [
+        "skills/marketing/ads-ops-live-workspace/fixtures/live-health-check.json"
+      ],
+      "tests_audit_findings": ["A16"]
+    }
+  ]
+}

@@ -129,5 +129,11 @@ These are **generic Amazon India Sponsored Products baselines** per Amit's Q1 an
 | `default_position_share` | 0.15 | Baseline share of potential impressions a keyword captures when bid and competition data are absent |
 | `position_share_high_bid_multiplier` | 2.5 | Multiplier on `default_position_share` when bid is in the top 25% of category bids |
 | `position_share_low_bid_multiplier` | 0.4 | Multiplier on `default_position_share` when bid is in the bottom 25% of category bids |
+| `cpc_base_factor` | 0.5 | Floor factor for `expected_cpc = bid × cpc_factor` when avg competition ≈ 0 |
+| `cpc_competition_weight` | 0.4 | How strongly competition pulls cpc_factor upward (higher = closer to bid ceiling when keywords are crowded) |
+| `cpc_strategy_up_and_down` | +0.1 | Added to cpc_factor when `bid_strategy = dynamic_up_and_down` (bids can escalate) |
+| `cpc_strategy_down_only` | -0.1 | Added to cpc_factor when `bid_strategy = dynamic_down_only` (bids can only fall) |
+| `cpc_factor_min` | 0.3 | Lower clamp on cpc_factor (never estimate CPC below 30% of bid) |
+| `cpc_factor_max` | 1.0 | Upper clamp on cpc_factor (Amazon charges at most the bid ceiling) |
 
 **When to revisit:** Once Ismokraft has 5+ completed test campaigns with known search volume / actual impressions / actual CVR, replace these baselines with category-specific values derived from `ISM_ExecutionLogs`.

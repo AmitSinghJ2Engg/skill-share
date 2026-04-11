@@ -47,16 +47,25 @@ The `× duration_days / 30` normalizes monthly search volume to the campaign per
 
 ## Step 3 — Aggregate campaign-level impressions
 
+For manual campaigns with an explicit keyword list:
 ```
 estimated_impressions = Σ(estimated_impressions_keyword) over all targeted keywords in the CampaignPlan
 ```
 
-For auto campaigns (no explicit keywords), fall back to:
+For **auto campaigns** (no explicit keywords), derive impressions from the budget constraint instead. The budget limits how many clicks you can pay for, and CTR relates clicks to impressions:
+
 ```
-estimated_impressions = (daily_budget_inr / expected_cpc) × expected_ctr × duration_days / expected_ctr
-                     = (daily_budget_inr / expected_cpc) × duration_days
+daily_clicks_budget_limit = daily_budget_inr / expected_cpc
+daily_impressions         = daily_clicks_budget_limit / (default_ctr_pct / 100)
+estimated_impressions     = daily_impressions × duration_days
 ```
-where `expected_cpc ≈ default_bid_inr × 0.7` (the skill's bid is a ceiling; actual CPC runs lower).
+
+Consolidated:
+```
+estimated_impressions = (daily_budget_inr / expected_cpc / (default_ctr_pct / 100)) × duration_days
+```
+
+`expected_cpc` comes from Step 6 (competition-adjusted). `default_ctr_pct` is from `tuning-constants.md §7` (0.5%). This is the **upper bound** on impressions — actual impressions may be lower if the skill's bid is too low to win enough auctions. Flag this in `forecast_notes`.
 
 ---
 
@@ -99,12 +108,21 @@ Round to the nearest integer. Floor at 0.
 
 ```
 estimated_total_spend_inr = estimated_clicks × expected_cpc
-expected_cpc = default_bid_inr × 0.7
 ```
 
-The 0.7 factor reflects that Amazon's second-price auction typically charges below the bid ceiling. If `bid_strategy == "dynamic_up_and_down"`, use 0.85 instead (bids can escalate); if `dynamic_down_only`, use 0.6.
+### `expected_cpc` — competition-adjusted
 
-Cap `estimated_total_spend_inr` at `daily_budget_inr × duration_days` (you can't spend more than the budget allows).
+Amazon's second-price auction charges below the bid ceiling. **How far below depends on keyword competition** — crowded keywords force CPC close to the bid cap; sparse ones clear well below. This replaces the earlier static 0.7 factor, which ignored competition entirely.
+
+```
+avg_competition = mean(competition_estimate across targeted keywords, or 0.5 if unknown)
+cpc_factor = cpc_base_factor + cpc_competition_weight × avg_competition + strategy_adjustment
+expected_cpc = default_bid_inr × cpc_factor
+```
+
+Named tunables in `tuning-constants.md §7`: `cpc_base_factor` (0.5), `cpc_competition_weight` (0.4), `cpc_strategy_up_and_down` (+0.1), `cpc_strategy_down_only` (−0.1), `cpc_factor_min` (0.3), `cpc_factor_max` (1.0). Clamp `cpc_factor` to `[cpc_factor_min, cpc_factor_max]`.
+
+Cap `estimated_total_spend_inr` at `daily_budget_inr × duration_days` (budget ceiling).
 
 ---
 

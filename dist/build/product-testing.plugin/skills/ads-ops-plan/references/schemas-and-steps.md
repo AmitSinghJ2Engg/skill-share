@@ -129,6 +129,15 @@ Invoked by `daily-ads-analysis` task during an in-progress test. Mid-test snapsh
 5. Invoke ANOMALY detection (below) on today's delta + cumulative + budget → populate `anomalies[]`.
 6. Set `recommendation = MID_TEST_ANOMALY` if anomalies non-empty, else `MID_TEST_ON_TRACK`. Never emit phase-end enum values from daily_check.
 
+**Fallback: campaign-level cumulative without per-keyword data.** If `cumulative_metrics` is provided at campaign-total granularity only (no per-keyword breakdown — e.g., the task pulled aggregate counters from `Campaigns` CRM record rather than a Search Term Report), follow this fallback instead of failing:
+
+- Leave `by_keyword` as an empty array. Do NOT fabricate per-keyword estimates by dividing totals.
+- Drop `data_quality` one tier: a rating that would have been HIGH on per-keyword data becomes MEDIUM; MEDIUM becomes LOW; LOW stays LOW. This reflects the reduced confidence from missing keyword-level detail.
+- Anomaly detection still runs on the campaign totals (spend_spike, budget_overpacing, acos_jump, ctr_drop, zero_orders all work on aggregate metrics).
+- Gate_2_readiness still populates per the day_n rule, but note in `forecast_notes` or a top-level note that `keyword_margin_positive_count` is an aggregate estimate, not a per-keyword count — the task should request a Search Term Report export before the phase-end `analyze_validation` run.
+
+This fallback is intentional: `daily-ads-analysis` reads from CRM (cumulative counters updated by the task), not from a fresh STR every day. Requiring per-keyword data daily would make the task unworkable.
+
 ---
 
 ## ANOMALY Sub-Mode

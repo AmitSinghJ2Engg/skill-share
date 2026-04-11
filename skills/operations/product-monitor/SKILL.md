@@ -1,111 +1,94 @@
 ---
 name: product-monitor
 description: >
-  Post-launch product monitoring and feedback loop closure. Three modes:
-  MONITOR (pull BSR, reviews, ad metrics, return rates for launched products),
-  CLASSIFY (compare actual vs predicted performance, outcome classification),
-  FEEDBACK (generate learning signals for scoring calibration and failure patterns).
-  ALWAYS trigger for: "how is this product doing", "post-launch review",
-  "performance check", "BSR tracking", "return rate", "review velocity",
-  "is this a winner", "product outcome", "calibrate scoring", "prediction accuracy",
-  "feedback loop", "learning signals", "failure pattern", "PM-".
-  Do NOT trigger for pre-launch evaluation or discovery. If unsure — trigger.
+  PM- Product-side performance data collection, anomaly flagging, and gate_2
+  contribution for Ismokraft products across test and post-launch phases.
+  Phase-agnostic — works for mid-test D2.5 campaigns and post-launch D4
+  products. COLLECT mode pulls BSR, reviews, rating, returns, revenue, listing
+  health, flags anomalies against named thresholds (bsr_drop, high_returns,
+  rating_drop, revenue_decline, review_velocity_low), and populates a
+  gate_2_contribution block that feeds test-campaign Gate 2 decisions.
+  CLASSIFY and FEEDBACK are planned stubs (no consumer task wired — do not
+  invoke).
+  For ad-metric anomalies (ACoS, ROAS, spend), use ads-ops-plan ANOMALY sub-mode
+  — product-monitor does NOT own ad-metric detection (DL-021 boundary).
+  ALWAYS trigger for: "how is this product doing", "product performance",
+  "BSR tracking", "return rate", "rating drop", "listing health",
+  "mid-test monitoring", "post-launch review", "performance snapshot", "PM-".
 metadata:
-  domain: product
+  domain: operations
   prefix: PM-
-  version: "2.1.0"
+  version: "3.0.0"
 ---
 
 # Product Monitor
 
-Post-launch monitoring and feedback loop closure.
+Product-side performance data collection across test and post-launch phases.
+**COLLECT** is the live mode. CLASSIFY and FEEDBACK are planned stubs.
 
-| Mode | Input | Output | Feeds |
-|---|---|---|---|
-| **MONITOR** | launched_products[] | PerformanceRecord[] + anomalies | CLASSIFY |
-| **CLASSIFY** | performance_records + original_eval_records | OutcomeClassification[] | FEEDBACK |
-| **FEEDBACK** | classifications | FeedbackSignals | Upstream calibration |
+**Single responsibility:** Pull product-side signals (BSR, reviews, rating, returns, revenue, listing health), flag anomalies against named thresholds in `tuning-constants.md`, return structured data. Does NOT collect ad metrics (→ ads-ops-plan), post to Slack (→ task via slack-messaging), write CRM (→ task via zoho-data-ops), or make launch/kill decisions.
 
-**Boundary:** Monitors launched products only. Does not discover (product-discover), evaluate (product-evaluate), or make launch/kill decisions.
+---
+
+## Mode Selection
+
+| User has... | Needs... | Run mode |
+|---|---|---|
+| Mid-test or post-launch product, current metrics | Performance snapshot + anomaly flags + gate_2 contribution | **COLLECT** |
+| Launched products 30+ days, original eval scores | Outcome classification | **CLASSIFY** (stub) |
+| Per-product classifications from CLASSIFY runs | Learning signals for scoring calibration | **FEEDBACK** (stub) |
+
+Trigger phrases for COLLECT: "how is this product doing", "BSR tracking", "return rate check", "daily performance snapshot", "post-launch review", "mid-test monitoring".
 
 ---
 
 ## Session Protocol
 
-### At Session START
 1. Read this SKILL.md
-2. Read `context/system-ops/resolutions.ctx.md` — filter by domain `product-monitor`, `cross-skill`
-3. Read `references/anomaly-thresholds.md` — metric thresholds, classification criteria
+2. Read `references/anomaly-thresholds.md` and `references/tuning-constants.md` — thresholds and named values
+3. Read `context/system-ops/resolutions.ctx.md` (filter domain `product-monitor`, `cross-skill`)
+4. Read `context/product-pipeline/gate-criteria.ctx.json` for gate_2_contribution alignment
+5. Read `context/product-pipeline/pipeline-config.ctx.json` for Slack routing (task posts, not skill)
 
 ---
 
-## Mode: MONITOR
+## Mode: COLLECT
 
-Collect performance metrics across all active marketplaces. Pure data collection — no decisions.
+Phase-agnostic performance snapshot + anomaly detection. Works identically for D2.5 mid-test and D4 post-launch. Pure data collection + threshold checks — no classification, no decisions.
 
-**Input:** launched_products[] with product_id, product_name, launch_date, launch_channels[]. Optional: asin, lookback_days (default 30).
+**Input:** `products: [{ product_id, product_name, launch_date|test_start_date, asin, marketplaces: ["amazon.in"], previous_snapshot }]`, `lookback_days` (default 30), `breakeven_acos_pct` (optional — signals D2.5 test context for gate_2_contribution).
 
-**Metrics:** BSR + trend, review count + velocity, average rating, return rate %, revenue (INR aggregated), units sold, ad metrics (ACoS, ROAS, spend).
+**Metrics collected (product-side only, ad metrics excluded per DL-021 boundary):** BSR + trend, review count + velocity, rating, return rate %, revenue (INR), units sold, listing health (suppression, buybox %).
 
-**Multi-marketplace:** Revenue aggregated across channels in INR. BSR, reviews, return rates tracked per marketplace.
+**Anomalies** (full rules in `references/anomaly-thresholds.md`, values in `tuning-constants.md §1`): `bsr_drop` CRITICAL, `high_returns` CRITICAL, `rating_drop` WARNING, `revenue_decline` WARNING, `review_velocity_low` WARNING (skipped when no category benchmark storage — noted in `data_gaps`).
 
-**Anomalies:** Flagged with severity (CRITICAL/WARNING) but NOT acted on. See `references/anomaly-thresholds.md` for triggers.
+**gate_2_contribution block** populated when `breakeven_acos_pct` is provided. Surfaces product-side evidence for the test-campaign task's Gate 2 decision alongside ads-ops-plan's `gate_2_readiness`. Fields: `high_return_rate_flag`, `bsr_collapse_flag`, `rating_risk_flag`, `listing_suppressed_flag`, `all_clear`, `notes`. Full rules in `anomaly-thresholds.md §gate_2_contribution`.
 
-**Output:** PerformanceRecord[] with metrics (source, platform, date), anomalies[], data_completeness_pct.
-
----
-
-## Mode: CLASSIFY
-
-Compare actual performance against original evaluation predictions. Classify outcomes.
-
-**Input:** performance_records[] + original_eval_records[] (eval_score, pipeline_score, dimension_scores).
-
-**Classifications:** winner (top BSR/revenue/rating) | steady (stable positive) | underperformer (declining) | failure (significant miss) | pending (<30 days or insufficient data).
-
-Multi-marketplace products get per-marketplace classification alongside overall.
-
-**Prediction accuracy:** Compare outcome vs original verdict. Flag most accurate and most misleading scoring dimensions.
-
-**Output:** OutcomeClassification[] with outcome, outcome_per_marketplace, prediction_accuracy, most_accurate_dimension, most_misleading_dimension.
+**Output (PerformanceRecord):** `product_id`, `product_name`, `phase: "test"|"post_launch"|"unknown"`, `metrics`, `metrics_per_marketplace[]`, `anomalies[]` (each cites a NAMED `threshold_name` not a raw number), `gate_2_contribution` (when applicable), `alerts[]` (with `target_channel_hint: "task_decides"`), `data_completeness_pct`, `data_gaps[]`.
 
 ---
 
-## Mode: FEEDBACK
+## Modes: CLASSIFY / FEEDBACK (planned stubs — do not invoke)
 
-Generate structured learning signals from classifications. Makes the system self-calibrating.
+Both modes are designed but **not wired to any consumer task**. If invoked, return:
+```
+{ "error": "CLASSIFY/FEEDBACK are planned stubs. Full design at docs/skills/product-monitor-planned-modes.md. Blocks on ism-learning-engine build-out and a weekly-outcome-review consumer task. For mid-test/post-launch monitoring, use COLLECT mode." }
+```
 
-**Signals generated:**
-- **Product outcomes:** Per product with metrics and prediction accuracy
-- **Zone performance:** Aggregate wins/failures per zone
-- **Scoring accuracy:** Per dimension — was score predictive of actual outcome?
-- **Failure patterns:** Categorised reasons with was_predictable flag
-
-**Alerts** (to Slack #product-alerts):
-- pattern_detected: 3+ products failed at same gate for same reason (CRITICAL)
-- dimension_unreliable: dimension <50% accuracy over 20+ products (WARNING)
-- zone_underperforming: 0 strong candidates in last 5 runs (WARNING)
-
-**Output:** FeedbackSignals with learning_signals[], zone_performance_summary, scoring_accuracy_summary, failure_patterns[], alerts[].
+**Design intent is preserved in `docs/skills/product-monitor-planned-modes.md`** — full CLASSIFY input/output schemas, FEEDBACK signal types (product outcomes, zone performance, scoring accuracy, failure patterns), alert thresholds (`pattern_detected` 3+, `dimension_unreliable` <50% over 20+, `zone_underperforming` 0 of last 5), and the consumer-task pseudocode. That doc is outside the plugin runtime but tracked in git. When CLASSIFY/FEEDBACK get built, restore the full mode sections here by reading that doc.
 
 ---
 
 ## Rules
 
-1. Every metric cites source, platform, and date.
-2. Missing data is null, not zero.
-3. Products under 30 days cannot be classified — always "pending".
-4. Without original scores, prediction accuracy is "unknown".
-5. Failure categories use the defined enum from anomaly-thresholds.md.
-6. Returns structured data only. CRM/Slack handled by zoho-data-ops and task orchestrator.
-
----
-
-## Reference Files
-
-| File | Read when |
-|---|---|
-| `references/anomaly-thresholds.md` | All modes — metric thresholds, classification criteria, failure categories |
+1. Every metric cites source, marketplace, and date. Missing = `null`, never zero, never guessed.
+2. Anomaly thresholds cited by NAMED tunable from `tuning-constants.md` in output — never as literals.
+3. Returns structured data only — no Slack, no CRM writes, no decisions. Task does those.
+4. **Ad metrics out of scope.** ACoS/ROAS/spend → `ads-ops-plan` ANOMALY sub-mode (DL-021 boundary).
+5. CLASSIFY and FEEDBACK always return the stub error. Never process.
+6. `gate_2_contribution` block only populated when a test context is signalled (breakeven_acos_pct provided).
+7. `review_velocity_low` skipped when no category benchmark storage exists (and noted in `data_gaps`). Don't fabricate a benchmark.
+8. **S22 NO-FAKE-DATA.** Classification requires `classification_min_days` (30) + BSR/revenue data from at least one marketplace. Otherwise `pending`. Prediction accuracy requires original scores — if unavailable, `unknown`.
 
 ---
 
@@ -113,17 +96,22 @@ Generate structured learning signals from classifications. Makes the system self
 
 | Skill | Relationship |
 |---|---|
-| `product-discover` | Upstream (indirect) — scores validated by accuracy checks |
-| `product-screen` | Upstream — pipeline_score compared against outcomes |
-| `product-evaluate` | Upstream — Opportunity_Score compared against outcomes |
-| `ads-ops` | Upstream — ad metrics for MONITOR |
-| `revenue-ops` | Upstream — revenue data for MONITOR |
+| `ads-ops-plan` | Sibling — owns ad-metric anomalies (DL-021 boundary), no overlap |
+| `zoho-data-ops` | Downstream — task uses it to persist PerformanceRecord |
+| `slack-messaging` | Downstream — task formats alerts before posting |
+| `revenue-ops` | Upstream — revenue data for COLLECT's revenue metrics and revenue_decline anomaly |
+| `product-discover` | Upstream (indirect, for CLASSIFY planned stub) — zone provenance + original candidate scores |
+| `product-screen` | Upstream (for CLASSIFY planned stub) — original pipeline_score |
+| `product-evaluate` | Upstream (for CLASSIFY planned stub) — original eval_score + dimension_scores |
 
 ---
 
-## S22 — Data Integrity (NO-FAKE-DATA)
+## Reference Files
 
-- Every metric cites source, platform, and date
-- Missing metrics are null, not zero
-- Classification requires minimum 30 days + BSR/revenue data
-- Prediction accuracy requires original scores — if unavailable, "unknown"
+| File | Purpose |
+|---|---|
+| `references/anomaly-thresholds.md` | Anomaly types, classification criteria, failure taxonomy, gate_2_contribution rules — references `tuning-constants.md` for values |
+| `references/tuning-constants.md` | Named threshold values (§1 anomaly, §2 classification) |
+| `context/product-pipeline/gate-criteria.ctx.json` (project) | Gate 2 full_criteria alignment for gate_2_contribution output |
+| `context/product-pipeline/pipeline-config.ctx.json` (project) | Slack channel routing — task reads, skill does not |
+| `context/system-ops/resolutions.ctx.md` (project) | Cross-skill resolutions filtered by domain |

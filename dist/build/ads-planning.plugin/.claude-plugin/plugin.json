@@ -1,0 +1,8 @@
+{
+  "name": "ads-planning",
+  "description": "Domain 2.5 -- Amazon PPC campaign planning, scenario generation, test analysis, anomaly detection. Split from product-testing in DL-022 (size-driven: ads-ops-plan was consuming 67% of product-testing budget).",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ismokraft"
+  }
+}

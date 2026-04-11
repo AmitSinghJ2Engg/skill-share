@@ -915,3 +915,89 @@ All 12 plugins build clean.
 **Still pending (deferred to the next commit):** 4 skill content findings surfaced by reading subagent transcripts — forecast-model.md §3 clarity, competition factor in expected_cpc (v1.1 enhancement), daily_check fallback when per-keyword data is absent (schemas-and-steps.md doc update), fixture enrichment (per-keyword cumulative data). None of them broke the 100% pass rate; they're quality-of-life improvements for reproducibility and forecast precision. They'll land as a separate commit so the structural + infra work reviewable standalone.
 
 **Open question resolved:** Q3 from the scoping conversation ("since ads-ops-workspace itself is not a skill, how does claude would recommend the directory structure?") — answer is **strict per-skill**, no shared workspaces, duplication of snapshot + fixtures is acceptable because workspaces are gitignored. The shared-workspace path was briefly defensible as a "joint audit" exception but the user (correctly) rejected it for consistency. Future skill audits should follow the same per-skill convention.
+
+---
+
+## DL-022: Size-Driven Plugin Split + `docs/skills/` Convention (from product-monitor audit)
+
+**Date:** 2026-04-11
+**Status:** Accepted
+
+**Context:** Second skill audit in the D2.5 portfolio pilot (per Q1 scope from DL-021). `product-monitor` audit surfaced 17 findings, but the more interesting problem was structural: applying the audit fixes (PM12 gate_2_contribution, PM5 tuning-constants.md, PM1 scope clarification) grew `product-monitor` by ~3 KB net, and `product-testing` plugin was already at 99% (69,194 / 70,000 bytes) from the DL-021 follow-up fixes to ads-ops-plan. There was no budget room for the product-monitor audit to land.
+
+Two classes of problem surfaced:
+
+**Problem 1 — Dead-code modes consuming runtime budget.** The original product-monitor had 3 modes (MONITOR, CLASSIFY, FEEDBACK) but only MONITOR had a consumer task. CLASSIFY and FEEDBACK were designed-but-unwired — "feedback loop closure" design intent blocked on the unbuilt `ism-learning-engine`. Their documentation (input schemas, output schemas, alert thresholds like "3+ products", "<50% over 20+", "0 strong in last 5") lived in the skill's `references/` and consumed plugin budget.
+
+**Problem 2 — Heavy skill consuming majority of plugin budget.** `ads-ops-plan` (post-DL-021 audit + follow-up) is ~47 KB: it has SKILL.md (8.5 KB), schemas-and-steps.md (16.7 KB), tuning-constants.md (8.5 KB), forecast-model.md (7.8 KB), ads-metrics.md (6.1 KB). That's 67% of `product-testing`'s 70 KB budget. Every other skill in the plugin was fighting for the remaining 33%.
+
+**Two decisions:**
+
+### Rule 1 — Design intent for planned-but-unwired modes belongs in `docs/skills/{skill}-planned-modes.md`, NOT in runtime references
+
+Runtime `references/` is for content the model consults when the skill triggers. **Design documentation for modes that have no consumer task today is not runtime content** — the model never loads it when the active modes are invoked. Putting it in `references/` consumes plugin budget for content that isn't used at runtime.
+
+**New convention:** `docs/skills/{skill-name}-planned-modes.md` — tracked in git (version-controlled design intent), outside the plugin build, no budget impact. The skill's runtime SKILL.md has brief stub sections pointing to the doc, and returns an error if the stub mode is invoked.
+
+**Applied to product-monitor:** Created `docs/skills/product-monitor-planned-modes.md` with the full CLASSIFY + FEEDBACK design preserved verbatim from the original SKILL.md (v2.1.0) — input/output schemas, 4 FEEDBACK signal types, 3 alert thresholds (`pattern_detected` 3+, `dimension_unreliable` <50% over 20+, `zone_underperforming` 0 of last 5), dimension attribution logic, consumer-task pseudocode, and dependency notes. The runtime SKILL.md now has 5-line stub sections pointing at this doc. **Zero information loss; design intent is preserved exactly where it should be.**
+
+**Why this matters beyond product-monitor:** Any skill with planned-but-unwired modes can reuse this convention. It resolves the "DL-019 Rule B at the mode level" problem — you keep the design intent without burning runtime budget on dead code.
+
+### Rule 2 — Size-driven plugin splits are a legitimate architectural pattern
+
+When a single skill grows to consume the majority of a plugin's budget (say >60%), splitting the plugin along a **size boundary** (not a domain boundary) is appropriate.
+
+DL-021 split `ads-ops` → `ads-ops-plan` + `ads-ops-live` along a **domain boundary** (D2.5 vs D4). That was correct for its situation (the skill carried two responsibilities). DL-022 adds a **second** split pattern: when a single skill is too big for its plugin mates, give it its own plugin.
+
+**Applied to the product-testing plugin:**
+
+| Plugin | Before | After |
+|---|---|---|
+| `product-testing` | ads-ops-plan (47 KB) + fulfillment-ops + product-monitor + compliance-ops + slack-messaging = **~69 KB (99%)** | fulfillment-ops + product-monitor + compliance-ops + slack-messaging = **27,353 (39%)** |
+| `ads-planning` (new) | — | ads-ops-plan = **47,483 (68%)** |
+
+Both plugins now have comfortable headroom. **product-testing drops from 99% to 39% — 42 KB of room** for the remaining D2.5 audits (product-monitor fits PM12, plus margin-calculator and compliance-ops audits have room to grow).
+
+**Cost of the split:**
+- `test-campaign` cowork project loads 5 plugins instead of 4 (`product-testing`, `ads-planning`, `product-discovery`, `product-evaluation`, `platform-io`). Cowork projects already load multiple plugins — +1 is trivial cost.
+- `plugins.yaml` gets one new entry (~8 lines).
+- `test-campaign` task invocations (`AO- ads-ops-plan SCENARIO mode`) and `daily-ads-analysis` invocations (`AO- ads-ops-plan TEST mode daily_check`) are **unchanged** — they reference the skill by name, not by plugin.
+- `product-ops` plugin unaffected (still has ads-ops-live from DL-021 split).
+
+**Why not trim instead?** The alternative was compressing ads-ops-plan further (primarily `schemas-and-steps.md` prose and SKILL.md mode descriptions). I started down that path during the product-monitor audit session and nearly lost information from product-monitor's CLASSIFY/FEEDBACK sections to fit budget (reverted via Rule 1). The user stopped me: *"have you evaluated divide vs trim?"* — correctly. Trim was the wrong default. The divide gives every skill breathing room without touching any skill content, and is trivially reversible (move the skill back if the split turns out wrong).
+
+**Heuristic for when to apply Rule 2 (future reference):**
+- A single skill consumes > 60% of its plugin's budget → consider a size-driven split
+- The plugin has other unrelated skills that get squeezed → definitely split
+- The big skill is already in multiple plugins → split the big one into its own plugin rather than duplicating content
+- The skill is self-contained (doesn't reference sibling skills within its plugin) → split is cheap
+
+**DL-019 Rule B compliance check:** Not duplicating capability — repartitioning existing skills across plugins. Rule B prohibits duplicating work; this is the opposite (decomposing an overloaded plugin to give each skill room). A new plugin is not the same as a new skill.
+
+### Remediation applied (this DL)
+
+- `plugins.yaml`: new `ads-planning` plugin created; `ads-ops-plan` removed from `product-testing` and placed in `ads-planning` as the sole skill. `product-testing` version bumped to 1.4.0.
+- `projects/cowork/test-campaign/project.yaml`: plugin list updated to 5 plugins (added `ads-planning`); `skills_available` list updated (`ads-ops` → `ads-ops-plan`, added `compliance-ops`).
+- `skills/operations/product-monitor/SKILL.md`: full audit fixes applied — PM1 (rename MONITOR → COLLECT, phase-agnostic framing), PM2 (CLASSIFY/FEEDBACK as planned stubs pointing to docs), PM3 (removed `acos_breach` — ACoS detection stays with ads-ops-plan), PM5 (named tunables), PM6 (PM- prefix), PM7 (session protocol listing context files), PM8 (no direct Slack channel references — task decides routing), PM9 (mode table with trigger phrases), PM10 (metric list trimmed to product-side only), PM12 (new `gate_2_contribution` output block feeding test-campaign Gate 2 alongside ads-ops-plan's `gate_2_readiness`).
+- `skills/operations/product-monitor/references/anomaly-thresholds.md`: rewritten — removed `acos_breach`, moved all magic numbers to named tunables, added gate_2_contribution rules section, added DL-021 boundary note about ad-metric scope, added DL-018 dual-channel Slack note.
+- `skills/operations/product-monitor/references/tuning-constants.md` (NEW): named thresholds in §1 (anomaly) and §2 (classification) — ready for CLASSIFY when it's wired up.
+- `docs/skills/product-monitor-planned-modes.md` (NEW): full CLASSIFY + FEEDBACK design preserved from the pre-audit snapshot, with input/output schemas, 4 FEEDBACK signal types, 3 alert thresholds, consumer-task pseudocode, and dependency notes. **Tracked in git but outside the plugin build.**
+- `skills/operations/product-monitor/evals/` — NOT created in this DL (eval phase deferred; the snapshot at `product-monitor-workspace/skill-snapshot/` exists for when we run iteration-1).
+
+### Consequences
+
+- **13 plugins** registered (was 12) — added `ads-planning`.
+- **product-testing plugin: 99% → 39%** (27,353 bytes / 70,000). 42 KB of headroom restored.
+- **`ads-planning` plugin: 47,483 bytes (68%)**. Comfortable.
+- **product-ops plugin: 60%** (grew slightly due to product-monitor growth, still comfortable).
+- All 13 plugins build clean under 70 KB.
+- `test-campaign` cowork project loads 5 plugins instead of 4.
+- Task prompts unchanged — skill invocations by name don't care about plugin membership.
+- `docs/skills/` is a new directory convention. Future audits that find dead-code modes should follow the same pattern: design intent in `docs/skills/{skill}-planned-modes.md`, runtime SKILL.md has stubs pointing there.
+- The product-monitor audit has not yet run iteration-1 evals. Deferred to a follow-up commit because the session had already covered audit + fixes + plugin split; eval runs are a separate discrete chunk.
+
+### Open questions / future work
+
+- **Eval phase for product-monitor** — run the 5 planned evals (mid-test-monitor-snapshot, anomaly-flag-high-returns, anomaly-flag-bsr-drop, classify-stub-response, gate_2_contribution-at-day-7) in a follow-up session using the `product-monitor-workspace/skill-snapshot/` baseline.
+- **Apply Rule 2 preemptively to other near-ceiling plugins?** `product-discovery` (98%), `product-sourcing` (99%), `governance-architecture` (94%) are all approaching the budget. Not blocking today, but worth a look when those audits run. If any of them has a single skill > 60% of budget, apply the same split.
+- **`docs/skills/` README.md** — document the convention formally in a README so future audits find it. Deferred — trivial cleanup for a later commit.

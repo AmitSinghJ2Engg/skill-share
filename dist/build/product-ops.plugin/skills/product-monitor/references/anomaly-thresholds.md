@@ -1,66 +1,72 @@
-# Anomaly Thresholds — MONITOR Mode
+# Anomaly Thresholds — COLLECT Mode
 
-Defines when a metric reading triggers an anomaly flag. Anomalies are flagged in output and sent to Slack #product-alerts for CRITICAL severity — the task layer or operator decides response.
+Anomalies are returned as structured `alerts[]`; **the task decides Slack routing** via `slack-messaging` per DL-018 dual-channel scheme. product-monitor never posts directly.
 
-## Anomaly Types
+**Thresholds are named, not hardcoded.** See `tuning-constants.md` for values. Expressions like `high_returns_pct_max` refer to named constants — the skill cites them in `alerts[].threshold_name` output for traceability.
 
-### CRITICAL Anomalies
+**Ad-metric anomalies NOT handled here.** DL-021 boundary: `ads-ops-plan` ANOMALY sub-mode owns `acos_jump`, `spend_spike`, `ctr_drop`, `zero_orders`, `budget_overpacing`. product-monitor tracks product-side signals only.
 
-**bsr_drop**: BSR increased by more than 50% from previous check (higher BSR = worse rank).
-Example: BSR was 3,000 on amazon.in, now 5,500 → flag CRITICAL.
-Note: BSR is marketplace-specific. Flag per marketplace where the drop occurs. Amazon India and US BSRs are tracked independently.
+**Marketplace focus: Amazon India.** Multi-marketplace logic is future-proofed but rarely exercised today. Where a threshold is marketplace-specific, apply per marketplace; where it aggregates (returns, revenue weighted), use the aggregate.
 
-**high_returns**: Return rate exceeds 10%.
-Any product with return rate above 10% in a check period is CRITICAL. This threshold aligns with Amazon's ODR policy risk. Applies to all Amazon marketplaces (India, US, Europe, Australia).
+---
 
-### WARNING Anomalies
+## CRITICAL
 
-**review_velocity_low**: New reviews per day are below category median.
-Requires category median benchmark (from prior MONITOR runs or operator input). If no benchmark available, skip this check and note in data gaps. Track per marketplace.
+**`bsr_drop`** — BSR increased by more than `bsr_drop_pct_max` from the previous snapshot (higher BSR = worse rank). Per marketplace — BSRs are market-specific.
 
-**rating_drop**: Average rating dropped below 3.5.
-A product that was 4.2 and is now 3.4 is flagged. Threshold is absolute, not relative. Track per marketplace — a rating drop on any marketplace triggers the warning.
+**`high_returns`** — Return rate exceeds `high_returns_pct_max`. Aligns with Amazon's ODR policy risk tier. Aggregate (returns are customer-side).
 
-**revenue_decline**: Revenue down more than 30% week-over-week.
-Requires at least 2 consecutive weeks of data. If only one week available, skip and note. For multi-marketplace products: check both aggregated revenue AND per-marketplace revenue. A 30% decline on one marketplace is WARNING even if aggregated revenue is stable.
+## WARNING
 
-**acos_breach**: ACoS exceeds target by more than 20% relative.
-Example: Target ACoS 30%, actual 37% → (37-30)/30 = 23% → flag WARNING.
-Requires target ACoS from ads-ops or operator input. If no target, skip. Track per marketplace ad campaign.
+**`review_velocity_low`** — New reviews/day below category median. Requires category median storage (CRM or operator input). **Skipped and noted in `data_gaps` when no benchmark storage exists today** — don't fabricate.
 
-## Classification Thresholds — CLASSIFY Mode
+**`rating_drop`** — Rating below `rating_drop_floor` (absolute threshold, not relative). Per marketplace.
 
-Products are classified based on 30-day post-launch data. For multi-marketplace products, use aggregated metrics for overall classification and per-marketplace metrics for marketplace-specific classification.
+**`revenue_decline`** — Revenue down more than `revenue_decline_wow_pct_max` week-over-week. Requires ≥2 weeks data; skip and note in `data_gaps` otherwise. Check aggregate AND per-marketplace — a decline on any active market is WARNING even if aggregate is stable.
 
-| Outcome | Criteria |
+---
+
+## Classification Thresholds — CLASSIFY (planned stub)
+
+Documented for when CLASSIFY is wired up. Applies to 30+ day post-launch data (`classification_min_days` minimum). Per-marketplace + aggregate-weighted-by-revenue.
+
+| Outcome | All conditions required |
 |---|---|
-| winner | BSR in top 20% of category (on primary marketplace) + revenue on track + return rate below 5% + rating above 4.0 |
-| steady | BSR stable + revenue positive + return rate below 10% + rating above 3.5 |
-| underperformer | BSR declining on any marketplace OR revenue below forecast OR return rate 5–10% |
-| failure | BSR more than 2x target OR return rate above 10% OR revenue below 50% forecast OR rating below 3.0 |
-| pending | Less than 30 days since launch OR insufficient data |
+| `winner` | BSR in top `winner_bsr_top_pct`% of category AND revenue on forecast AND returns < `winner_returns_pct_max` AND rating > `winner_rating_min` |
+| `steady` | BSR stable AND revenue positive AND returns < `steady_returns_pct_max` AND rating > `steady_rating_min` |
+| `underperformer` | BSR declining any marketplace OR revenue below forecast OR returns between `winner_returns_pct_max` and `steady_returns_pct_max` |
+| `failure` | BSR > `failure_bsr_target_multiplier` × target OR returns > `high_returns_pct_max` OR revenue < `failure_revenue_pct_of_forecast`% forecast OR rating < `failure_rating_max` |
+| `pending` | < `classification_min_days` since launch OR insufficient data |
 
-A product cannot be classified until at least 30 days post-launch AND at least one of: BSR data from any Amazon marketplace, revenue data from any channel. If neither is available, classify as "pending".
+Cannot classify without at least one of: BSR data from any Amazon marketplace, revenue data from any channel. Otherwise `pending`.
 
-## Multi-Marketplace Classification Notes
+## Prediction Accuracy Labels (CLASSIFY planned stub)
 
-- A product can be "winner" on Amazon US and "underperformer" on Amazon India. Record both.
-- Overall classification = weighted by revenue contribution per marketplace.
-- If only one marketplace has data, classify based on that marketplace alone.
-
-## Prediction Accuracy Labels
-
-When comparing classification against the original evaluation score:
-
-- STRONG eval + winner/steady outcome → "accurate"
-- STRONG eval + failure outcome → "overestimated"
-- WEAK eval + winner outcome → "underestimated"
-- No original eval score available → "unknown" (never guess)
+| Original | Outcome | Label |
+|---|---|---|
+| STRONG | winner/steady | `accurate` |
+| STRONG | failure | `overestimated` |
+| WEAK | winner | `underestimated` |
+| Any | No original score | `unknown` (never guess) |
 
 ## Failure Categories
 
-Every failure or underperformer must be categorised:
+`demand_miss` · `competition_overwhelmed` · `margin_squeeze` · `quality_returns` · `listing_poor` · `ads_ineffective` · `seasonal_mismatch` · `sourcing_delay` · `marketplace_mismatch` · `other`
 
-demand_miss, competition_overwhelmed, margin_squeeze, quality_returns, listing_poor, ads_ineffective, seasonal_mismatch, sourcing_delay, marketplace_mismatch, other.
+Use `other` only when no category fits, with a note. `marketplace_mismatch` = product performs well on one market, fails on another.
 
-Use "other" only when no category fits and explain in notes. "marketplace_mismatch" is new — covers cases where the product performs well on one marketplace but fails on another due to different competitive dynamics or customer expectations.
+---
+
+## gate_2_contribution Rules (COLLECT mid-test context)
+
+When `breakeven_acos_pct` is provided (signals D2.5 test context), COLLECT populates `gate_2_contribution`:
+
+| Flag | Rule |
+|---|---|
+| `high_return_rate_flag` | `returns_pct > high_returns_pct_max` |
+| `bsr_collapse_flag` | `bsr_drop` fired AND current BSR > target × `failure_bsr_target_multiplier` |
+| `rating_risk_flag` | `rating < steady_rating_min` |
+| `listing_suppressed_flag` | `listing_health.suppression` OR `buybox_ownership_pct < 50` |
+| `all_clear` | None of the above |
+
+The `test-campaign` task reads this block at Gate 2 alongside ads-ops-plan's `gate_2_readiness`. `all_clear: true` = positive signal; any flag set = "review before Gate 2 decision". product-monitor does not decide Gate 2 — it surfaces evidence.

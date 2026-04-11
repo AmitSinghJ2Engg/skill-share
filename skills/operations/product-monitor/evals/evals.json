@@ -1,0 +1,48 @@
+{
+  "skill_name": "product-monitor",
+  "_purpose": "Validate the DL-022 product-monitor audit fixes. Baseline is the pre-audit snapshot at ../../product-monitor-workspace/skill-snapshot/ — a monolithic MONITOR/CLASSIFY/FEEDBACK v2.1.0 framed as 'post-launch only' with hardcoded thresholds and acos_breach ad-metric detection.",
+  "fixtures_dir": "../../product-monitor-workspace/fixtures/",
+  "workspace": "../../product-monitor-workspace/",
+  "evals": [
+    {
+      "id": 1,
+      "name": "mid-test-monitor-snapshot",
+      "prompt": "Load product-monitor-workspace/fixtures/mid-test-day7-clean.json (wooden pen holder on day 7 of a 10-day D2.5 test campaign, no anomalies, healthy progression). Run product-monitor COLLECT mode. Write the PerformanceRecord output to collect-result.json. Critical: (1) the output phase MUST be 'test' because breakeven_acos_pct is provided; (2) output MUST NOT contain any ad-metric fields (ACoS, ROAS, spend, CPC) per DL-021 boundary — ads-ops-plan owns those; (3) gate_2_contribution block MUST be populated with all_clear=true because the product is clean; (4) anomalies[] should be empty or contain only data_gaps notes, not actual anomalies.",
+      "expected_output": "collect-result.json with phase='test', no ad-metric fields, empty anomalies (or only data_gaps), gate_2_contribution.all_clear=true, data_completeness_pct populated.",
+      "files": ["skills/operations/product-monitor-workspace/fixtures/mid-test-day7-clean.json"],
+      "tests_audit_findings": ["PM1", "PM3", "PM10", "PM12"]
+    },
+    {
+      "id": 2,
+      "name": "anomaly-flag-high-returns",
+      "prompt": "Load product-monitor-workspace/fixtures/high-returns-anomaly.json (wooden pen holder with return rate 12%, above high_returns_pct_max=10). Run product-monitor COLLECT mode. Write the PerformanceRecord to collect-result.json. Critical: (1) anomalies[] must contain at least one entry with type='high_returns', severity='CRITICAL'; (2) that entry MUST cite threshold_name='high_returns_pct_max' (the NAMED tunable from tuning-constants.md §1), NOT a hardcoded '10%' string; (3) gate_2_contribution.high_return_rate_flag=true; (4) metric_value=12.0, threshold=10.",
+      "expected_output": "collect-result.json with anomalies[] containing high_returns CRITICAL anomaly, threshold_name cites 'high_returns_pct_max', gate_2_contribution.high_return_rate_flag=true, all_clear=false.",
+      "files": ["skills/operations/product-monitor-workspace/fixtures/high-returns-anomaly.json"],
+      "tests_audit_findings": ["PM3", "PM5", "PM12"]
+    },
+    {
+      "id": 3,
+      "name": "anomaly-flag-bsr-drop",
+      "prompt": "Load product-monitor-workspace/fixtures/bsr-drop-anomaly.json (post-launch wooden pen holder whose BSR jumped from 3000 to 5500 on amazon.in = +83% change, above bsr_drop_pct_max=50). Run product-monitor COLLECT mode. Write the PerformanceRecord to collect-result.json. Critical: (1) phase='post_launch' (breakeven_acos_pct is null, launch_date present); (2) anomalies[] contains type='bsr_drop', severity='CRITICAL', with per-marketplace context mentioning 'amazon.in'; (3) threshold_name cites 'bsr_drop_pct_max', not a hardcoded '50%' string; (4) gate_2_contribution should be omitted OR all_clear=false (either acceptable when no test context).",
+      "expected_output": "collect-result.json with phase='post_launch', bsr_drop CRITICAL anomaly present with per-marketplace attribution in context, threshold_name='bsr_drop_pct_max'.",
+      "files": ["skills/operations/product-monitor-workspace/fixtures/bsr-drop-anomaly.json"],
+      "tests_audit_findings": ["PM1", "PM5", "PM11"]
+    },
+    {
+      "id": 4,
+      "name": "classify-stub-response",
+      "prompt": "Load product-monitor-workspace/fixtures/classify-stub-invocation.json (a user asking product-monitor to run CLASSIFY mode with real performance_records and original_eval_records). Attempt to run product-monitor CLASSIFY mode. Write whatever the skill returns to classify-result.json. Critical: (1) the skill MUST return an error object (not a fabricated classification); (2) the error message MUST mention 'planned stub' and point to 'docs/skills/product-monitor-planned-modes.md'; (3) the skill MUST NOT attempt to classify any product as winner/steady/underperformer/failure; (4) the skill MUST NOT access the original_eval_records data to derive a result.",
+      "expected_output": "classify-result.json containing an error object with 'planned stub' and 'docs/skills/product-monitor-planned-modes.md' in the message. No fabricated OutcomeClassification data.",
+      "files": ["skills/operations/product-monitor-workspace/fixtures/classify-stub-invocation.json"],
+      "tests_audit_findings": ["PM2"]
+    },
+    {
+      "id": 5,
+      "name": "gate2-contribution-multiple-flags",
+      "prompt": "Load product-monitor-workspace/fixtures/gate2-contribution-day7.json (mid-test wooden pen holder with high returns 12.5%, rating drop to 3.4, listing suppression, and BSR +118%). Run product-monitor COLLECT mode. Write the PerformanceRecord to collect-result.json. Critical: (1) output gate_2_contribution block MUST have ALL of: high_return_rate_flag=true, bsr_collapse_flag=true, rating_risk_flag=true, listing_suppressed_flag=true, all_clear=false; (2) anomalies[] contains bsr_drop, high_returns, rating_drop entries — each cites its NAMED tunable (bsr_drop_pct_max, high_returns_pct_max, rating_drop_floor); (3) gate_2_contribution.notes is non-empty human-readable context explaining the multiple flag state.",
+      "expected_output": "collect-result.json with 4 gate_2_contribution flags set to true, all_clear=false, non-empty notes, anomalies array with bsr_drop/high_returns/rating_drop each citing named tunables.",
+      "files": ["skills/operations/product-monitor-workspace/fixtures/gate2-contribution-day7.json"],
+      "tests_audit_findings": ["PM5", "PM12"]
+    }
+  ]
+}

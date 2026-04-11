@@ -1,7 +1,7 @@
 {
   "name": "product-testing",
-  "description": "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, compliance tracking, Slack messaging. Paired with ads-planning plugin for campaign planning; see DL-022 size-driven split.",
-  "version": "1.4.0",
+  "description": "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, Slack messaging. Paired with ads-planning (DL-022) and compliance-management (DL-024) plugins.",
+  "version": "1.5.0",
   "author": {
     "name": "Ismokraft"
   }

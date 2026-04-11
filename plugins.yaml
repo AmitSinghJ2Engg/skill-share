@@ -22,28 +22,24 @@ plugins:
         from: research
 
   product-evaluation:
-    description: "Domains 1 + 1.5 -- deep evaluation, compliance feasibility, competitive positioning. Paired with margin-calculation plugin for unit economics; see DL-023 size-driven split."
-    version: "1.1.0"
+    description: "Domains 1 + 1.5 -- deep evaluation, competitive positioning. Paired with margin-calculation (DL-023) and compliance-management (DL-024) plugins."
+    version: "1.2.0"
     project: "Product Pipeline"
     skills:
       - skill: product-evaluate
-        from: evaluation
-      - skill: compliance-ops
         from: evaluation
       - skill: product-market-intelligence
         from: research
 
   product-sourcing:
-    description: "Domain 2 -- product spec, vendor evaluation, compliance initiation. Paired with margin-calculation plugin for actual unit economics; see DL-023."
-    version: "1.2.0"
+    description: "Domain 2 -- product spec, vendor evaluation. Paired with margin-calculation (DL-023) and compliance-management (DL-024) plugins."
+    version: "1.3.0"
     project: "Product Pipeline"
     skills:
       - skill: product-spec
         from: evaluation
       - skill: vendor-ops
         from: sourcing
-      - skill: compliance-ops
-        from: evaluation
 
   margin-calculation:
     description: "Unit economics authority -- per-unit profitability for Amazon India and Shopify, 5 modes (ESTIMATE, ACTUAL, COMPARISON, CHANNEL, BREAKEVEN). Split from product-evaluation + product-sourcing in DL-023 (size-driven: both host plugins were at 99% ceiling). Consumed by D1 (ESTIMATE), D2 (ACTUAL), D2.5 COMPARISON at Gate 2, and ad-hoc CHANNEL/BREAKEVEN utility calls."
@@ -53,17 +49,23 @@ plugins:
       - skill: margin-calculator
         from: finance
 
+  compliance-management:
+    description: "Product compliance authority -- India cert catalog (BIS, FSSAI, CDSCO, TEC, WPC, etc.), timeline check for Gate 2, certification lifecycle tracking. Split from product-evaluation + product-sourcing + product-testing + product-launch in DL-024 (size-driven: product-launch was at 88% ceiling). Live mode: TIMELINE_CHECK (Gate 2 consumer via test-campaign). Planned stubs: FEASIBILITY (Gate 1), INITIATION (mid-pipeline), COMPLETION (Gate 3) — design preserved in docs/skills/compliance-ops-planned-modes.md."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: compliance-ops
+        from: evaluation
+
   product-testing:
-    description: "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, compliance tracking, Slack messaging. Paired with ads-planning plugin for campaign planning; see DL-022 size-driven split."
-    version: "1.4.0"
+    description: "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, Slack messaging. Paired with ads-planning (DL-022) and compliance-management (DL-024) plugins."
+    version: "1.5.0"
     project: "Product Pipeline"
     skills:
       - skill: fulfillment-ops
         from: operations
       - skill: product-monitor
         from: operations
-      - skill: compliance-ops
-        from: evaluation
       - skill: slack-messaging
         from: platform
 
@@ -78,16 +80,14 @@ plugins:
   # ── Launch & Ops ──────────────────────────────────────────────────
 
   product-launch:
-    description: "Domain 3 -- listing copy, capital planning, compliance completion, bulk fulfillment."
-    version: "1.0.0"
+    description: "Domain 3 -- listing copy, capital planning, bulk fulfillment. Paired with compliance-management plugin (DL-024) for Gate 3 compliance completion."
+    version: "1.1.0"
     project: "Launch & Ops"
     skills:
       - skill: content-writer
         from: marketing
       - skill: capital-planner
         from: finance
-      - skill: compliance-ops
-        from: evaluation
       - skill: fulfillment-ops
         from: operations
 

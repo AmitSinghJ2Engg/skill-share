@@ -2,20 +2,21 @@ name: "Test Campaign Runner"
 type: cowork
 chat_project: ism-market-testing
 plugins:
-  - product-testing       # D2.5 ops: fulfillment, product-monitor, compliance, slack-messaging
+  - product-testing       # D2.5 ops: fulfillment, product-monitor, slack-messaging
   - ads-planning          # D2.5 ads-ops-plan (split from product-testing in DL-022, size-driven)
   - product-discovery     # upstream: keyword intelligence, discovery, screening
-  - product-evaluation    # upstream: product-evaluate, compliance
+  - product-evaluation    # upstream: product-evaluate, product-market-intelligence
   - margin-calculation    # D2.5 Gate 2 COMPARISON mode (split from product-evaluation in DL-023)
+  - compliance-management # D2.5 Gate 2 TIMELINE_CHECK mode (split from product-testing+product-evaluation in DL-024)
   - platform-io           # zoho-data-ops (shared I/O layer)
 skills_available:
   - product-discover
   - ikraft-keyword-intelligence
   - fulfillment-ops
   - ads-ops-plan          # renamed from ads-ops per DL-021 split
-  - margin-calculator
+  - margin-calculator     # via margin-calculation plugin
   - product-monitor
-  - compliance-ops
+  - compliance-ops        # via compliance-management plugin
   - zoho-data-ops
   - slack-messaging
 mcp_connections:

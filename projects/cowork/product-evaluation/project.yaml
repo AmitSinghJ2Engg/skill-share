@@ -3,11 +3,12 @@ type: cowork
 chat_project: ism-product-research
 plugins:
   - product-evaluation
-  - margin-calculation   # split from product-evaluation in DL-023 (size-driven)
+  - margin-calculation    # split from product-evaluation in DL-023 (size-driven)
+  - compliance-management # split from product-evaluation in DL-024 (size-driven)
 skills_available:
   - product-evaluate
-  - margin-calculator    # via margin-calculation plugin
-  - compliance-ops
+  - margin-calculator     # via margin-calculation plugin
+  - compliance-ops        # via compliance-management plugin
   - zoho-data-ops
   - slack-messaging
 mcp_connections:

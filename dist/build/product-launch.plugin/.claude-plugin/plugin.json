@@ -1,7 +1,7 @@
 {
   "name": "product-launch",
-  "description": "Domain 3 -- listing copy, capital planning, compliance completion, bulk fulfillment.",
-  "version": "1.0.0",
+  "description": "Domain 3 -- listing copy, capital planning, bulk fulfillment. Paired with compliance-management plugin (DL-024) for Gate 3 compliance completion.",
+  "version": "1.1.0",
   "author": {
     "name": "Ismokraft"
   }

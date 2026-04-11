@@ -1072,4 +1072,101 @@ All 4 audited skills at 100% with_skill pass rate. The audit method is reliably 
 - product-monitor iteration-1 eval commit (the eval artifacts are in gitignored workspace; only the infrastructure fixes landed in `2751797`)
 - 4th audit: `compliance-ops` — the last of the 4 core D2.5 skills from Q1 scope. product-evaluation plugin now has 33 KB headroom to absorb compliance-ops growth.
 
+---
+
+## DL-024: compliance-ops Audit + Third Size-Driven Plugin Split (`compliance-management`)
+
+**Date:** 2026-04-12
+**Status:** Accepted
+
+**Context:** Fourth and final skill in the D2.5 portfolio audit pilot. Pre-audit `compliance-ops` v1.0.0 had three designed modes (FEASIBILITY, INITIATION, COMPLETION) but **grep `tasks/` for any compliance-ops mode name returned empty** — no task in the repo actually invokes compliance-ops. Meanwhile, the `test-campaign` task Step 8 gates on compliance readiness at Gate 2 but had no skill to call. The audit surfaced 24 findings across factual, structural, and wiring dimensions.
+
+**24 audit findings — top critical/high:**
+
+- **CO1 (critical):** No TIMELINE_CHECK mode existed despite test-campaign Step 8 needing a Gate 2 compliance feeder. All three documented modes (FEASIBILITY/INITIATION/COMPLETION) were dead code. Fix: add TIMELINE_CHECK as the live mode that consumes `ComplianceRecord` + `launch_timeline_date` and produces PASS/WARNING/BLOCK + `gate_2_compliance_contribution` block (same pattern as DL-022 product-monitor and DL-023 margin-calculator).
+- **CO3 (critical):** FEASIBILITY / INITIATION / COMPLETION were fully designed but unwired — invoking them would produce fabricated `ComplianceRecord`s with invented Jira ticket IDs, cert numbers, and cost estimates (Rule 1 violation). Fix per DL-022 Rule 1: move full design intent to `docs/skills/compliance-ops-planned-modes.md` (outside plugin runtime, tracked in git), and in runtime SKILL.md have the three modes return a stub error pointing to that doc. Runtime never executes; design preserved for when these modes get wired.
+- **CO5 (critical factual error):** v1.0.0 SKILL.md FEASIBILITY step 2 mapped India marketplace children's products to **CPSC** — the U.S. Consumer Product Safety Commission. CPSC has no jurisdiction over Amazon.in. Correct standard for India children's toys is **BIS IS 9873** under the Toys (Quality Control) Order 2020. Fix: new comprehensive `references/cert-catalog.md` with India-correct mappings — BIS (incl. IS 9873 for toys, IS 616/IS 13252 for electrical), FSSAI (food-contact), CDSCO (cosmetics/medical), TEC (telecom), WPC (wireless), LMPC (packaging declarations).
+- **CO14:** All timeline thresholds were hardcoded prose strings ("14 days buffer", "7 days critical"). Fix per DL-021 pattern: new `references/tuning-constants.md §1` with `timeline_buffer_days=14`, `critical_buffer_days=7`, `warning_buffer_days=21` as named values. Skill rationale must cite by name, not hardcode.
+- **CO17:** No Gate 2 handoff block. Fix: `gate_2_compliance_contribution` block aligned with DL-018 `gc.gate_2.full_criteria.compliance = "PASS or WARNING"` — structure: `timeline_verdict`, `all_certs_expected_before_launch`, `at_risk_certs[]`, `critical_certs_blocked[]`, `gate_2_compliance_met` (computed against the stored criterion, not hardcoded), `rationale`.
+
+**Plus:**
+- New `references/schemas-and-steps.md` documenting TIMELINE_CHECK I/O + gate_2_compliance_contribution structure + CRM field mapping (previously only in prose)
+- New `references/jira-integration.md` documenting the CRM → Bigin → Jira stage automation flow for INITIATION (planned) — per Amit Q3: "automation exists currently or may need testing. Bigin is responsible for Jira ticket creation. CRM syncs with Bigin and on stage automation Jira task may be created"
+- Metadata block added to SKILL.md frontmatter (`domain: evaluation`, `prefix: CO-`, `version: 2.0.0`, `lifecycle: L1_stable`) per S4
+- Session Protocol wiring 6 reference files + 2 project context files (`gate-criteria.ctx.json`, `crm-field-mappings.ctx.json`)
+- S22 data integrity section: never invent timelines, never fabricate certificate numbers, always cite named tunables
+
+**Third size-driven plugin split (DL-022 Rule 2 applied again):**
+
+Pre-audit compliance-ops was in FOUR plugins simultaneously: `product-evaluation`, `product-sourcing`, `product-testing`, `product-launch` — all near-ceiling after the ads-ops/product-monitor/margin-calculator splits. The audit grew the skill from ~4.6 KB to ~33 KB (6x) because it added the full India cert catalog, jira-integration doc, tuning-constants, TIMELINE_CHECK schema, and planned-stub handling. This would have busted product-launch (88% → would exceed 100%).
+
+**Applied DL-022 Rule 2:** created new `compliance-management` plugin containing only compliance-ops. Removed compliance-ops from all four host plugins. Results:
+- `compliance-management`: new plugin, 33 KB (48% of 70 KB budget — room for future growth)
+- `product-launch`: 88% → ~82%
+- `product-evaluation`, `product-sourcing`, `product-testing`: all gained ~5 KB headroom
+
+**15 plugins total now** (was 14 after DL-023). Wire-in:
+- `daily-discovery` cowork project: added compliance-management plugin for future Gate 1 FEASIBILITY stub consumer
+- `product-evaluation` cowork project: added compliance-management plugin
+- `test-campaign` cowork project: added compliance-management plugin — this is the live consumer (Gate 2 via TIMELINE_CHECK at Step 8)
+
+**Eval phase (iteration-1):**
+
+5 evals × 2 configs = 10 subagent runs in parallel. Strict per-skill workspace (`skills/evaluation/compliance-ops-workspace/`, gitignored).
+
+- eval-1 timeline-check-all-pass (PASS path, 3 certs all well before launch)
+- eval-2 timeline-check-warning (1 cert inside timeline_buffer_days window)
+- eval-3 timeline-check-block (mandatory cert past launch — safety-critical)
+- eval-4 cert-catalog-india-toys (CO5 regression: BIS IS 9873 vs CPSC knowledge retrieval)
+- eval-5 planned-stub-refusal (CO3: INITIATION must refuse and point to docs/skills/)
+
+**Results: 100% with_skill (38/38) vs 73.7% baseline (28/38), +26.3 pp pooled delta.**
+
+Per-eval:
+| Eval | with_skill | baseline | Delta |
+|---|---|---|---|
+| 1 timeline-pass | 9/9 (100%) | 9/9 (100%) | 0 |
+| 2 timeline-warning | 8/8 (100%) | 8/8 (100%) | 0 |
+| 3 timeline-block | 8/8 (100%) | 7/8 (88%) | +12 pp |
+| 4 cert-catalog | 6/6 (100%) | 2/6 (33%) | **+67 pp** |
+| 5 stub-refusal | 7/7 (100%) | 2/7 (29%) | **+71 pp** |
+
+**Key observations:**
+
+1. **Evals 1-3 (TIMELINE_CHECK path) showed no delta** — the baseline subagent bootstrapped the output schema from fixture `_expected_behavior` annotations (which my fixtures included for human readability) and did the math correctly from first principles. This is a real finding: for well-structured numeric tasks, the baseline can reverse-engineer reasonable outputs from hints. **Lesson for future audits: if the discrimination matters for schema checks, strip expected-behavior annotations from fixtures, OR make the grader rely on structural JSON introspection (key names, nested blocks) rather than semantic content.**
+
+2. **Eval-4 baseline (33%) faithfully reproduced the CPSC error**: the subagent's output contained `{"cert": "CPSC", "governing_body": "CPSC (U.S. Consumer Product Safety Commission)", "mandatory": true, "applies_because": "Snapshot maps children's products in the India marketplace to CPSC"}`. Grader caught it on the structural `applicable_certs[].governing_body` check — CO5 confirmed as a real factual bug, not a theoretical one.
+
+3. **Eval-5 baseline (29%) fabricated a full ComplianceRecord**: 3 invented certs (LMPC_PACKAGING_DECLARATION, COO_DECLARATION, BIS_LACQUER_SAFETY) with specific cost estimates (`estimated_cost_inr: 18000/2500/0`), expected completion dates, and placeholder Jira ticket IDs ("ISMO-STUB-LMPC-001" etc.). The baseline subagent's run-notes were brutally honest: *"The baseline fails all three expected-behavior checks: (1) Did NOT refuse — produced a plausible-looking ComplianceRecord. (2) Did NOT point to docs/skills/compliance-ops-planned-modes.md (snapshot has no such reference). (3) Violated its own Rule 1 ('Never invent certification timelines') because the snapshot provides no project-context cert-mapping loader, so any execution path must fabricate. The snapshot is internally inconsistent: documents execution without providing wiring. This is precisely the DL-024 audit finding CO3."* — the baseline independently re-derived the audit finding.
+
+4. **Grader fix during the run:** Initial grader version gave baseline 94.7% (36/38) because of two substring-match false positives: (a) `"stub"` substring matched inside fabricated Jira ticket IDs like `"ISMO-STUB-LMPC-001"`, giving credit for "refusal language" where none existed; (b) `json.dumps(data) + " " + notes` concatenation leaked post-audit keywords from the baseline agent's explanatory run-notes into the output-content checks. Fix: strict structural checks on the output JSON only, no notes concatenation, key-based lookups instead of substring scans. Re-grading gave the correct 73.7% baseline. **Lesson: run-notes.md must never be concatenated into substring matchers. The discrimination is in structural JSON fields.**
+
+5. **Four audits complete — portfolio pilot done.** All four D2.5 core skills now at 100% with_skill pass rate:
+   - DL-021 ads-ops-plan: 100% vs 47.4% (+52.6 pp)
+   - DL-022 product-monitor: 100% vs 44.7% (+56 pp)
+   - DL-023 margin-calculator: 100% vs 60.6% (+39.4 pp)
+   - DL-024 compliance-ops: 100% vs 73.7% (+26.3 pp) *(baseline is higher here because fixtures included expected-behavior hints — see observation 1)*
+
+**Reusable infrastructure fully validated:**
+- Fan-out eval pattern (5 evals × 2 configs in parallel)
+- Per-skill workspace convention (gitignored `{skill}-workspace/`)
+- `evals/` excluded from plugin build + budget (build-plugin.py + validate-system.py)
+- `docs/skills/{skill}-planned-modes.md` for dead-code mode design (DL-022 Rule 1)
+- Size-driven plugin splits when skill > 60% of host plugin budget (DL-022 Rule 2)
+- `references/tuning-constants.md` for skill-local named constants (DL-021 pattern)
+- `gate_2_*_contribution` block handoff pattern to test-campaign (DL-022/023/024)
+- Context path citation (`fc.*`, `gc.*`) instead of hardcoded values
+
+**Consequences:**
+- All 15 plugins build clean, all under budget
+- `test-campaign` task can now actually consume compliance-ops at Gate 2 (previously had no skill to call)
+- `compliance-ops` v1.0.0 → v2.0.0 (breaking: mode set completely changed, TIMELINE_CHECK replaces the three old dead-code modes as the runtime interface)
+- Three planned-but-unwired modes preserved in `docs/skills/compliance-ops-planned-modes.md` for when their consumer tasks are built (Gate 1 `compliance-kickoff`, mid-pipeline `compliance-initiation`, Gate 3 `pre-launch-readiness`)
+- D2.5 portfolio audit pilot: **COMPLETE**. Method proven across 4 skills. Next audits can target near-ceiling plugins (product-discovery 98%, governance-architecture 94%) using the same playbook.
+
+**Deferred to follow-up:**
+- Wire `test-campaign` Step 8 to actually call compliance-ops TIMELINE_CHECK with the ComplianceRecord from CRM (schema-level work — the skill is ready, the task needs the explicit invocation step)
+- Future iteration: strip `_expected_behavior` annotations from fixtures for evals 1-3 to get cleaner discrimination; the annotations helped the baseline reverse-engineer correct TIMELINE_CHECK outputs
+- Build the planned FEASIBILITY / INITIATION / COMPLETION modes when their consumer tasks exist
+
 **Open question:** context budget pressure on the remaining near-ceiling plugins (`product-discovery` 98%, governance-architecture 94%) — not touched by DL-022 or DL-023 audits. When those skills come up for audit, Rule 2 applies.

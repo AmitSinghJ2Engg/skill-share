@@ -1,0 +1,8 @@
+{
+  "name": "compliance-management",
+  "description": "Product compliance authority -- India cert catalog (BIS, FSSAI, CDSCO, TEC, WPC, etc.), timeline check for Gate 2, certification lifecycle tracking. Split from product-evaluation + product-sourcing + product-testing + product-launch in DL-024 (size-driven: product-launch was at 88% ceiling). Live mode: TIMELINE_CHECK (Gate 2 consumer via test-campaign). Planned stubs: FEASIBILITY (Gate 1), INITIATION (mid-pipeline), COMPLETION (Gate 3) \u2014 design preserved in docs/skills/compliance-ops-planned-modes.md.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ismokraft"
+  }
+}

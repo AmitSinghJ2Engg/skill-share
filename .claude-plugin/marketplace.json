@@ -23,6 +23,20 @@
       ]
     },
     {
+      "name": "compliance-management",
+      "description": "Product compliance authority -- India cert catalog (BIS, FSSAI, CDSCO, TEC, WPC, etc.), timeline check for Gate 2, certification lifecycle tracking. Split from product-evaluation + product-sourcing + product-testing + product-launch in DL-024 (size-driven: product-launch was at 88% ceiling). Live mode: TIMELINE_CHECK (Gate 2 consumer via test-campaign). Planned stubs: FEASIBILITY (Gate 1), INITIATION (mid-pipeline), COMPLETION (Gate 3) — design preserved in docs/skills/compliance-ops-planned-modes.md.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/compliance-management.plugin",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "compliance management"
+      ]
+    },
+    {
       "name": "governance-architecture",
       "description": "Architecture compliance and ecosystem health -- 7-Law enforcement, pattern synthesis, gap detection and routing.",
       "version": "1.1.0",
@@ -108,8 +122,8 @@
     },
     {
       "name": "product-evaluation",
-      "description": "Domains 1 + 1.5 -- deep evaluation, compliance feasibility, competitive positioning. Paired with margin-calculation plugin for unit economics; see DL-023 size-driven split.",
-      "version": "1.1.0",
+      "description": "Domains 1 + 1.5 -- deep evaluation, competitive positioning. Paired with margin-calculation (DL-023) and compliance-management (DL-024) plugins.",
+      "version": "1.2.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -122,8 +136,8 @@
     },
     {
       "name": "product-launch",
-      "description": "Domain 3 -- listing copy, capital planning, compliance completion, bulk fulfillment.",
-      "version": "1.0.0",
+      "description": "Domain 3 -- listing copy, capital planning, bulk fulfillment. Paired with compliance-management plugin (DL-024) for Gate 3 compliance completion.",
+      "version": "1.1.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -150,8 +164,8 @@
     },
     {
       "name": "product-sourcing",
-      "description": "Domain 2 -- product spec, vendor evaluation, compliance initiation. Paired with margin-calculation plugin for actual unit economics; see DL-023.",
-      "version": "1.2.0",
+      "description": "Domain 2 -- product spec, vendor evaluation. Paired with margin-calculation (DL-023) and compliance-management (DL-024) plugins.",
+      "version": "1.3.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -164,8 +178,8 @@
     },
     {
       "name": "product-testing",
-      "description": "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, compliance tracking, Slack messaging. Paired with ads-planning plugin for campaign planning; see DL-022 size-driven split.",
-      "version": "1.4.0",
+      "description": "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, Slack messaging. Paired with ads-planning (DL-022) and compliance-management (DL-024) plugins.",
+      "version": "1.5.0",
       "author": {
         "name": "Ismokraft"
       },

@@ -4,12 +4,14 @@ chat_project: ism-product-research
 plugins:
   - product-discovery
   - product-evaluation
-  - margin-calculation   # split from product-evaluation in DL-023 (size-driven)
+  - margin-calculation    # split from product-evaluation in DL-023 (size-driven)
+  - compliance-management # split from product-evaluation in DL-024 (size-driven) — Gate 1 FEASIBILITY stub
 skills_available:
   - ikraft-keyword-intelligence
   - product-discover
   - product-screen
-  - margin-calculator    # via margin-calculation plugin
+  - margin-calculator     # via margin-calculation plugin
+  - compliance-ops        # via compliance-management plugin
   - zoho-data-ops
   - slack-messaging
 mcp_connections:

@@ -1,0 +1,48 @@
+{
+  "skill_name": "compliance-ops",
+  "_purpose": "Validate the DL-024 compliance-ops audit fixes. Baseline is the pre-audit v1.0.0 snapshot at ../../compliance-ops-workspace/skill-snapshot/ (which had: no TIMELINE_CHECK mode, CPSC wrongly cited for India children's products, no stub handling for dead-code modes, no gate_2_compliance_contribution block, hardcoded day buffers in prose, no jira-integration.md, no tuning-constants.md). Tests CO1 (TIMELINE_CHECK exists), CO3 (planned-mode stub refusal), CO5 (India cert catalog factual correctness — BIS IS-9873 not CPSC), CO14 (named-tunable citation), CO17 (gate_2_compliance_contribution block).",
+  "fixtures_dir": "../../compliance-ops-workspace/fixtures/",
+  "workspace": "../../compliance-ops-workspace/",
+  "evals": [
+    {
+      "id": 1,
+      "name": "timeline-check-all-pass",
+      "prompt": "Load skills/evaluation/compliance-ops-workspace/fixtures/timeline-check-all-pass.json (Handcrafted Wooden Pen Holder, launch 2026-06-30, 3 certs all completing well before launch). Run compliance-ops TIMELINE_CHECK mode. Write the ComplianceTimelineCheck output as JSON to timeline-result.json. CRITICAL: (1) timeline_verdict = PASS; (2) every cert has status on_track with buffer_days >= timeline_buffer_days (14, per tuning-constants.md §1); (3) output contains a gate_2_compliance_contribution block with all_certs_expected_before_launch=true, at_risk_certs=[] (empty), critical_certs_blocked=[] (empty), gate_2_compliance_met=true; (4) context_paths_cited[] includes 'gc.gate_2.full_criteria.compliance' and a reference to tuning-constants.md §1 (or 'timeline_buffer_days' named tunable); (5) rationale cites the named buffer, not a hardcoded '14 days'.",
+      "expected_output": "timeline-result.json with verdict=PASS, gate_2_compliance_contribution populated with green flags, named-tunable citations.",
+      "files": ["skills/evaluation/compliance-ops-workspace/fixtures/timeline-check-all-pass.json"],
+      "tests_audit_findings": ["CO1", "CO14", "CO17"]
+    },
+    {
+      "id": 2,
+      "name": "timeline-check-warning",
+      "prompt": "Load skills/evaluation/compliance-ops-workspace/fixtures/timeline-check-warning.json (Bamboo Kitchen Utensil Set, launch 2026-06-30, FSSAI expected 2026-06-20 = 10 days buffer, BIS-generic optional on track). Run compliance-ops TIMELINE_CHECK mode. Write timeline-result.json. CRITICAL: (1) timeline_verdict = WARNING (FSSAI inside the 14-day timeline_buffer_days window but still >= 7-day critical_buffer_days); (2) at_risk_certs[] contains FSSAI with buffer_days=10; (3) critical_certs_blocked[] is empty (nothing past launch); (4) gate_2_compliance_contribution.all_certs_expected_before_launch=true; (5) gate_2_compliance_met=false (WARNING does not satisfy gc.gate_2.full_criteria.compliance per DL-018 full_criteria — only PASS satisfies). Wait — verify this: read context/product-pipeline/gate-criteria.ctx.json to see the exact value at gc.gate_2.full_criteria.compliance. If it allows 'PASS or WARNING' then gate_2_compliance_met should be true; if it only allows 'PASS' then false. Whichever it is, the output must cite the path and match the stored criterion; (6) rationale references timeline_buffer_days by name.",
+      "expected_output": "timeline-result.json with verdict=WARNING, at_risk_certs populated, gate_2_compliance_met matching the stored gc.gate_2.full_criteria.compliance criterion.",
+      "files": ["skills/evaluation/compliance-ops-workspace/fixtures/timeline-check-warning.json"],
+      "tests_audit_findings": ["CO14", "CO17"]
+    },
+    {
+      "id": 3,
+      "name": "timeline-check-block",
+      "prompt": "Load skills/evaluation/compliance-ops-workspace/fixtures/timeline-check-block.json (Food Storage Container Set, launch 2026-06-30, FSSAI mandatory expected 2026-07-15 = 15 days AFTER launch, BIS-generic optional on track). Run compliance-ops TIMELINE_CHECK mode. Write timeline-result.json. THIS IS THE MOST SAFETY-CRITICAL EVAL — a false-PASS here lets a non-compliant product through Gate 2. CRITICAL: (1) timeline_verdict = BLOCK (mandatory cert expected after launch); (2) gate_2_compliance_contribution.critical_certs_blocked[] contains 'FSSAI'; (3) all_certs_expected_before_launch = false; (4) gate_2_compliance_met = false; (5) rationale explicitly calls out that FSSAI is mandatory AND its expected_completion_date is after launch_timeline_date; (6) the output cites gc.gate_2.full_criteria.compliance in context_paths_cited.",
+      "expected_output": "timeline-result.json with verdict=BLOCK, FSSAI in critical_certs_blocked, gate_2_compliance_met=false.",
+      "files": ["skills/evaluation/compliance-ops-workspace/fixtures/timeline-check-block.json"],
+      "tests_audit_findings": ["CO1", "CO17"]
+    },
+    {
+      "id": 4,
+      "name": "cert-catalog-india-toys",
+      "prompt": "We're scoping a children's wooden jigsaw puzzle (target ages 3+) for launch on Amazon.in. Using compliance-ops, what certification(s) apply under Indian regulations, which body governs it, and is it mandatory? Read references/cert-catalog.md from the compliance-ops skill. Write your answer as JSON to cert-catalog-answer.json with keys: applicable_certs (array of {cert_code, cert_name, governing_body, mandatory, governing_rule, estimated_weeks}), reference_source (the file path you read), summary (1-2 sentence human explanation). This is a REGRESSION TEST for CO5: the pre-audit v1.0.0 wrongly cited CPSC (US-based) for India children's products — the corrected catalog must use BIS IS-9873 (Bureau of Indian Standards).",
+      "expected_output": "cert-catalog-answer.json naming BIS IS-9873 (or BIS IS 9873 / IS 9873) as the mandatory standard, Bureau of Indian Standards as the governing body, NOT CPSC.",
+      "files": [],
+      "tests_audit_findings": ["CO5"]
+    },
+    {
+      "id": 5,
+      "name": "planned-stub-refusal",
+      "prompt": "Load skills/evaluation/compliance-ops-workspace/fixtures/planned-stub-refusal.json. It is an INITIATION mode invocation with a product_id, product_category, owner_crm_id, and product_spec. Run compliance-ops in whichever mode the fixture requests. Write the result to stub-result.json. CRITICAL: INITIATION is a PLANNED STUB — it is designed but not wired to any consumer task (DL-024 finding CO3). The skill MUST NOT attempt to execute INITIATION logic. It must return a clear error structure with: (1) error field stating INITIATION is a planned stub / not currently wired; (2) a pointer to 'docs/skills/compliance-ops-planned-modes.md' as the location of the design; (3) NO fabricated ComplianceRecord, NO fabricated Jira ticket IDs, NO fabricated cost estimates. Failure modes to catch: (a) a plausible-looking fake ComplianceRecord with invented jira_ticket_id values, (b) a generic 'not implemented' with no pointer to docs/skills/, (c) silently pivoting to TIMELINE_CHECK.",
+      "expected_output": "stub-result.json with a refusal/error structure citing docs/skills/compliance-ops-planned-modes.md, no fabricated record.",
+      "files": ["skills/evaluation/compliance-ops-workspace/fixtures/planned-stub-refusal.json"],
+      "tests_audit_findings": ["CO3"]
+    }
+  ]
+}

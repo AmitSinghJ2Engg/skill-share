@@ -65,6 +65,20 @@
       ]
     },
     {
+      "name": "margin-calculation",
+      "description": "Unit economics authority -- per-unit profitability for Amazon India and Shopify, 5 modes (ESTIMATE, ACTUAL, COMPARISON, CHANNEL, BREAKEVEN). Split from product-evaluation + product-sourcing in DL-023 (size-driven: both host plugins were at 99% ceiling). Consumed by D1 (ESTIMATE), D2 (ACTUAL), D2.5 COMPARISON at Gate 2, and ad-hoc CHANNEL/BREAKEVEN utility calls.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ismokraft"
+      },
+      "source": "./dist/build/margin-calculation.plugin",
+      "category": "productivity",
+      "keywords": [
+        "ismokraft",
+        "margin calculation"
+      ]
+    },
+    {
       "name": "platform-io",
       "description": "Platform I/O layer -- Zoho read/write/sync across CRM, Bigin, Books, Inventory, Desk, Analytics via MCP.",
       "version": "1.0.0",
@@ -94,8 +108,8 @@
     },
     {
       "name": "product-evaluation",
-      "description": "Domains 1 + 1.5 -- deep evaluation, pre-test economics, compliance feasibility, competitive positioning.",
-      "version": "1.0.0",
+      "description": "Domains 1 + 1.5 -- deep evaluation, compliance feasibility, competitive positioning. Paired with margin-calculation plugin for unit economics; see DL-023 size-driven split.",
+      "version": "1.1.0",
       "author": {
         "name": "Ismokraft"
       },
@@ -136,8 +150,8 @@
     },
     {
       "name": "product-sourcing",
-      "description": "Domain 2 -- product spec, vendor evaluation, actual unit economics, compliance initiation.",
-      "version": "1.1.0",
+      "description": "Domain 2 -- product spec, vendor evaluation, compliance initiation. Paired with margin-calculation plugin for actual unit economics; see DL-023.",
+      "version": "1.2.0",
       "author": {
         "name": "Ismokraft"
       },

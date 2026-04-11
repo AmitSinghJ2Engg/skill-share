@@ -5,7 +5,8 @@ plugins:
   - product-testing       # D2.5 ops: fulfillment, product-monitor, compliance, slack-messaging
   - ads-planning          # D2.5 ads-ops-plan (split from product-testing in DL-022, size-driven)
   - product-discovery     # upstream: keyword intelligence, discovery, screening
-  - product-evaluation    # upstream: product-evaluate, compliance, margin-calculator
+  - product-evaluation    # upstream: product-evaluate, compliance
+  - margin-calculation    # D2.5 Gate 2 COMPARISON mode (split from product-evaluation in DL-023)
   - platform-io           # zoho-data-ops (shared I/O layer)
 skills_available:
   - product-discover

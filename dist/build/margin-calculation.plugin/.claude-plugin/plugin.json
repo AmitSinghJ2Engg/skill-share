@@ -1,0 +1,8 @@
+{
+  "name": "margin-calculation",
+  "description": "Unit economics authority -- per-unit profitability for Amazon India and Shopify, 5 modes (ESTIMATE, ACTUAL, COMPARISON, CHANNEL, BREAKEVEN). Split from product-evaluation + product-sourcing in DL-023 (size-driven: both host plugins were at 99% ceiling). Consumed by D1 (ESTIMATE), D2 (ACTUAL), D2.5 COMPARISON at Gate 2, and ad-hoc CHANNEL/BREAKEVEN utility calls.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ismokraft"
+  }
+}

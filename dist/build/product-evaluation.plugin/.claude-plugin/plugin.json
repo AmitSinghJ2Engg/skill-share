@@ -1,7 +1,7 @@
 {
   "name": "product-evaluation",
-  "description": "Domains 1 + 1.5 -- deep evaluation, pre-test economics, compliance feasibility, competitive positioning.",
-  "version": "1.0.0",
+  "description": "Domains 1 + 1.5 -- deep evaluation, compliance feasibility, competitive positioning. Paired with margin-calculation plugin for unit economics; see DL-023 size-driven split.",
+  "version": "1.1.0",
   "author": {
     "name": "Ismokraft"
   }

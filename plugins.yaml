@@ -22,32 +22,36 @@ plugins:
         from: research
 
   product-evaluation:
-    description: "Domains 1 + 1.5 -- deep evaluation, pre-test economics, compliance feasibility, competitive positioning."
-    version: "1.0.0"
+    description: "Domains 1 + 1.5 -- deep evaluation, compliance feasibility, competitive positioning. Paired with margin-calculation plugin for unit economics; see DL-023 size-driven split."
+    version: "1.1.0"
     project: "Product Pipeline"
     skills:
       - skill: product-evaluate
         from: evaluation
       - skill: compliance-ops
         from: evaluation
-      - skill: margin-calculator
-        from: finance
       - skill: product-market-intelligence
         from: research
 
   product-sourcing:
-    description: "Domain 2 -- product spec, vendor evaluation, actual unit economics, compliance initiation."
-    version: "1.1.0"
+    description: "Domain 2 -- product spec, vendor evaluation, compliance initiation. Paired with margin-calculation plugin for actual unit economics; see DL-023."
+    version: "1.2.0"
     project: "Product Pipeline"
     skills:
       - skill: product-spec
         from: evaluation
       - skill: vendor-ops
         from: sourcing
-      - skill: margin-calculator
-        from: finance
       - skill: compliance-ops
         from: evaluation
+
+  margin-calculation:
+    description: "Unit economics authority -- per-unit profitability for Amazon India and Shopify, 5 modes (ESTIMATE, ACTUAL, COMPARISON, CHANNEL, BREAKEVEN). Split from product-evaluation + product-sourcing in DL-023 (size-driven: both host plugins were at 99% ceiling). Consumed by D1 (ESTIMATE), D2 (ACTUAL), D2.5 COMPARISON at Gate 2, and ad-hoc CHANNEL/BREAKEVEN utility calls."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: margin-calculator
+        from: finance
 
   product-testing:
     description: "Domain 2.5 -- test campaign ops: monitoring, FBA dispatch, compliance tracking, Slack messaging. Paired with ads-planning plugin for campaign planning; see DL-022 size-driven split."

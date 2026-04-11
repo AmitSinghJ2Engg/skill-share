@@ -4,10 +4,12 @@ chat_project: ism-product-research
 plugins:
   - product-discovery
   - product-evaluation
+  - margin-calculation   # split from product-evaluation in DL-023 (size-driven)
 skills_available:
   - ikraft-keyword-intelligence
   - product-discover
   - product-screen
+  - margin-calculator    # via margin-calculation plugin
   - zoho-data-ops
   - slack-messaging
 mcp_connections:

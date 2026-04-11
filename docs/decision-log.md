@@ -1001,3 +1001,75 @@ Both plugins now have comfortable headroom. **product-testing drops from 99% to 
 - **Eval phase for product-monitor** — run the 5 planned evals (mid-test-monitor-snapshot, anomaly-flag-high-returns, anomaly-flag-bsr-drop, classify-stub-response, gate_2_contribution-at-day-7) in a follow-up session using the `product-monitor-workspace/skill-snapshot/` baseline.
 - **Apply Rule 2 preemptively to other near-ceiling plugins?** `product-discovery` (98%), `product-sourcing` (99%), `governance-architecture` (94%) are all approaching the budget. Not blocking today, but worth a look when those audits run. If any of them has a single skill > 60% of budget, apply the same split.
 - **`docs/skills/` README.md** — document the convention formally in a README so future audits find it. Deferred — trivial cleanup for a later commit.
+
+---
+
+## DL-023: margin-calculator Audit + Second Size-Driven Plugin Split
+
+**Date:** 2026-04-11
+**Status:** Accepted
+
+**Context:** Third skill audit in the D2.5 portfolio pilot. `margin-calculator` ships in TWO plugins (`product-evaluation` and `product-sourcing`), both pre-existing at ~99% budget. The audit found 21 structural issues including a potentially breaking math bug (MC12 tax formula contradiction) that Amit explicitly approved fixing.
+
+**21 audit findings — top critical/high:**
+
+- **MC1:** Output schemas missing for 4 of 5 modes. `schemas-and-steps.md` only had ACTUAL's I/O; CostEstimate, CostComparison, CostingScenarios, TestActuals, BreakEvenRecord — all undocumented. test-campaign task Step 7 invoked COMPARISON with outputs that had no schema anywhere in the repo. **Claude reinvented the shape every run.**
+- **MC2:** Skill hardcoded values that already existed in `context/product-pipeline/financial-constants.ctx.json` — `target_net_margin_pct`, CBFA formula, break_even_acos formula, pricing floors. Classic drift risk. Fix: wire Session Protocol to read `financial-constants.ctx.json` + `gate-criteria.ctx.json`, rewrite `financial-formulas.md` to cite `fc.*` / `gc.*` paths explicitly in every formula.
+- **MC4:** Gate attribution wrong. `financial-formulas.md` said "Gate 2 threshold: CBFA ≥ 150 INR" but per `gate-criteria.ctx.json#gate_1.criteria.cbfa_min_inr`, CBFA ≥ 150 is **gate_1**, not gate_2. Gate 2 has entirely different criteria (keyword_margin_positive_count, blended_acos_lte, data_quality, compliance). Fix: rewrite `financial-formulas.md §5 Gate Attribution` clearly distinguishing gate_1 vs gate_2 consumers.
+- **MC12 (breaking math fix):** `financial-formulas.md` had `Tax = 12% GST × SP` in the deduction chain, but `channel-fee-models.md §2` said "GST on product is pass-through — do NOT separately deduct." **Direct contradiction between two reference files of the same skill.** Every margin computation pre-audit understated net_profit by ~12% of SP (~₹140 on a ₹1,299 product). Fix: remove product GST from deduction chain; it's pass-through (collected from buyer, remitted, offset by ITC). Only `gst_on_fees_inr` (18% on fees, conservative ITC treatment) remains in the chain. Amit explicitly approved this breaking change knowing historical MarginRecord values in CRM are now stale.
+- **MC16:** COMPARISON mode had no Gate 2 handoff structure despite feeding the test-campaign task at Gate 2. Added `gate_2_margin_contribution` block (same pattern as product-monitor's `gate_2_contribution` from DL-022): `actual_vs_estimate_delta_pct`, `test_vs_actual_delta_pct`, `bulk_margin_meets_target`, `keyword_margin_positive_count`, `keyword_margin_threshold_met`, `blended_acos_threshold_met`, `scale_feasibility` enum (PROCEED / REVISIT_COGS / ABORT), rationale.
+
+**Plus familiar patterns:**
+- MC5 verdict rules documented as skill-local (not gate) with each threshold citing its source
+- MC7 `systems_written: ["slack"]` removed from execution_trace (skills never post directly per DL-013/018)
+- MC11 `AOV` variable renamed to `list_price_inr` (was undefined circular)
+- MC13 LTV formulas added (`LTV = net_profit × avg_lifetime_orders`, standard D2C per Amit's Q5 answer)
+- MC14 CPA derivation documented (`cpa = total_spend / total_orders` from ads-ops-plan outputs)
+- MC15 mode sub-prefixes (MC-E-, MC-A-, MC-X-, MC-C-, MC-B-) dropped — no other skill in the repo uses mode sub-prefixes
+- MC18 new `references/tuning-constants.md` for skill-local values (verdict.ltv_cac_min, defaults.discount_pct, etc.) per DL-021 pattern
+
+**Second size-driven plugin split (DL-022 Rule 2 applied again):**
+
+margin-calculator pre-audit was ~18 KB. The fixes grew it to ~42 KB (+23 KB: schemas for 4 new modes, explicit context path citations, gate_1/gate_2 contribution blocks, LTV formulas, new tuning-constants.md). Both host plugins (`product-evaluation`, `product-sourcing`) were already at 99% — the skill growth would have busted both.
+
+**Applied DL-022 Rule 2:** created new `margin-calculation` plugin containing only margin-calculator. Both host plugins dropped below 75%:
+- `product-evaluation`: 69,950 → 37,476 (99% → 54%, −32 KB headroom regained)
+- `product-sourcing`: 69,950 → 51,180 (99% → 73%, −19 KB headroom regained)
+- `margin-calculation` (new): 41,952 (60%, comfortable)
+
+**Cowork projects that load product-evaluation now also load margin-calculation:**
+- `daily-discovery` cowork (D1 ESTIMATE mode consumer)
+- `product-evaluation` cowork (ACTUAL mode consumer)
+- `test-campaign` cowork (COMPARISON mode consumer at Gate 2)
+
+**Consequences:**
+- **14 plugins** registered (was 13). All build clean under 70 KB.
+- **13 skills with evals**: ads-ops-plan (4), ads-ops-live (1), product-monitor (5), margin-calculator (5) — totaling 15 eval test cases across 4 audited skills. 3 of the 4 at 100% with_skill pass rate; product-monitor also at 100%.
+- **product-evaluation + product-sourcing plugin budget restored** — future audits of skills in those plugins (product-evaluate, compliance-ops, product-spec, vendor-ops) have comfortable room.
+- **Size-driven plugin splits are now a proven pattern** — applied twice (DL-022 ads-planning, DL-023 margin-calculation). Heuristic: single skill consuming > 60% of plugin budget → split into own plugin.
+- **Breaking math fix (MC12) means any historical MarginRecord in CRM persisted pre-2026-04-11 has stale net_profit values** — understated by 12% × SP. Future audits should include a CRM migration step to recompute these. Not done in this DL; flagged as follow-up.
+
+**Iteration 1 eval results:**
+
+| Skill | with_skill | baseline | Delta |
+|---|---|---|---|
+| ads-ops-plan (DL-021) | 100.0% (22/22) | 47.4% (9/19) | +52.6 pp |
+| ads-ops-live (DL-021) | 100.0% (5/5) | 60.0% (3/5) | +40.0 pp |
+| product-monitor (DL-022) | 100.0% (29/29) | 44.0% (11/25) | +56.0 pp |
+| **margin-calculator (DL-023)** | **100.0% (33/33)** | **60.6% (20/33)** | **+39.4 pp** |
+
+All 4 audited skills at 100% with_skill pass rate. The audit method is reliably producing decisive wins.
+
+**Subagent observations that independently validated the audit (eval transcripts):**
+1. Eval-1 baseline returned `net_profit = 389.29 / net_margin = 33.30%` vs with_skill's `529.58 / 45.30%`. The ~140 INR gap is exactly the incorrect 12% GST deduction — MC12 confirmed by direct number comparison.
+2. Eval-2 baseline subagent detected the `financial-formulas.md` vs `channel-fee-models.md §2` tax contradiction unprompted: *"a real pre-audit doctrine bug."*
+3. Eval-3 baseline subagent extracted the exact pre-audit mislabel: *"Section header 'Gate 2 Thresholds' containing 'CBFA minimum: 150 INR', plus inline annotation 'CBFA ... Gate 2 threshold'."* — MC4 confirmed.
+4. Eval-4 baseline subagent had to **invent** the CostComparison / CostingScenarios / gate_2_margin_contribution schemas because the pre-audit snapshot had none: *"MC1 relevance confirmed. COMPARISON is the most complex mode yet had the thinnest schema — one sentence + broken pointer."*
+5. Eval-5 baseline (CHANNEL) scored 83% because ChannelComparisonRecord was the one mode that already had a schema in `channel-fee-models.md §4` — a useful regression control showing the audit didn't break what already worked.
+
+**Deferred to follow-up:**
+- Historical MarginRecord CRM migration (MC12 breaking fix means pre-2026-04-11 records have stale net_profit)
+- product-monitor iteration-1 eval commit (the eval artifacts are in gitignored workspace; only the infrastructure fixes landed in `2751797`)
+- 4th audit: `compliance-ops` — the last of the 4 core D2.5 skills from Q1 scope. product-evaluation plugin now has 33 KB headroom to absorb compliance-ops growth.
+
+**Open question:** context budget pressure on the remaining near-ceiling plugins (`product-discovery` 98%, governance-architecture 94%) — not touched by DL-022 or DL-023 audits. When those skills come up for audit, Rule 2 applies.

@@ -1,0 +1,48 @@
+{
+  "skill_name": "margin-calculator",
+  "_purpose": "Validate the DL-023 margin-calculator audit fixes: MC1 schemas, MC2 context wiring, MC4 gate attribution, MC12 tax pass-through (breaking math fix), MC16 gate_2_margin_contribution. Baseline is the pre-audit snapshot at ../../margin-calculator-workspace/skill-snapshot/ (v2.0.0 with hardcoded values, confused gates, tax-deducted-from-margin, missing schemas for 4 of 5 modes).",
+  "fixtures_dir": "../../margin-calculator-workspace/fixtures/",
+  "workspace": "../../margin-calculator-workspace/",
+  "evals": [
+    {
+      "id": 1,
+      "name": "actual-mode-happy-path",
+      "prompt": "Load skills/finance/margin-calculator-workspace/fixtures/actual-happy-path.json (wooden pen holder, list_price 1299, cogs 320, weight 380g, Office Products category). Run margin-calculator ACTUAL mode. Write the MarginRecord output as JSON to margin-result.json. Critical: (1) output is a MarginRecord with cogs_confidence=CONFIRMED; (2) unit_economics.deductions does NOT contain a gst_on_product line (pass-through per channel-fee-models.md §2); (3) verdict thresholds cite fc.margins.target_net_margin_pct (not '15'); (4) gate_1_contribution block populated with cbfa_meets_threshold referencing gc.gate_1.criteria.cbfa_min_inr; (5) zero_referral_fee_eligible=false (list_price 1299 > 1000); (6) context_paths_cited[] includes fc.* and gc.* paths.",
+      "expected_output": "margin-result.json with MarginRecord, no GST-on-product deduction, gate_1_contribution populated with context paths cited, verdict computed.",
+      "files": ["skills/finance/margin-calculator-workspace/fixtures/actual-happy-path.json"],
+      "tests_audit_findings": ["MC1", "MC2", "MC4", "MC11", "MC12", "MC16"]
+    },
+    {
+      "id": 2,
+      "name": "tax-pass-through",
+      "prompt": "Load skills/finance/margin-calculator-workspace/fixtures/tax-pass-through.json (same wooden pen holder). Run margin-calculator ACTUAL mode. Write margin-result.json. CRITICAL: the output's unit_economics.deductions block MUST NOT contain a gst_on_product_inr OR tax_inr line. The correct deduction chain (per post-audit financial-formulas.md §2) is: referral_fee + closing_fee + weight_handling + packaging_shipping + cod_gateway + gst_on_FEES + returns_cost. GST on the PRODUCT (12% of SP) is pass-through and does NOT erode margin. If the baseline subagent deducts ~₹140 as 'Tax = 12% GST × SP', that's the bug the audit fixes — net_profit was being understated by that amount.",
+      "expected_output": "margin-result.json with total_deductions_inr that does NOT include a ~140 tax line. net_profit_inr should be higher than pre-audit would have computed.",
+      "files": ["skills/finance/margin-calculator-workspace/fixtures/tax-pass-through.json"],
+      "tests_audit_findings": ["MC12"]
+    },
+    {
+      "id": 3,
+      "name": "gate-attribution-correct",
+      "prompt": "Load skills/finance/margin-calculator-workspace/fixtures/gate-attribution.json (wooden pen holder ACTUAL mode). Run margin-calculator ACTUAL mode. Write margin-result.json. CRITICAL: the output must contain a gate_1_contribution block (NOT gate_2_contribution — ACTUAL mode outputs feed Gate 1, the Market Research Gate, per gate-criteria.ctx.json). The gate_1_contribution.cbfa_meets_threshold field must cite gc.gate_1.criteria.cbfa_min_inr (150) as its source. The output must NOT reference 'Gate 2 threshold' for CBFA anywhere — that's the pre-audit mislabeling that MC4 fixes.",
+      "expected_output": "margin-result.json with gate_1_contribution block, no gate_2_contribution block, and no string 'Gate 2' associated with CBFA in the output or run-notes.",
+      "files": ["skills/finance/margin-calculator-workspace/fixtures/gate-attribution.json"],
+      "tests_audit_findings": ["MC4"]
+    },
+    {
+      "id": 4,
+      "name": "comparison-mode-with-gate2-contribution",
+      "prompt": "Load skills/finance/margin-calculator-workspace/fixtures/comparison-mode-gate2.json (test-campaign-style COMPARISON invocation with CostEstimate, MarginRecord, TestActuals all provided). Run margin-calculator COMPARISON mode. Write comparison-result.json. CRITICAL: (1) output has both CostComparison and CostingScenarios structures per schemas-and-steps.md; (2) the CostComparison includes a gate_2_margin_contribution block with fields actual_vs_estimate_delta_pct, test_vs_actual_delta_pct, bulk_margin_meets_target, keyword_margin_positive_count, keyword_margin_threshold_met, blended_acos_threshold_met, scale_feasibility, rationale; (3) blended_acos_threshold_met should be FALSE (test_actuals.blended_acos_pct 21.4 > d2_actual.breakeven_acos_pct 17.3); (4) scale_feasibility should be REVISIT_COGS or ABORT given the bad signals; (5) CostingScenarios has 3-5 entries with a recommended_scenario_id.",
+      "expected_output": "comparison-result.json with CostComparison + CostingScenarios, gate_2_margin_contribution block populated with correct logic, blended_acos_threshold_met=false.",
+      "files": ["skills/finance/margin-calculator-workspace/fixtures/comparison-mode-gate2.json"],
+      "tests_audit_findings": ["MC1", "MC16"]
+    },
+    {
+      "id": 5,
+      "name": "channel-comparison-amazon-vs-shopify",
+      "prompt": "Load skills/finance/margin-calculator-workspace/fixtures/channel-comparison.json (wooden pen holder, no shopify_plan specified). Run margin-calculator CHANNEL mode. Write channel-result.json. CRITICAL: (1) output is a ChannelComparisonRecord per channel-fee-models.md §4 with both amazon and shopify blocks; (2) NEITHER channel's total_deductions_inr includes a gst_on_product_inr line (pass-through applies to both channels per channel-fee-models.md §2); (3) shopify_plan defaulted to Basic (2%) — this assumption must be declared in inputs_used or assumptions; (4) better_channel is set based on cpu_inr comparison; (5) margin_delta_inr is a numeric value.",
+      "expected_output": "channel-result.json with ChannelComparisonRecord, both channels populated, no gst-on-product deduction in either, shopify_plan default assumption declared.",
+      "files": ["skills/finance/margin-calculator-workspace/fixtures/channel-comparison.json"],
+      "tests_audit_findings": ["MC12", "MC3"]
+    }
+  ]
+}

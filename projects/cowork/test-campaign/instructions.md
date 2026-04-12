@@ -2,69 +2,55 @@
 
 ## What This Project Is
 
-Execution context for Ismokraft's PPC test campaign workflow. Manages Amazon listing parsing, keyword import, campaign scenario generation, test campaign setup, performance monitoring, daily ads analysis, and Gate 2 scale decision. Scoped to Domain 2.5.
+Execution context for Ismokraft's PPC test campaign workflow (Domain 2.5). Use this cowork project in Claude Desktop for ad-hoc sessions or scheduled runs. For the artifact-driven workflow, use the Chat project (ISM Market Testing on claude.ai).
 
 ## Parent Chat Project
 
 ISM Market Testing (claude.ai) — owns the market-testing artifact and full D2.5 context.
 
-## Plugins
+## Plugins to Install
 
-Install these plugins in Claude Desktop:
-- **product-testing** — AO (ads ops), PM (product monitor), FO (fulfillment ops), CO (compliance ops), SM (slack messaging)
+- **product-testing** — FO (fulfillment ops), PM (product monitor), SM (slack messaging)
+- **ads-planning** — AO (ads-ops-plan: SCENARIO, TEST, ANOMALY)
 - **product-discovery** — PD (product discover), KI (keyword intelligence)
-- **product-evaluation** — MC (margin calculator), product-evaluate, product-market-intelligence, CO (compliance ops)
+- **product-evaluation** — product-evaluate, product-market-intelligence
+- **margin-calculation** — MC (margin calculator)
+- **compliance-management** — CO (compliance ops)
 - **platform-io** — ZO (zoho data ops)
+- **workflow-ops** — all 6 workflow skills (test-launch-prep, campaign-plan, campaign-analysis, scale-decision, daily-ads-analysis, daily-discovery)
 
-## Active Skills
+## Workflow Skills (invoke via /name)
 
-| Prefix | Skill | Modes Used |
-|--------|-------|------------|
-| PD | product-discover | LISTING_PARSE |
-| KI | ikraft-keyword-intelligence | IMPORT |
-| FO | fulfillment-ops | SAMPLE |
-| AO | ads-ops | SCENARIO, TEST, LIVE |
-| MC | margin-calculator | COMPARISON |
-| PM | product-monitor | MONITOR |
-| ZO | zoho-data-ops | WRITE |
-| SM | slack-messaging | (auto) |
+| Action | Skill | Type |
+|---|---|---|
+| Prepare Test Launch | `/test-launch-prep` | interactive |
+| Plan Campaign | `/campaign-plan` | interactive |
+| Analyze Campaign Results | `/campaign-analysis` | interactive |
+| Make Scale Decision | `/scale-decision` | interactive |
+| Daily Ads Monitoring | `/daily-ads-analysis` | scheduled |
 
-## Tasks
+Full workflow steps are in each skill's SKILL.md at `skills/workflow/{name}/`.
 
-- `tasks/product-pipeline/test-campaign/` — Event-triggered after FBA + sample confirmation. Steps 0-12: listing parse, keyword import, scenario generation, campaign planning, monitoring, analysis, Gate 2 decision.
-- `tasks/product-pipeline/daily-ads-analysis/` — Scheduled daily at 10:00 AM IST. Active campaign monitoring, CRM actuals update, anomaly detection, Slack digest.
+## Context Files
+
+Read from `context/product-pipeline/`:
+- `ppc-test-campaign-config.ctx.json` — phase config, thresholds, scenario templates
+- `gate-criteria.ctx.json` — Gate 2 thresholds
+- `financial-constants.ctx.json` — margin formulas
+- `amazon-fee-table.ctx.md` — fee structure
+- `amazon-ads-campaign-fields.ctx.json` — Amazon Ads field reference
+- `crm-field-mappings.ctx.json` — CRM field API names
+- `pipeline-config.ctx.json` — Slack channel routing
+
+## MCP Connections
+
+- Zoho CRM, Zoho Bigin, Zoho Inventory, Zoho Books
+- Slack (via slack-messaging skill)
 
 ## Data Integrity Rules
 
 1. Never invent data. If a field is null, report null — do not estimate.
 2. Source everything. Every data point traces to a URL, API response, or user input.
-3. Confidence levels mandatory: HIGH/MEDIUM/LOW.
-4. Zoho CRM is the single source of truth.
-5. All Slack messages route through slack-messaging skill.
-
-## Context Files
-
-Read from `context/product-pipeline/`:
-- ppc-test-campaign-config.ctx.json — phase config, thresholds, scenario templates, Helium10 column mapping
-- gate-criteria.ctx.json — Gate 2 thresholds
-- financial-constants.ctx.json — margin formulas
-- amazon-fee-table.ctx.md — fee structure
-- amazon-ads-campaign-fields.ctx.json — Amazon Ads campaign field reference
-
-## CRM Configuration
-
-Two-module campaign system (DL-017):
-- Module: Product_Launches — product record, test metrics, Gate 2 decision
-- Module: Campaigns (built-in, ID: 645926000000000055) — strategy/round level, aggregate metrics, Gate 2 verdict. Lookup to Product_Launches.
-- Module: Amazon_Ad_Campaigns (custom) — individual campaign level, 1:1 with Seller Central campaign, cumulative actuals. Lookups to Campaigns + Product_Launches.
-- Write to: Campaigns (strategy creation, aggregates), Amazon_Ad_Campaigns (campaign creation, daily cumulative actuals), Product_Launches (test summary fields), ISM_ExecutionLogs (daily snapshots + summary), ISM_Learnings
-- Dedup: check ISM_ExecutionLogs before running daily-ads-analysis
-
-## Integrations
-
-- Zoho CRM: read/write Product_Launches, Campaigns, Amazon_Ad_Campaigns, ISM_ExecutionLogs
-- Zoho Bigin: stages 4-6 (one-way sync from CRM)
-- Helium10 / Jungle Scout: keyword CSV import
-- Amazon Seller Central: listing URL, Search Term Report CSV
-- Slack (task-level posts): #ism-launch-alerts, #ism-launch-reports — routed through slack-messaging skill
-- Slack (CRM workflow alerts): #marketing-ops-alerts (C081MG4HXK6) — Zoho-native instant actions (4.1 strategy activated, 4.3 ACoS alert, 4.4 auto-complete, 4.5 rollup)
+3. Zoho CRM is the single source of truth.
+4. All CRM writes go through `zoho-data-ops` skill.
+5. All Slack messages route through `slack-messaging` skill.

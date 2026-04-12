@@ -27,6 +27,13 @@ metadata:
     - zone-rotation.ctx.json
     - crm-field-mappings.ctx.json
     - financial-constants.ctx.json
+  working_directories:
+    context: "context/product-pipeline/"
+    output: "context/pending-updates/"
+  runtime_paths:
+    dev: "skills/{capability}/{skill}/"
+    deployed: "~/.claude/skills/{skill}/"
+    plugin: "{plugin-name}:{skill-name}"
 ---
 
 # Daily Product Discovery Pipeline

@@ -29,6 +29,13 @@ metadata:
     - ppc-test-campaign-config.ctx.json
     - crm-field-mappings.ctx.json
     - amazon-ads-campaign-fields.ctx.json
+  working_directories:
+    context: "context/product-pipeline/"
+    output: "context/pending-updates/"
+  runtime_paths:
+    dev: "skills/{capability}/{skill}/"
+    deployed: "~/.claude/skills/{skill}/"
+    plugin: "{plugin-name}:{skill-name}"
 ---
 
 # Daily Ads Analysis

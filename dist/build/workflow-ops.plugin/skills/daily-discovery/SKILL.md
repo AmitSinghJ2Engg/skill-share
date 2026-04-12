@@ -75,7 +75,7 @@ The skill handles its own crawling protocols, normalization, and deduplication i
 
 ### Step 3b: Persist candidates to CRM
 
-Invoke **ZO- zoho-data-ops WRITE mode** to create Product_Launches records from the `ProductCandidate[]` returned in Step 3. Target: CRM > Product_Launches module. See `zoho-data-ops/reference/write-patterns.md` for the standard field mapping.
+Invoke **ZO- zoho-data-ops WRITE mode** to create Product_Launches records from the `ProductCandidate[]` returned in Step 3. Target: CRM > Product_Launches module. See `zoho-data-ops/references/write-patterns.md` for the standard field mapping.
 
 The skill handles dedup checking (matching by product name + target platform), field name resolution via `crm-field-mappings.ctx.json`, and returns created record IDs for use in Step 4.
 

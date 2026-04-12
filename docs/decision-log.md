@@ -1170,3 +1170,57 @@ Per-eval:
 - Build the planned FEASIBILITY / INITIATION / COMPLETION modes when their consumer tasks exist
 
 **Open question:** context budget pressure on the remaining near-ceiling plugins (`product-discovery` 98%, governance-architecture 94%) — not touched by DL-022 or DL-023 audits. When those skills come up for audit, Rule 2 applies.
+
+---
+
+## DL-025: Tasks Are Skills — Workflow Decomposition + Artifact Convention
+
+**Date:** 2026-04-12
+**Status:** Accepted
+
+**Context:** Three problems converged:
+1. `test-campaign` was a 10-step monolith spanning weeks of real-time execution but Claude conversations are ephemeral — multi-session resume is fragile.
+2. "Tasks" lived in 3 separate locations (tasks/, projects/chat/tasks/, project.yaml references) — none aligned with Claude's primitives.
+3. The user's live product test (inventory at Amazon FBA) required the system to be operational immediately.
+
+**Key insight from Claude Code specs:** Claude has no "task" primitive. Per `docs/claude-code-specs/build-with-claude-code/skills.md`: *"Task content gives Claude step-by-step instructions for a specific action... Add `disable-model-invocation: true` to prevent Claude from triggering it automatically."*
+
+**Decision:** Tasks are skills. Three concerns separated cleanly:
+
+| Concern | Where it lives | Claude primitive |
+|---|---|---|
+| What to do (workflow steps) | `skills/workflow/{name}/SKILL.md` | Skill with `disable-model-invocation: true` |
+| When to do it (schedule) | SKILL.md `metadata.schedule` + external registration | Desktop/Cloud scheduled tasks |
+| Where to do it (execution context) | `projects/{chat\|cowork}/{name}/project.yaml` | Project config |
+
+**Changes:**
+
+1. **test-campaign decomposed** into 4 session-sized workflow skills: `test-launch-prep`, `campaign-plan` (phase-parameterized, called twice), `campaign-analysis` (phase-parameterized, called twice), `scale-decision` (wires CO-TIMELINE_CHECK for Gate 2).
+
+2. **Existing tasks migrated** to `skills/workflow/`: `daily-discovery`, `daily-ads-analysis` converted from `tasks/product-pipeline/` bundles to SKILL.md with `disable-model-invocation: true`.
+
+3. **`workflow-ops` plugin** created (47 KB, 68% of budget) packaging all 6 workflow skills. 16 plugins total.
+
+4. **Chat/Cowork hierarchy clarified:**
+   - Chat project (claude.ai) = artifact-driven workflow. User sees business actions ("Prepare Test Launch"), not skill names.
+   - Cowork project (Claude Desktop) = non-artifact tasks, scheduled jobs, manual research.
+   - They act in isolation — artifact does NOT open Cowork.
+
+5. **Artifact convention established:**
+   - Spec lives in `projects/chat/{module}/artifact-prompt.md` (source of truth)
+   - Built TSX committed to `artifacts/{module}/` (reference snapshot)
+   - MCP-powered buttons (Zoho CRM, Bigin, Inventory, Books, Slack) — no clipboard bridge
+   - Deprecated JSX artifacts moved to `artifacts/_deprecated/`
+
+6. **`tasks/` directory retired.** Content moved to `skills/workflow/`. `_RETIRED.md` explains the migration.
+
+7. **Slack channel ID populated:** `#ism-launch-alerts` = `C0AKNEW3V6H` in `pipeline-config.ctx.json` (was `_not_yet_retrieved` since DL-018).
+
+8. **MCP servers expanded:** `.mcp.json` now has 6 servers (added zoho-inventory, zoho-books).
+
+**Consequences:**
+- 35 skills with SKILL.md (29 capability + 6 workflow), 16 plugins, all build clean
+- One convention for all executable content — `skills/{capability}/{name}/SKILL.md`
+- Project configs reference `workflow_skills:` instead of `tasks:`
+- `docs/03-implementation-standards.md` §5 rewritten from "Task Bundle Format" to "Workflow Skill Standards"
+- System ready for Claude Desktop + claude.ai Chat project setup

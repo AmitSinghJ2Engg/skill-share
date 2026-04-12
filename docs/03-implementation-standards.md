@@ -438,7 +438,7 @@ Each project has a set of reference files loaded into every conversation:
 | Chat instructions | `.md` | `projects/chat/ism-product-research/instructions.md` |
 | Cowork instructions | `.md` | `projects/cowork/daily-discovery/instructions.md` |
 | Artifact prompt | `.md` | `projects/chat/ism-product-research/artifact-prompt.md` |
-| Task config | `.yaml` | `tasks/product-pipeline/daily-discovery/config.yaml` |
+| Workflow skill | `.md` (SKILL.md) | `skills/workflow/daily-discovery/SKILL.md` |
 | Context JSON | `.ctx.json` | `crm-field-mappings.ctx.json` |
 | Context MD | `.ctx.md` | `brand-rules.ctx.md` |
 | Artifact | `.artifact.tsx` | `market-testing-v1.0.artifact.tsx` |
@@ -449,88 +449,75 @@ Each project has a set of reference files loaded into every conversation:
 
 ---
 
-## 5. Scheduled Task Standards
+## 5. Workflow Skill Standards (DL-025)
 
-### Task Bundle Format
+Per DL-025: **tasks are skills**. Claude Code has no "task" primitive — task-type content is a skill with `disable-model-invocation: true` (per Claude Code skills spec). The old `tasks/` bundle format is retired.
 
-Tasks are organized as bundles under `tasks/{workflow}/{task-name}/`:
+### Workflow Skill Format
+
+Workflow skills live under `skills/workflow/{name}/SKILL.md`:
 
 ```
-tasks/
-  product-pipeline/
-    daily-discovery/
-      config.yaml       # Metadata: name, version, type, schedule, skills, working dirs
-      description.md    # 5-10 line summary
-      prompt.md         # Full orchestration steps
-      references/
-        README.md       # Links to context files, plugins, CRM modules
+skills/workflow/
+  daily-discovery/
+    SKILL.md              # Frontmatter + full orchestration steps
+    references/           # Supporting files (optional)
+  test-launch-prep/
+    SKILL.md
 ```
 
-### config.yaml Schema
+### SKILL.md Frontmatter (workflow-specific fields)
 
 ```yaml
+---
 name: daily-discovery
-version: "1.1.0"
-type: scheduled              # scheduled | event
-schedule: "Daily, 7:00 AM IST"
-project: Product Pipeline
-
-skills_invoked:
-  - skill: ikraft-keyword-intelligence
-    mode: GENERATE
-    prefix: KI
-
-working_directories:
-  context:
-    path: "context/product-pipeline/"
-    description: "Runtime business config — thresholds, CRM field mappings, gate criteria, zone rotation"
-  output:
-    path: "context/pending-updates/"
-    description: "Staged outputs for human review before git commit"
-
-runtime_context:
-  - "zone-rotation.ctx.json"
-  - "crm-field-mappings.ctx.json"
-
-runtime_paths:
-  dev: "skills/{capability}/{skill}/"
-  deployed: "~/.claude/skills/{skill}/"
-  plugin: "{plugin-name}:{skill-name}"
+description: >
+  Daily product discovery pipeline — zone rotation, keyword generation,
+  batch discovery, screening, CRM persistence, Slack reporting.
+disable-model-invocation: true
+metadata:
+  domain: workflow
+  prefix: WF-
+  version: 1.1.0
+  lifecycle: L1_stable
+  type: scheduled                    # scheduled | interactive | event
+  schedule: "Daily, 7:00 AM IST"    # documentation only; actual cron registered separately
+  trigger: null                      # for event-type: what CRM state triggers this
+  skills_invoked:                    # which capability skills this workflow calls
+    - ikraft-keyword-intelligence:GENERATE
+    - product-discover:BATCH
+    - zoho-data-ops:WRITE
+  runtime_context:
+    - zone-rotation.ctx.json
+    - crm-field-mappings.ctx.json
+  working_directories:
+    context: "context/product-pipeline/"
+    output: "context/pending-updates/"
+  runtime_paths:
+    dev: "skills/{capability}/{skill}/"
+    deployed: "~/.claude/skills/{skill}/"
+    plugin: "{plugin-name}:{skill-name}"
+---
 ```
 
-### prompt.md Structure
+### Three separate concerns
 
-```markdown
-# Task: {Name}
-
-## Inputs
-{What data the task needs}
-
-## Steps
-1. {Step 1 — be explicit about which skills/modes to invoke}
-2. {Step 2}
-
-## Outputs
-{What the task produces}
-
-## Error Handling
-{What to do if a step fails}
-
-## Constraints
-{Boundary rules}
-```
+| Concern | Where it lives | Example |
+|---|---|---|
+| **What to do** (workflow steps) | `skills/workflow/{name}/SKILL.md` body | Steps, skill invocations, guards, outputs |
+| **When to do it** (schedule) | SKILL.md `metadata.schedule` (doc only) + external registration | Desktop/Cloud scheduled tasks, `tools/register-scheduled-task.ps1` |
+| **Where to do it** (execution context) | `projects/{chat|cowork}/{name}/project.yaml` | Plugins, MCPs, skills_available |
 
 ### Rules
-- Task instructions are self-contained. No dependency on conversation history.
-- Task references project context by file path, not by "the context we discussed."
-- **Tasks are orchestrators, not executors.** A task invokes skills by mode (e.g., "Invoke PD- product-discover BATCH mode"). It does NOT reference skill-internal files (reference/, scripts/). The skill handles its own internals. The task handles flow control, error recovery, and telemetry.
-- **Tasks must NOT reference `reference/` files.** If a task says "follow reference/source-protocols.md", that's a boundary violation. The skill knows its own protocols. The task just invokes the skill.
-- Each task produces an observable output (Slack message, CRM update, file) so Amit can verify it ran.
-- Every task writes to ISM_ExecutionLogs (telemetry) and ISM_Learnings (feedback signals) at the end of each run.
-- Every task starts with a dedup check (query ISM_ExecutionLogs for today's run) to prevent duplicate execution.
-- Tasks do not chain to other tasks. If Task A needs Task B's output, design Task A to read from CRM where Task B writes.
-- Tasks skip CRM records tagged `Parked: true` unless the task is explicitly designed to process parked records. State this explicitly in the task's "What This Task Does" section.
-- Tasks do not auto-commit to Git. Tasks that generate context file content write output to `skill-share/context/pending-updates/[task-name]-[YYYY-MM-DD].md` for human review and manual commit. Reference this path in the task's Outputs section.
+- Workflow skills are self-contained. No dependency on conversation history.
+- Workflow skills reference project context by file path, not by "the context we discussed."
+- **Workflows are orchestrators, not executors.** A workflow invokes capability skills by mode (e.g., "Invoke PD- product-discover BATCH mode"). It does NOT reference skill-internal files. The skill handles its own internals. The workflow handles flow control, error recovery, and telemetry.
+- Each workflow produces an observable output (Slack message, CRM update, file) so the operator can verify it ran.
+- Every workflow writes to ISM_ExecutionLogs (telemetry) and ISM_Learnings (feedback signals) at the end of each run.
+- Scheduled workflows start with a dedup check (query ISM_ExecutionLogs for today's run) to prevent duplicate execution.
+- Workflows do not chain to other workflows. If Workflow A needs Workflow B's output, design Workflow A to read from CRM where Workflow B writes.
+- Workflows do not auto-commit to Git. Workflows that generate context file content write output to `context/pending-updates/` for human review.
+- Workflow skills ship via the `workflow-ops` plugin and work in both Claude Code (Cowork) and claude.ai (Chat) environments.
 
 ---
 
@@ -669,7 +656,7 @@ skill-share/
 | Storage key | `ism:{entity}:{id}:{sub}` | ism:p:p123:out:scout |
 | Slack channel | `#ism-{purpose}` | #ism-launch-alerts |
 | Git branch | `{domain}/{change}` | product-system/trim-skills |
-| Task bundle | `tasks/{workflow}/{task-name}/` | tasks/product-pipeline/daily-discovery/ |
+| Workflow skill | `skills/workflow/{name}/` | skills/workflow/daily-discovery/ |
 
 ---
 
@@ -677,22 +664,22 @@ skill-share/
 
 The following skills are defined in the architecture (`02-business-domain-map.md`) but do not yet have a SKILL.md file. They must be written during Cowork build sessions following the standards in §1.
 
-| Skill | Capability Group | Priority | Needed For |
-|-------|-----------------|----------|------------|
-| `supplier-intelligence` | `skills/research/` | Medium | Plugin 2a |
-| `capital-planner` | `skills/finance/` | Medium | Plugin 3 |
-| `revenue-ops` | `skills/finance/` | Low | Plugin 4 |
-| `ism-learning-engine` | `skills/learning/` | Low | Plugin 4 |
+| Skill | Capability Group | Priority | Status |
+|-------|-----------------|----------|--------|
+| `supplier-intelligence` | `skills/research/` | Medium | Written |
+| `capital-planner` | `skills/finance/` | Medium | Written |
+| `revenue-ops` | `skills/finance/` | Low | Written |
+| `ism-learning-engine` | `skills/learning/` | Low | Placeholder only |
 
-Previously missing, now written: `compliance-ops` (evaluation/), `fulfillment-ops` (operations/), `ads-ops` (marketing/), `margin-calculator` (finance/).
+Previously missing, now written: `compliance-ops` (evaluation/, audited DL-024), `fulfillment-ops` (operations/), `ads-ops-plan` + `ads-ops-live` (marketing/, split + audited DL-021), `margin-calculator` (finance/, audited DL-023), `product-monitor` (operations/, audited DL-022).
 
-**Build session instructions:** Use `python tools/create-skill.py {capability} {skill-name}` to scaffold a new skill. This creates the skill directory, a minimal SKILL.md with valid frontmatter, and a test directory under `tests/`. Then:
+**Build session instructions:** Use `python tools/create-skill.py {capability} {skill-name}` to scaffold a new skill. Then:
 1. Read `02-business-domain-map.md` for the skill's domain, modes, data produced/consumed.
-2. Read existing reference files in `skills/{capability}/{name}/reference/` (if any) for domain knowledge.
+2. Read existing reference files in `skills/{capability}/{name}/references/` (if any) for domain knowledge.
 3. Follow §1 structure exactly: frontmatter, purpose, modes, input/output contracts, execution steps, trigger phrases.
 4. Ensure the file stays under 5 KB. Move detailed rubrics/thresholds to reference files or project context.
 5. Write the completed SKILL.md to `skills/{capability}/{name}/SKILL.md`.
-6. Write eval test cases to `tests/{skill-name}/evals.json` (see skill-creator eval workflow).
+6. Write eval test cases to `skills/{capability}/{name}/evals/evals.json` (per DL-021 convention; evals/ excluded from plugin build + budget).
 
 ---
 

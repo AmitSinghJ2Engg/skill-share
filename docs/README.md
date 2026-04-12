@@ -15,7 +15,7 @@
 
 | File | What |
 |------|------|
-| [decision-log.md](decision-log.md) | Architectural decisions with rationale (DL-001 through DL-015) |
+| [decision-log.md](decision-log.md) | Architectural decisions with rationale (DL-001 through DL-025) |
 | [build-status.md](build-status.md) | Phase-based progress tracker (Phase 0-4 + Claude Desktop Setup) |
 
 ## Project Definitions (DL-015)
@@ -44,14 +44,20 @@ Moved to `projects/chat/` and `projects/cowork/`. See `03-implementation-standar
 | `projects/cowork/system-governance/` | (none) |
 | `projects/cowork/skill-development/` | (none) |
 
-## Task Bundles (for Claude Desktop scheduler)
+## Workflow Skills (DL-025: tasks are skills)
 
-Moved to `tasks/{workflow}/{task-name}/` bundle format.
+Per DL-025, tasks are skills with `disable-model-invocation: true` under `skills/workflow/`. The old `tasks/` directory is retired.
 
-| Task | Workflow | Type |
-|------|----------|------|
-| `tasks/product-pipeline/daily-discovery/` | product-pipeline | scheduled |
-| `tasks/product-pipeline/test-campaign/` | product-pipeline | event |
+| Skill | Type | Schedule | Plugin |
+|---|---|---|---|
+| `/test-launch-prep` | interactive | — | workflow-ops |
+| `/campaign-plan` | interactive | — | workflow-ops |
+| `/campaign-analysis` | interactive | — | workflow-ops |
+| `/scale-decision` | interactive | — | workflow-ops |
+| `/daily-discovery` | scheduled | Daily 7:00 AM IST | workflow-ops |
+| `/daily-ads-analysis` | scheduled | Daily 10:00 AM IST | workflow-ops |
+
+Invoke via `/name` in Claude Code or load as project knowledge in claude.ai Chat projects.
 
 ## Archive (superseded, keep for reference)
 

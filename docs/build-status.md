@@ -28,22 +28,32 @@ Tracks completion of build phases defined in `02-business-domain-map.md`. Update
 
 ---
 
-## Claude Desktop Setup
+## Claude Desktop / Chat Setup
 
-Tracks readiness of project instructions, task instructions, and plugin deployment for Claude Desktop / Cowork.
+Tracks readiness of project instructions, workflow skills, and plugin deployment.
 
-- [x] CLAUDE-product-pipeline.proj.md project instructions written (also Phase 1 item 2a)
-- [x] CLAUDE-launch-ops.proj.md project instructions written (also Phase 1 item 2b)
-- [x] ism-daily-discovery task instructions written (tasks/product-pipeline-scheduled-daily-discovery.task.md)
-- [x] ism-test-campaign task instructions written (tasks/product-pipeline-event-test-campaign.task.md)
-- [ ] ism-stage2-intelligence task instructions written
-- [ ] ism-stage3-vendor-search task instructions written
-- [ ] ism-daily-learning task instructions written
-- [ ] Task-to-skill mapping documented
+**Workflow skills (DL-025: tasks are skills):**
+- [x] daily-discovery workflow skill written (`skills/workflow/daily-discovery/SKILL.md`)
+- [x] daily-ads-analysis workflow skill written (`skills/workflow/daily-ads-analysis/SKILL.md`)
+- [x] test-launch-prep workflow skill written (`skills/workflow/test-launch-prep/SKILL.md`)
+- [x] campaign-plan workflow skill written (`skills/workflow/campaign-plan/SKILL.md`)
+- [x] campaign-analysis workflow skill written (`skills/workflow/campaign-analysis/SKILL.md`)
+- [x] scale-decision workflow skill written (`skills/workflow/scale-decision/SKILL.md`)
+- [ ] ism-stage2-intelligence workflow skill (not yet needed)
+- [ ] ism-stage3-vendor-search workflow skill (not yet needed)
+- [ ] ism-daily-learning workflow skill (not yet needed)
+
+**Project instructions:**
+- [x] test-campaign cowork instructions (`projects/cowork/test-campaign/instructions.md`)
+- [x] daily-discovery cowork instructions (`projects/cowork/daily-discovery/instructions.md`)
+- [x] ism-market-testing Chat instructions (`projects/chat/ism-market-testing/instructions.md`)
+- [x] ism-market-testing artifact prompt (`projects/chat/ism-market-testing/artifact-prompt.md`)
+
+**Plugin deployment:**
 - [x] Marketplace.json created (AmitSinghJ2Engg/skill-share)
-- [x] Plugin 1a uploaded to Claude Desktop (.zip format)
-- [x] Plugin 1a installable via marketplace
-- [ ] CLI marketplace install tested (`/plugin marketplace add AmitSinghJ2Engg/skill-share`)
+- [x] 16 plugins build clean (`python tools/build.py --all --confirm`)
+- [x] workflow-ops plugin built (47 KB, 6 workflow skills)
+- [ ] CLI marketplace install tested
 
 ---
 
@@ -51,13 +61,22 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 
 - [x] **3:** Trim product-discover SKILL.md as reference example (target: under 5 KB)
 - [x] **3a:** Write missing SKILL.md files: ikraft-keyword-intelligence, product-market-intelligence
-- [ ] **3b:** Trim existing SKILL.md files: product-screen (done), product-evaluate, product-spec, product-monitor, vendor-ops, content-writer
-- [x] **3c:** Refactor margin-calculator SKILL.md (14KB→7KB, 5 modes: ESTIMATE/ACTUAL/COMPARISON/CHANNEL/BREAKEVEN)
+- [ ] **3b:** Trim existing SKILL.md files: product-screen (done), product-evaluate, product-spec, vendor-ops, content-writer
+- [x] **3c:** Refactor margin-calculator SKILL.md (14KB→7KB, 5 modes) — audited in DL-023
 - [x] **3d:** Build Plugin 1a "product-discovery" (KI, PD, PS, MI)
-- [ ] **3e:** Build Plugin 1b "product-evaluation" (PE, MC, CO)
-- [x] **3f:** Write ads-ops SKILL.md (6.3KB, 2 modes: TEST/LIVE)
-- [ ] **3g:** Build Plugin 2a "product-sourcing" (SP, SI, VO, MC)
-- [ ] **3h:** Build Plugin 2b "product-testing" (AO, MO, FO, CO)
+- [x] **3e:** Build product-evaluation plugin (PE, MI) — split from original 1b in DL-023
+- [x] **3f:** Write ads-ops SKILL.md — split into ads-ops-plan + ads-ops-live in DL-021
+- [x] **3g:** Build product-sourcing plugin (SP, VO) — CO + MC split out in DL-023/024
+- [x] **3h:** Build product-testing plugin (FO, PM, SM) — AO + CO split out in DL-022/024
+- [x] **3i:** Build ads-planning plugin (AO-plan) — DL-022 size-driven split
+- [x] **3j:** Build margin-calculation plugin (MC) — DL-023 size-driven split
+- [x] **3k:** Build compliance-management plugin (CO) — DL-024 size-driven split
+- [x] **3l:** Build workflow-ops plugin (6 workflow skills) — DL-025
+- [x] **Audit:** ads-ops-plan 100% vs 47% baseline (DL-021)
+- [x] **Audit:** ads-ops-live 100% vs 60% baseline (DL-021)
+- [x] **Audit:** product-monitor 100% vs 45% baseline (DL-022)
+- [x] **Audit:** margin-calculator 100% vs 61% baseline (DL-023)
+- [x] **Audit:** compliance-ops 100% vs 74% baseline (DL-024)
 
 ---
 
@@ -77,22 +96,23 @@ Tracks readiness of project instructions, task instructions, and plugin deployme
 
 ## Phase 3: Automation + Artifacts
 
-- [ ] **5:** Set up 4 Cowork scheduled tasks (ism-daily-discovery, ism-stage2-intelligence, ism-stage3-vendor-search, ism-daily-learning)
-- [ ] **6:** Build Discovery Dashboard artifact
-- [ ] **6a:** Build Positioning Workbench artifact
-- [ ] **6b:** Build Portfolio Dashboard artifact
-- [ ] **7:** Build Sourcing Workbench artifact
-- [ ] **7a:** Build Campaign Planner artifact (Plan + Run)
-- [ ] **7b:** Build Scale Decision Workbench artifact (Analyze + Decide)
+- [x] **5:** Workflow skills created (DL-025: daily-discovery, daily-ads-analysis as scheduled workflow skills)
+- [ ] **5a:** Register daily-discovery schedule (Desktop/Cloud scheduled task)
+- [ ] **5b:** Register daily-ads-analysis schedule (Desktop/Cloud scheduled task)
+- [x] **7:** Market Testing artifact spec written (artifact-prompt.md, 5 views, MCP-powered)
+- [ ] **7a:** Generate market-testing-v1.0.artifact.tsx in claude.ai Chat project
+- [ ] **6:** Build Discovery Dashboard artifact (ism-product-research)
+- [ ] **6a:** Build Positioning Workbench artifact (ism-sourcing)
+- [ ] **6b:** Build Portfolio Dashboard artifact (ism-portfolio)
 
 ---
 
 ## Phase 4: Launch & Operations (when products go live)
 
 - [ ] **8:** Generate `context/launch-ops/` files (listing-standards.json, compliance-requirements.json, launch-benchmarks.json, analytics-config.json)
-- [ ] **8a:** Write remaining SKILL.md files: capital-planner, revenue-ops, ism-learning-engine
-- [ ] **8b:** Build Plugin 3 "product-launch" (CW, CP, CO, FO)
-- [ ] **8c:** Build Plugin 4 "product-ops" (MO, AO, RO, LE)
+- [x] **8a:** capital-planner and revenue-ops SKILL.md written. ism-learning-engine still placeholder.
+- [x] **8b:** product-launch plugin built (CW, CP, FO) — CO split out in DL-024
+- [x] **8c:** product-ops plugin built (PM, AO-live, LE placeholder, SM)
 - [ ] **8d:** Build Launch Control, Operations Dashboard, Source to Pay Tracker, Seller Central Operations artifacts
 
 ---

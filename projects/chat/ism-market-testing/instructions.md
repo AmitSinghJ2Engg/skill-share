@@ -18,12 +18,13 @@ Ismokraft's market testing and scale decision hub. Covers Domain 2.5: test listi
 |--------|-------|------------|---------|
 | PD | product-discover | LISTING_PARSE | Extract product data from Amazon listing URL |
 | KI | ikraft-keyword-intelligence | IMPORT | Normalize Helium10/Jungle Scout keyword CSV |
-| AO | ads-ops | SCENARIO, TEST, LIVE | Campaign planning, test analysis, optimization |
-| MC | margin-calculator | COMPARISON | Pre-test vs actual vs test economics |
+| AO | ads-ops-plan | SCENARIO, TEST | Campaign scenario generation, test planning + analysis |
+| MC | margin-calculator | COMPARISON | Pre-test vs actual vs test economics, gate_2_margin_contribution |
+| CO | compliance-ops | TIMELINE_CHECK | Cert timeline check vs launch date, gate_2_compliance_contribution |
 | FO | fulfillment-ops | SAMPLE | FBA dispatch verification |
-| PM | product-monitor | MONITOR | BSR, reviews, listing health during test |
-| ZO | zoho-data-ops | WRITE | CRM read/write for Campaigns, Amazon_Ad_Campaigns, Product_Launches |
-| SM | slack-messaging | (auto) | Formatted Slack messages |
+| PM | product-monitor | COLLECT | BSR, reviews, listing health during test |
+| ZO | zoho-data-ops | READ, WRITE | CRM read/write for Campaigns, Amazon_Ad_Campaigns, Product_Launches |
+| SM | slack-messaging | (auto) | Formatted Slack messages to #ism-launch-alerts |
 
 ## Data Integrity Rules
 
@@ -58,10 +59,22 @@ Two-module campaign system (DL-017):
 - Module design: see docs/campaign-plans-module-design.json
 - Bigin: one-way sync from CRM (5 read-only fields: strategy name, status, ACoS, spend, Gate 2 verdict)
 
-## Tasks
+## Tasks (DL-025 decomposition)
 
-- `tasks/product-pipeline/test-campaign/` — Event-triggered after FBA + sample confirmation. Full D2.5 workflow with campaign scenarios.
-- `tasks/product-pipeline/daily-ads-analysis/` — Scheduled daily. Active campaign monitoring, CRM updates, Slack digest.
+Each task is a single-session work unit. The artifact presents these as business actions — the user never sees task names.
+
+| Artifact action | Task file | Session |
+|---|---|---|
+| **"Prepare Test Launch"** | `tasks/test-launch-prep.md` | ~30 min — listing parse, keywords, FBA, scenarios, CRM save |
+| **"Plan Discovery Campaign"** / **"Plan Validation Campaign"** | `tasks/campaign-plan.md` (phase param) | ~15 min — TestPlan for Seller Central |
+| **"Analyze Campaign Results"** | `tasks/campaign-analysis.md` (phase param) | ~20 min — Search Term Report analysis, keyword classification |
+| **"Make Scale Decision"** | `tasks/scale-decision.md` | ~30 min — cost comparison, compliance check, Gate 2 verdict |
+
+`campaign-plan` and `campaign-analysis` are called twice (Phase 1 discovery + Phase 2 validation) with different `phase` parameters.
+
+**Superseded:** `tasks/product-pipeline/test-campaign/` — the original 10-step monolith, now decomposed into the 4 tasks above.
+
+**Related (Cowork, scheduled):** `tasks/product-pipeline/daily-ads-analysis/` — scheduled daily active campaign monitoring. Runs in Claude Desktop, not Chat.
 
 ## Integrations
 

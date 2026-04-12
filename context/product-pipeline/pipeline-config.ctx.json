@@ -67,7 +67,7 @@
 
   "slack": {
     "channels": {
-      "ism_launch_alerts": {"name": "#ism-launch-alerts", "id": "_not_yet_retrieved"},
+      "ism_launch_alerts": {"name": "#ism-launch-alerts", "id": "C0AKNEW3V6H"},
       "ism_launch_reports": {"name": "#ism-launch-reports", "id": "_not_yet_retrieved"},
       "product_discovery": {"name": "#product-discovery", "id": "_not_yet_retrieved"}
     }

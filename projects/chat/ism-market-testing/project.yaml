@@ -5,5 +5,10 @@ domains: [D2.5]
 artifact: market-testing-v1.0.artifact.tsx
 context_sources:
   - context/product-pipeline/
+tasks:
+  - test-launch-prep      # "Prepare Test Launch" — listing parse, keywords, FBA verify, scenarios, CRM save
+  - campaign-plan          # "Plan Discovery/Validation Campaign" — TestPlan from approved scenario or harvested keywords
+  - campaign-analysis      # "Analyze Campaign Results" — Search Term Report analysis, keyword classification, data quality
+  - scale-decision         # "Make Scale Decision" — cost comparison, compliance check, Gate 2 verdict
 cowork_projects:
-  - test-campaign
+  - test-campaign          # related cowork for non-artifact execution (ad-hoc sessions)

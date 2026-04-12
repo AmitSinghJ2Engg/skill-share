@@ -135,6 +135,26 @@ plugins:
       - skill: zoho-data-ops
         from: platform
 
+  # ── Workflow (Orchestration Skills) ────────────────────────────────
+
+  workflow-ops:
+    description: "Workflow orchestration skills -- session-sized task workflows for market testing (test-launch-prep, campaign-plan, campaign-analysis, scale-decision), daily discovery, daily ads analysis. Invoked via /name with disable-model-invocation: true. Per DL-025: tasks are skills."
+    version: "1.0.0"
+    project: "Product Pipeline"
+    skills:
+      - skill: test-launch-prep
+        from: workflow
+      - skill: campaign-plan
+        from: workflow
+      - skill: campaign-analysis
+        from: workflow
+      - skill: scale-decision
+        from: workflow
+      - skill: daily-discovery
+        from: workflow
+      - skill: daily-ads-analysis
+        from: workflow
+
   # ── System Ops (Governance) ───────────────────────────────────────
 
   governance-audit:

@@ -1,6 +1,31 @@
+---
+name: campaign-plan
+description: >
+  Create a TestPlan for a PPC campaign phase — discovery (auto campaign) or
+  validation (manual exact-match from harvested keywords). Reusable: called
+  twice in the market-testing workflow with different phase parameters.
+  Invoke with /campaign-plan. ALWAYS trigger for: "plan discovery campaign",
+  "plan validation campaign", "create test plan", "campaign planning".
+disable-model-invocation: true
+metadata:
+  domain: workflow
+  prefix: WF-
+  version: 1.0.0
+  lifecycle: L1_stable
+  type: interactive
+  schedule: null
+  trigger: "Approved scenario exists in CRM (Campaigns.Status = Active)"
+  skills_invoked:
+    - ads-ops-plan:TEST
+    - zoho-data-ops:WRITE
+  runtime_context:
+    - ppc-test-campaign-config.ctx.json
+    - amazon-ads-campaign-fields.ctx.json
+---
+
 # Plan Campaign
 
-Create a TestPlan for a PPC campaign phase — either discovery (Phase 1 auto campaign) or validation (Phase 2 manual exact-match campaigns). This task is reusable: the artifact calls it twice with different phase parameters.
+Create a TestPlan for a PPC campaign phase — either discovery (Phase 1 auto campaign) or validation (Phase 2 manual exact-match campaigns). This workflow is reusable: the artifact calls it twice with different phase parameters.
 
 ## Input
 
@@ -26,11 +51,6 @@ Invoke **ZO- zoho-data-ops READ mode** on the Product_Launches and Campaigns rec
 |---|---|---|
 | Phase 1 TestResults with harvested + negative keywords | CRM ISM_ExecutionLogs | Yes |
 | Phase 1 data quality = HIGH or MEDIUM (or LOW with explicit user override) | ISM_ExecutionLogs | Yes |
-
-## Context files to read
-
-- `ppc-test-campaign-config.ctx.json` — campaign defaults, duration ranges
-- `amazon-ads-campaign-fields.ctx.json` — Amazon Ads field definitions
 
 ## Steps
 
@@ -63,7 +83,7 @@ After approval, invoke **ZO- zoho-data-ops WRITE mode** to update:
 
 ## Completion criteria
 
-This task is done when:
+This workflow is done when:
 - [x] TestPlan generated for the requested phase
 - [x] Plan approved by human
 - [x] CRM records updated with plan status

@@ -1,6 +1,35 @@
+---
+name: campaign-analysis
+description: >
+  Analyze PPC campaign results — ingest Search Term Report CSV, monitor product
+  signals (BSR, reviews, returns), classify keywords into 4 buckets, assess data
+  quality, write TestResults to CRM, post summary to Slack. Reusable: called for
+  both discovery and validation phases with different parameters.
+  Invoke with /campaign-analysis. ALWAYS trigger for: "analyze campaign results",
+  "search term report analysis", "keyword analysis", "campaign performance review".
+disable-model-invocation: true
+metadata:
+  domain: workflow
+  prefix: WF-
+  version: 1.0.0
+  lifecycle: L1_stable
+  type: interactive
+  schedule: null
+  trigger: "Search Term Report CSV available after campaign phase completes"
+  skills_invoked:
+    - product-monitor:COLLECT
+    - ads-ops-plan:TEST
+    - zoho-data-ops:WRITE
+    - slack-messaging:auto
+  runtime_context:
+    - ppc-test-campaign-config.ctx.json
+    - financial-constants.ctx.json
+    - gate-criteria.ctx.json
+---
+
 # Analyze Campaign Results
 
-Ingest a Search Term Report from Seller Central, monitor product-side signals, classify keywords, assess data quality, and write TestResults to CRM. This task is reusable: the artifact calls it for both Phase 1 (discovery) and Phase 2 (validation) analysis with different parameters.
+Ingest a Search Term Report from Seller Central, monitor product-side signals, classify keywords, assess data quality, and write TestResults to CRM. This workflow is reusable: called for both Phase 1 (discovery) and Phase 2 (validation) analysis with different parameters.
 
 ## Input
 
@@ -27,12 +56,6 @@ Invoke **ZO- zoho-data-ops READ mode** on the Product_Launches and Campaigns rec
 | Check | Source | Required |
 |---|---|---|
 | Phase 1 TestResults (keyword buckets, harvested keywords) | CRM ISM_ExecutionLogs | Yes |
-
-## Context files to read
-
-- `ppc-test-campaign-config.ctx.json` — data quality thresholds, extension parameters
-- `financial-constants.ctx.json` — margin thresholds for viability assessment
-- `gate-criteria.ctx.json` — Gate 2 keyword and ACoS criteria (for preview reference)
 
 ## Steps
 
@@ -83,7 +106,7 @@ If phase = discovery, assess data quality and recommend next step:
 
 ## Completion criteria
 
-This task is done when:
+This workflow is done when:
 - [x] Product-side signals monitored (BSR, reviews, returns, listing health)
 - [x] Search Term Report analyzed and keywords classified
 - [x] TestResults written to CRM ISM_ExecutionLogs

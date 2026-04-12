@@ -1,3 +1,33 @@
+---
+name: scale-decision
+description: >
+  Gate 2 scale-or-kill decision — the highest-stakes decision in the pipeline.
+  Run cost comparison (margin-calculator COMPARISON), check compliance timeline
+  (compliance-ops TIMELINE_CHECK), compile all Gate 2 evidence, present to human,
+  write verdict to CRM (dual-write), post Slack alerts, log everything.
+  Invoke with /scale-decision. ALWAYS trigger for: "make scale decision",
+  "Gate 2 decision", "scale or kill", "go no-go decision", "commit decision".
+disable-model-invocation: true
+metadata:
+  domain: workflow
+  prefix: WF-
+  version: 1.0.0
+  lifecycle: L1_stable
+  type: interactive
+  schedule: null
+  trigger: "Phase 2 TestResults available + all Gate 2 evidence in CRM"
+  skills_invoked:
+    - margin-calculator:COMPARISON
+    - compliance-ops:TIMELINE_CHECK
+    - zoho-data-ops:WRITE
+    - slack-messaging:auto
+  runtime_context:
+    - gate-criteria.ctx.json
+    - financial-constants.ctx.json
+    - crm-field-mappings.ctx.json
+    - pipeline-config.ctx.json
+---
+
 # Make Scale Decision
 
 The highest-stakes decision in the product pipeline. Compare estimated vs actual vs test economics, check compliance timeline, compile all evidence, and present the Gate 2 scale-or-kill decision to the human. Write the verdict to CRM, post alerts, and log everything.
@@ -129,7 +159,7 @@ If FAIL, also post a kill/park alert with the full rationale.
 
 ## Completion criteria
 
-This task is done when:
+This workflow is done when:
 - [x] CostComparison + CostingScenarios generated
 - [x] ComplianceTimelineCheck completed with verdict
 - [x] All Gate 2 evidence presented to human
@@ -140,7 +170,7 @@ This task is done when:
 - [x] Slack summary posted to #ism-launch-alerts
 
 **If PASS:** Next actions are Domain 3 — bulk order initiation, listing optimization, capital planning. These are separate workflows.
-**If FAIL:** Product is parked or killed. CRM reflects the decision. No further test-campaign actions.
+**If FAIL:** Product is parked or killed. CRM reflects the decision. No further actions.
 
 ## Constraints
 

@@ -1,0 +1,284 @@
+---
+name: daily-ads-analysis
+description: >
+  Daily PPC campaign monitoring — query active campaigns from CRM, collect
+  today's metrics (Search Term Report CSV or manual), analyze performance
+  (D2.5 test via ads-ops-plan, D4 scale via ads-ops-live), update CRM
+  actuals + aggregates, sync to Bigin, monitor product health, post digest
+  to Slack. Runs headless via scheduled task or interactively via
+  /daily-ads-analysis.
+  ALWAYS trigger for: "daily ads analysis", "campaign monitoring",
+  "daily ad report", "update campaign metrics".
+disable-model-invocation: true
+metadata:
+  domain: workflow
+  prefix: WF-
+  version: 1.0.0
+  lifecycle: L1_stable
+  type: scheduled
+  schedule: "Daily, 10:00 AM IST (after Seller Central data refreshes)"
+  trigger: "Active Campaigns exist in CRM (Status = Active, Type = Amazon PPC Test)"
+  skills_invoked:
+    - ads-ops-plan:TEST
+    - ads-ops-live:LIVE
+    - product-monitor:COLLECT
+    - zoho-data-ops:WRITE
+    - zoho-data-ops:SYNC
+    - slack-messaging:auto
+  runtime_context:
+    - ppc-test-campaign-config.ctx.json
+    - crm-field-mappings.ctx.json
+    - amazon-ads-campaign-fields.ctx.json
+---
+
+# Daily Ads Analysis
+
+## Inputs
+
+- CRM read: Campaigns records where Status = Active AND Type = "Amazon PPC Test"
+- CRM read: Amazon_Ad_Campaigns records linked to active Campaigns
+- CRM read: Product_Launches records linked to active Campaigns (stages 5-6)
+- User input: daily ad metrics (Search Term Report CSV export or manual summary from Seller Central)
+- Project context: `ppc-test-campaign-config.ctx.json` (thresholds, data quality criteria)
+- Project context: `crm-field-mappings.ctx.json` (CRM field API names)
+- Project context: `amazon-ads-campaign-fields.ctx.json` (Amazon Ads field reference)
+
+## Prerequisites (verify before proceeding)
+
+| Check | Source | Required |
+|---|---|---|
+| At least 1 Campaigns record with Status = Active, Type = "Amazon PPC Test" | CRM Campaigns | Yes |
+| At least 1 Amazon_Ad_Campaigns record linked to active Campaigns | CRM Amazon_Ad_Campaigns | Yes |
+| Linked Product_Launches record exists | CRM Product_Launches | Yes |
+| Today's metrics available (CSV or manual) | User provides | Yes |
+
+If no active Campaigns exist, skip run and log "no active campaigns" to ISM_ExecutionLogs.
+
+## Steps
+
+### Step 0: Dedup check
+
+Query ISM_ExecutionLogs for Skill_Name = "daily-ads-analysis" AND Execution_Date = today. If found, SKIP and log "duplicate run prevented" to Slack #ism-launch-alerts.
+
+### Step 1: Query active campaigns
+
+Read CRM for Campaigns where Status = "Active" AND Type = "Amazon PPC Test". For each, load linked Amazon_Ad_Campaigns records and the linked Product_Launches record. Collect: product name, ASIN, campaign phase (Discovery/Validation/Scale), start date, budget, breakeven ACoS, individual campaign names and types.
+
+### Step 2: Collect today's metrics
+
+Request daily ad metrics from user. Accept either:
+- Search Term Report CSV from Seller Central
+- Manual summary: impressions, clicks, orders, spend, revenue per individual campaign (Amazon_Ad_Campaigns level)
+
+### Step 3: Analyze performance
+
+For each active Amazon_Ad_Campaigns record:
+
+**If campaign is in Discovery or Validation phase (Campaigns.Status = Active, D2.5 testing):**
+- Invoke **AO- ads-ops-plan TEST mode** with `phase = daily_check` and `cumulative_metrics`, `day_n`, `day_k` from the campaign record
+- The skill uses cumulative metrics for keyword classification, runs anomaly detection inline via ANOMALY sub-mode, and populates `gate_2_readiness` once `day_n >= ceil(day_k / 2)`
+- Outputs `MID_TEST_ON_TRACK` or `MID_TEST_ANOMALY` — never phase-end recommendations (those come from analyze_discovery/analyze_validation at phase end, not from daily checks)
+
+**If campaign is past validation (Campaigns.Status = Scale, D4 post-Gate-2 PASS):**
+- Invoke **AO- ads-ops-live LIVE mode** for health_check
+- The skill computes per-campaign health, flags scale eligibility (stability check + min orders), emits bid recommendations with explicit `recommended_bid_inr` magnitudes, and returns overall health verdict
+- Compute: campaign health, wasted spend, bid optimization recommendations
+
+### Step 4: Compare trends
+
+Query ISM_ExecutionLogs for previous daily-ads-analysis snapshots to compute trends.
+
+For each Amazon_Ad_Campaigns record, compare today vs:
+- **Yesterday:** delta on impressions, clicks, orders, ACoS, spend
+- **Cumulative:** running totals since campaign start, trend direction (improving/stable/declining)
+
+Flag anomalies:
+- Spend spike: daily spend > 150% of daily budget
+- ACoS jump: daily ACoS > breakeven ACoS + 20pp
+- CTR drop: daily CTR < 50% of cumulative CTR
+- Zero orders: clicks > 20 but orders = 0 today
+- Budget overpacing: if (cumulative spend / total budget) > (elapsed days / total duration) + 0.20, flag "overpacing — {spend_pct}% of budget spent in {duration_pct}% of time"
+
+### Step 5: Update Amazon_Ad_Campaigns actuals
+
+For each Amazon_Ad_Campaigns record, invoke **ZO- zoho-data-ops WRITE mode** to update cumulative actuals:
+- Actual_Impressions (cumulative)
+- Actual_Clicks (cumulative)
+- Actual_Orders (cumulative)
+- Actual_Spend_INR (cumulative)
+- Actual_Revenue_INR (cumulative)
+- Actual_ACoS_Pct (recalculated from cumulative: Actual_Spend / Actual_Revenue)
+- Actual_CVR_Pct (recalculated: Actual_Orders / Actual_Clicks)
+- Actual_CTR_Pct (recalculated: Actual_Clicks / Actual_Impressions)
+- Actual_CPC_INR (recalculated: Actual_Spend / Actual_Clicks)
+- Data_Quality (current rating)
+
+### Step 5.5: Aggregate to Campaigns record
+
+For each Campaigns (strategy) record, sum across all its child Amazon_Ad_Campaigns and invoke **ZO- zoho-data-ops WRITE mode** to update:
+- Agg_Impressions = SUM(child Actual_Impressions)
+- Agg_Clicks = SUM(child Actual_Clicks)
+- Agg_Orders = SUM(child Actual_Orders)
+- Agg_Spend_INR = SUM(child Actual_Spend_INR)
+- Agg_Revenue_INR = SUM(child Actual_Revenue_INR)
+- Agg_ACoS_Pct = Agg_Spend_INR / Agg_Revenue_INR (blended)
+- Agg_CVR_Pct = Agg_Orders / Agg_Clicks (blended)
+- Agg_CTR_Pct = Agg_Clicks / Agg_Impressions (blended)
+- Data_Quality = MIN across children (worst quality wins)
+
+### Step 5.55: Gate 2 readiness check
+
+After aggregation, check if the Campaigns record's aggregate metrics now meet Gate 2 criteria (from `gate-criteria.ctx.json`):
+- **Path A:** Agg_Orders >= 10 AND Agg_CVR_Pct >= 5%
+- **Path B:** Agg_Impressions >= 500 AND Agg_CTR_Pct >= 0.3%
+
+If either path is met AND Gate_2_Verdict is still "Pending":
+- Post proactive alert to **#ism-launch-alerts** via `slack-messaging` skill: "Gate 2 data sufficient for {product_name} — Path {A/B} criteria met. Ready for scale decision review."
+- Do NOT auto-update Gate_2_Verdict — this remains a human decision.
+
+### Step 5.6: Sync campaign data to Bigin
+
+For each Campaigns record updated in Step 5.5, invoke **ZO- zoho-data-ops SYNC mode** to push campaign fields to the corresponding Bigin Product Launch Factory record:
+
+1. Find the Bigin record: read `Product_Launches.Bigin_Record_ID` from the linked Product_Launches record, then search Bigin by `CRM_Record_ID`
+2. Update 5 Bigin fields from Campaigns:
+   - `Active_Campaign_Strategy` <- `Campaigns.Campaign_Name`
+   - `Campaign_Status` <- `Campaigns.Status`
+   - `Campaign_ACoS_Current` <- `Campaigns.Agg_ACoS_Pct`
+   - `Campaign_Spend_Total` <- `Campaigns.Agg_Spend_INR`
+   - `Gate_2_Verdict` <- `Campaigns.Gate_2_Verdict`
+
+**One-way sync only:** CRM -> Bigin. Never write back from Bigin to CRM.
+
+**Guard:** If Bigin record not found (no CRM_Record_ID match), log warning and continue. Do not block the daily run.
+
+### Step 6: Update Product_Launches test fields
+
+Invoke **ZO- zoho-data-ops WRITE mode** to update Product_Launches record:
+- Test_Impressions, Test_Clicks, Test_Orders (cumulative across all campaigns for this product)
+- Total_Test_Spend (cumulative across all campaigns for this product)
+- Test_Revenue (cumulative)
+- Test_ACoS, Test_CVR, Test_CTR (recalculated from cumulative)
+
+### Step 6.5: Log daily snapshot to ISM_ExecutionLogs
+
+Write one ISM_ExecutionLogs entry **per Amazon_Ad_Campaigns record** with today's daily metrics:
+
+```
+Skill_Name: "daily-ads-analysis"
+Execution_Date: now
+Status: "SUCCESS"
+Input_Fingerprint: "campaign={campaign_name},campaign_id={amazon_ad_campaign_id}"
+Output_Summary: JSON: {
+  "date": "YYYY-MM-DD",
+  "daily_impressions": N,
+  "daily_clicks": N,
+  "daily_orders": N,
+  "daily_spend_inr": N,
+  "daily_revenue_inr": N,
+  "daily_acos_pct": N,
+  "cumulative_impressions": N,
+  "cumulative_spend_inr": N,
+  "cumulative_acos_pct": N,
+  "data_quality": "HIGH|MEDIUM|LOW",
+  "anomalies": []
+}
+Systems_Modified: "Amazon_Ad_Campaigns,Campaigns,Product_Launches"
+Slack_Tag: "#ism-launch-alerts"
+```
+
+These daily snapshots enable trend analysis in Step 4 on subsequent runs.
+
+### Step 7: Monitor product health
+
+Invoke **PM- product-monitor COLLECT mode** to check:
+- BSR movement since campaign started
+- Review velocity and rating
+- Listing health (suppression, buybox)
+
+### Step 8: Write summary execution log
+
+Write one summary ISM_ExecutionLogs entry for the overall run:
+
+```
+Skill_Name: "daily-ads-analysis"
+Execution_Date: now
+Status: "SUCCESS" | "PARTIAL" | "FAILED"
+Input_Fingerprint: "strategies={count},campaigns={count},products={product_names}"
+Output_Summary: "day={N},spend_today={inr},acos_today={pct},cumulative_acos={pct},anomalies={count}"
+Systems_Modified: "Amazon_Ad_Campaigns,Campaigns,Product_Launches"
+Slack_Tag: "#ism-launch-alerts"
+```
+
+### Step 9: Write learning signal (if anomalies detected)
+
+If any anomalies flagged in Step 4, write to **ISM_Learnings**:
+
+```
+Skill_Name: "daily-ads-analysis"
+Target_Type: "campaign_anomaly"
+Target_Name: product name
+Description: JSON with anomaly_type, metric_value, threshold, trend_context, campaign_name
+Severity: "warning"
+Status: "new"
+Timestamp: now
+```
+
+### Step 10: Post daily digest to Slack
+
+**Route through `slack-messaging` skill** for correct mrkdwn formatting.
+
+Post to **#ism-launch-alerts**:
+
+```
+ISM Daily Ads Report | {date} | Day {N} of campaign
+{product_name} -- {scenario_type} strategy ({N} campaigns)
+
+Per-campaign breakdown:
+  {campaign_name} ({targeting_type}):
+    Today: {impressions} imp | {clicks} clicks | {orders} orders | INR {spend} | {acos}% ACoS
+    Cumulative: {total_imp} imp | {total_orders} orders | INR {total_spend} | {cum_acos}% ACoS
+
+Strategy totals:
+  Today: {agg_impressions} imp | {agg_orders} orders | INR {agg_spend} | {agg_acos}% ACoS
+  Cumulative: {agg_total_imp} imp | {agg_total_orders} orders | INR {agg_total_spend} | {agg_cum_acos}% ACoS
+
+vs Yesterday: ACoS {delta}, CTR {delta}, Orders {delta}
+Data Quality: {HIGH/MEDIUM/LOW}
+Anomalies: {list or "none"}
+Keywords: {winners} winners, {learners} learners, {losers} losers
+Budget remaining: INR {remaining} ({pct}% of total)
+```
+
+If anomalies detected, append recommendations (e.g., "Consider negating keyword X", "Budget pacing ahead of schedule").
+
+## Outputs
+
+| Output | Destination | Condition |
+|---|---|---|
+| Amazon_Ad_Campaigns actuals update | CRM Amazon_Ad_Campaigns | Always |
+| Campaigns aggregate update | CRM Campaigns | Always |
+| Product_Launches test fields update | CRM Product_Launches | Always |
+| Daily snapshot logs | ISM_ExecutionLogs (per campaign) | Always |
+| Product health check | Returned by PM | Always |
+| Summary execution log | ISM_ExecutionLogs | Always |
+| Learning signal | ISM_Learnings | If anomalies detected |
+| Daily digest | Slack #ism-launch-alerts | Always |
+
+## Error Handling
+
+| Condition | Action |
+|---|---|
+| No active Campaigns | Skip run, log to ISM_ExecutionLogs |
+| Metrics not provided | Ask user to export from Seller Central |
+| CRM write fails | Retry once; if still failing, log error, continue to Slack |
+| Anomaly thresholds exceeded | Flag in digest, do NOT auto-pause campaigns |
+
+## Constraints
+
+- This workflow is an **orchestrator**. Skills do the calculations.
+- **Never execute Seller Central actions.** Bid changes, negatives, pauses are recommendations only.
+- **Never auto-pause or modify campaigns.** Anomaly flags are for human review.
+- All CRM writes go through `zoho-data-ops` skill.
+- All Slack messages go through `slack-messaging` skill.
+- Runs once per day. Dedup check prevents duplicate runs.

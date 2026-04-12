@@ -24,6 +24,9 @@ mcp_connections:
   - zoho-bigin
   - slack
 working_directory: "C:/Users/amits/ClaudeMain/Claude-Cowork/Git-Skill-Share/skill-share"
-tasks:
-  - test-campaign
+workflow_skills:           # DL-025: tasks are skills
+  - test-launch-prep
+  - campaign-plan
+  - campaign-analysis
+  - scale-decision
   - daily-ads-analysis

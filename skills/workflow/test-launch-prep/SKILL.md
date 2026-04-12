@@ -1,3 +1,35 @@
+---
+name: test-launch-prep
+description: >
+  Prepare a product for Amazon PPC test launch — parse listing, import keyword
+  research, verify FBA dispatch, generate campaign scenarios, save selected plan
+  to CRM, post setup summary to Slack. Single-session workflow invoked via
+  /test-launch-prep. ALWAYS trigger for: "prepare test launch", "set up campaign",
+  "test launch prep", "listing parse + scenarios", "FBA ready check".
+disable-model-invocation: true
+metadata:
+  domain: workflow
+  prefix: WF-
+  version: 1.0.0
+  lifecycle: L1_stable
+  type: interactive
+  schedule: null
+  trigger: "Product at FBA + SampleConfirmation exists in CRM"
+  skills_invoked:
+    - product-discover:LISTING_PARSE
+    - ikraft-keyword-intelligence:IMPORT
+    - fulfillment-ops:SAMPLE
+    - ads-ops-plan:SCENARIO
+    - zoho-data-ops:WRITE
+    - slack-messaging:auto
+  runtime_context:
+    - ppc-test-campaign-config.ctx.json
+    - gate-criteria.ctx.json
+    - financial-constants.ctx.json
+    - amazon-fee-table.ctx.md
+    - crm-field-mappings.ctx.json
+---
+
 # Prepare Test Launch
 
 Set up everything needed to test-launch a product via Amazon PPC: parse the listing, import keyword research, verify FBA readiness, generate campaign scenarios, and save the selected plan to CRM.
@@ -101,7 +133,7 @@ Invoke **SM- slack-messaging** to post a test-launch setup summary to **#ism-lau
 
 ## Completion criteria
 
-This task is done when:
+This workflow is done when:
 - [x] ListingRecord extracted (or manual fallback provided)
 - [x] KeywordSet[] imported (or explicitly skipped)
 - [x] FBA dispatch verified
@@ -113,7 +145,7 @@ This task is done when:
 
 ## Constraints
 
-- This task is an **orchestrator**. Skills do the calculations.
+- This workflow is an **orchestrator**. Skills do the calculations.
 - **Never execute Seller Central actions.** Campaign creation is done by team manually.
 - All CRM writes go through `zoho-data-ops` skill.
 - All Slack messages go through `slack-messaging` skill for mrkdwn formatting.

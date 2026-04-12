@@ -59,22 +59,22 @@ Two-module campaign system (DL-017):
 - Module design: see docs/campaign-plans-module-design.json
 - Bigin: one-way sync from CRM (5 read-only fields: strategy name, status, ACoS, spend, Gate 2 verdict)
 
-## Tasks (DL-025 decomposition)
+## Workflow Skills (DL-025: tasks are skills)
 
-Each task is a single-session work unit. The artifact presents these as business actions — the user never sees task names.
+Each workflow is a single-session skill with `disable-model-invocation: true`. Invoked via `/name` or by the artifact. The artifact presents these as business actions — the user never sees skill names.
 
-| Artifact action | Task file | Session |
+| Artifact action | Skill | Session |
 |---|---|---|
-| **"Prepare Test Launch"** | `tasks/test-launch-prep.md` | ~30 min — listing parse, keywords, FBA, scenarios, CRM save |
-| **"Plan Discovery Campaign"** / **"Plan Validation Campaign"** | `tasks/campaign-plan.md` (phase param) | ~15 min — TestPlan for Seller Central |
-| **"Analyze Campaign Results"** | `tasks/campaign-analysis.md` (phase param) | ~20 min — Search Term Report analysis, keyword classification |
-| **"Make Scale Decision"** | `tasks/scale-decision.md` | ~30 min — cost comparison, compliance check, Gate 2 verdict |
+| **"Prepare Test Launch"** | `/test-launch-prep` | ~30 min — listing parse, keywords, FBA, scenarios, CRM save |
+| **"Plan Discovery Campaign"** / **"Plan Validation Campaign"** | `/campaign-plan` (phase param) | ~15 min — TestPlan for Seller Central |
+| **"Analyze Campaign Results"** | `/campaign-analysis` (phase param) | ~20 min — Search Term Report analysis, keyword classification |
+| **"Make Scale Decision"** | `/scale-decision` | ~30 min — cost comparison, compliance check, Gate 2 verdict |
 
 `campaign-plan` and `campaign-analysis` are called twice (Phase 1 discovery + Phase 2 validation) with different `phase` parameters.
 
-**Superseded:** `tasks/product-pipeline/test-campaign/` — the original 10-step monolith, now decomposed into the 4 tasks above.
+All workflow skills live at `skills/workflow/{name}/SKILL.md` and ship via the `workflow-ops` plugin.
 
-**Related (Cowork, scheduled):** `tasks/product-pipeline/daily-ads-analysis/` — scheduled daily active campaign monitoring. Runs in Claude Desktop, not Chat.
+**Related (scheduled):** `/daily-ads-analysis` — scheduled daily active campaign monitoring. Same plugin, different execution mode.
 
 ## Integrations
 

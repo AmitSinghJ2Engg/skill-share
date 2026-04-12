@@ -1,0 +1,8 @@
+{
+  "name": "workflow-ops",
+  "description": "Workflow orchestration skills -- session-sized task workflows for market testing (test-launch-prep, campaign-plan, campaign-analysis, scale-decision), daily discovery, daily ads analysis. Invoked via /name with disable-model-invocation: true. Per DL-025: tasks are skills.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ismokraft"
+  }
+}
